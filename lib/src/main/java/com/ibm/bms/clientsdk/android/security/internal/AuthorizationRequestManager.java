@@ -1,0 +1,346 @@
+package com.ibm.bms.clientsdk.android.security.internal;
+
+import android.content.Context;
+
+import com.ibm.bms.clientsdk.android.core.api.BMSClient;
+import com.ibm.bms.clientsdk.android.core.api.FailResponse;
+import com.ibm.bms.clientsdk.android.core.api.MFPRequest;
+import com.ibm.bms.clientsdk.android.core.api.ResourceRequest;
+import com.ibm.bms.clientsdk.android.core.api.Response;
+import com.ibm.bms.clientsdk.android.core.api.ResponseListener;
+import com.ibm.bms.clientsdk.android.security.challengehandlers.ChallengeHandler;
+import com.squareup.okhttp.HttpUrl;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Created by vitalym on 7/16/15.
+ */
+
+//TODO: split it to AuthorizationRequestManager and AuthorizationRequestManager
+public class AuthorizationRequestManager implements ResponseListener {
+
+    private final static String AUTH_SERVER_NAME = "imf-authserver";
+    private final static String WL_RESULT = "wl_result";
+    private final static String AUTH_PATH = "authorization/v1/apps/";
+    private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
+
+    private String requestPath;
+    private RequestOptions requestOptions;
+
+    private ResponseListener listener;
+    private JSONObject answers;
+    private Context context;
+
+    static public class RequestOptions {
+        public String requestMethod;
+        public int timeout;
+
+        public HashMap<String, String> headers;
+        public HashMap<String, String> parameters;
+        public JSONObject userInfo;
+    }
+
+    public void initialize(Context context, ResponseListener listener) {
+        this.context = context;
+        this.listener = listener;
+    }
+
+    public void sendRequest(String path, RequestOptions options) throws IOException, JSONException {
+        String rootUrl = null;
+
+        if (path.indexOf(BMSClient.HTTP_SCHEME) == 0 && path.contains(":")) {
+            // request using full path, split the URL to root and path
+            URL url = new URL(path);
+            path = url.getPath();
+            rootUrl = url.toString().replace(path, "");
+        } else {
+            // "path" is a relative
+            String backendRoute = BMSClient.getInstance().getBackendRoute();
+            rootUrl = backendRoute.charAt(backendRoute.length() - 1) == '/' ? backendRoute.concat(AUTH_SERVER_NAME) :
+                    backendRoute.concat("/" + AUTH_SERVER_NAME);
+
+            String pathWithTenantId = AUTH_PATH + BMSClient.getInstance().getBackendGUID();
+            rootUrl = rootUrl.concat("/" + pathWithTenantId);
+        }
+
+        sendRequestInternal(rootUrl, path, options);
+    }
+
+    public void resendRequest() throws IOException, JSONException {
+        sendRequest(requestPath, requestOptions);
+    }
+
+    private void sendRequestInternal(String rootUrl, String path, RequestOptions options) throws IOException, JSONException {
+
+        HttpUrl root = HttpUrl.parse(rootUrl);
+        HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
+                .scheme(root.scheme())
+                .host(root.host())
+                .port(root.port());
+
+                //.addPathSegment(path)
+                //.build();
+
+        for (String segment : root.pathSegments()) {
+            urlBuilder.addPathSegment(segment);
+        }
+
+        String segments[] = path.split("/");
+        for (int i = 0 ; i < segments.length; i++) {
+            urlBuilder.addPathSegment(segments[i]);
+        }
+
+        HttpUrl url = urlBuilder.build();
+
+        // used to resend request
+        this.requestPath = url.toString();
+        this.requestOptions = options;
+
+        MFPRequest request = new MFPRequest(this.requestPath, options.requestMethod);
+
+        if (options.timeout != 0) {
+            request.setTimeout(options.timeout);
+        } else {
+            request.setTimeout(BMSClient.getInstance().getDefaultTimeout());
+        }
+
+        if (options.headers != null) {
+            for (Map.Entry<String, String> entry : options.headers.entrySet()) {
+                request.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (answers != null) {
+            String answer = answers.toString(0);
+
+            String authorizationHeaderValue = String.format("Bearer %s", answer.replace("\n", ""));
+            request.addHeader("Authorization", authorizationHeaderValue);
+        }
+
+        String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
+        request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
+
+        // TODO add lang code
+
+        // TODO add user agent
+
+        // TODO set user info
+
+        request.setFollowRedirects(false);
+
+        // there is no need to check for null
+        if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
+            request.setQueryParameters(options.parameters);
+            request.send(this);
+        } else {
+            request.send(options.parameters, this);
+        }
+    }
+
+    public void setExpectedAnswers(ArrayList<String> realms) {
+        if (answers == null) {
+            return;
+        }
+
+        for (String realm : realms) {
+            try {
+                answers.put(realm, "");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void removeExpectedAnswer(String realm) {
+        if (answers != null) {
+            answers.remove(realm);
+        }
+
+        try {
+            if (isAnswersFilled()) {
+                resendRequest();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void submitAnswer(JSONObject answer, String realm) {
+        if (answers == null) {
+            answers = new JSONObject();
+        }
+
+        try {
+            answers.put(realm, answer);
+            if (isAnswersFilled()) {
+                resendRequest();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isAnswersFilled() throws JSONException {
+        Iterator<String> it = answers.keys();
+        while (it.hasNext()) {
+            String key = it.next();
+            Object value = answers.get(key);
+
+            if ((value instanceof String) && ((String) value).compareTo("") == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void processRedirectResponse(Response response) {
+        java.util.List<String> locationHeaders = response.getResponseHeader("Location");
+
+        if (locationHeaders.size() == 0) {
+            listener.onSuccess(response);
+            return;
+        }
+
+        String location = locationHeaders.get(0);
+
+        try {
+            URL url = new URL(location);
+            String query = url.getQuery();
+
+            if (query.contains(WL_RESULT)) {
+                String result = Utils.getParameterValueFromQuery(query, WL_RESULT);
+                JSONObject jsonResult = new JSONObject(result);
+
+                JSONObject jsonFailures = jsonResult.optJSONObject("WL-Authentication-Failure");
+
+                if (jsonFailures != null) {
+                    processFailures(jsonFailures);
+                    // TODO fill the resposne properly
+                    listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+                    return;
+                }
+
+                JSONObject jsonSuccesses = jsonResult.optJSONObject("WL-Authentication-Success");
+
+                if (jsonSuccesses != null) {
+                    processSuccesses(jsonSuccesses);
+                }
+            }
+
+
+        } catch (MalformedURLException e) {
+
+        } catch (JSONException e) {
+
+        }
+
+        listener.onSuccess(response);
+    }
+
+    private void processResponse(Response response) {
+        JSONObject jsonResponse = Utils.extractSecureJson(response);
+        JSONObject jsonChallenges = jsonResponse == null ? null : jsonResponse.optJSONObject("challenges");
+
+        if (jsonChallenges != null) {
+            startHandleChallenges(jsonChallenges, response);
+        } else {
+            listener.onSuccess(response);
+        }
+    }
+
+    //TODO: move the challange handling outside this class
+    private void startHandleChallenges(JSONObject jsonChallenges, Response response) {
+        Iterator<String> challengesIterator = jsonChallenges.keys();
+        ArrayList<String> challenges = new ArrayList<String>();
+
+        while (challengesIterator.hasNext()) {
+            challenges.add(challengesIterator.next());
+        }
+
+        if (is401(response)) {
+            // TODO make array of realms from JSON
+            setExpectedAnswers(challenges);
+        }
+
+        // TODO for all challenegs in JSONchallenges
+        for (String realm : challenges) {
+            ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
+            if (handler != null) {
+                JSONObject challenge = jsonChallenges.optJSONObject(realm);
+                handler.handleChallenge(this, challenge, context);
+            } else {
+                listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+            }
+        }
+    }
+
+    private boolean is401(Response response) {
+        if (response.getStatus() == 401) {
+            String challengesHeader = response.getFirstResponseHeader("WWW-Authenticate");
+
+            if (challengesHeader != null && challengesHeader.compareTo("WL-Composite-Challenge") == 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean is403(Response response) {
+        if (response.getStatus() == 403) {
+            JSONObject jsonResponse = response.getResponseJSON();
+            if (jsonResponse.optJSONObject("WL-Authentication-Failure") != null) {
+                // TODO do something with error???
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void processFailures(JSONObject jsonFailures) {
+
+    }
+
+    private void processSuccesses(JSONObject jsonSuccesses) {
+
+    }
+
+    public void requestFailed(JSONObject info) {
+
+    }
+
+    @Override
+    public void onSuccess(Response response) {
+        if (response.isRedirect()) {
+            processRedirectResponse(response);
+        } else {
+            processResponse(response);
+        }
+    }
+
+    @Override
+    public void onFailure(FailResponse response, Throwable t) {
+        if (is401(response)) {
+            processResponse(response);
+        } else {
+            listener.onFailure(response, t);
+        }
+    }
+}
