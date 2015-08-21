@@ -6,7 +6,6 @@ This is the core component of Android SDK for IBM Bluemix Mobile Services. https
 ###Installation
 You can either download and import this package to your Android Studio project or get it via Gradle.
 
-
 ###Contents
 This package contains the core components of Android SDK
 * HTTP Infrastructure
