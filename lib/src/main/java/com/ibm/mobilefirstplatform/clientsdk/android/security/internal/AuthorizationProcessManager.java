@@ -3,7 +3,7 @@
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *     Unless required by applicable law or agreed to in writing, software
  *     distributed under the License is distributed on an "AS IS" BASIS,
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,14 +27,11 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certifica
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
@@ -197,7 +194,7 @@ public class AuthorizationProcessManager {
             }
         };
 
-        authorizationRequestSend("clients/instance", options, listener);
+        authorizationRequestSend(null, "clients/instance", options, listener);
 
         /*
         ResponseListener listener = new ResponseListener() {
@@ -266,7 +263,7 @@ public class AuthorizationProcessManager {
             }
         };
 
-        authorizationRequestSend("authorization", options, listener);
+        authorizationRequestSend(context, "authorization", options, listener);
         /*
         ResponseListener listener = new ResponseListener() {
             @Override
@@ -291,22 +288,37 @@ public class AuthorizationProcessManager {
 
     }
 
-    public String extractGrantCode(String url) throws URISyntaxException {
-        List<NameValuePair> pp = URLEncodedUtils.parse(new URI(url), "UTF8");
+
+    private String extractGrantCode(String url) throws URISyntaxException {
+
+        HashMap<String, String> queryParams = getQueryParams(url);
         String result = null;
-        for (NameValuePair pair : pp) {
-            if (pair.getName().equals("code")){
-                result = pair.getValue();
+        for (String name : queryParams.keySet()){
+            if (name.equals("code")){
+                result = queryParams.get(name);
                 break;
             }
         }
         return result;
     }
 
-    private void authorizationRequestSend(String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
+    private HashMap<String, String> getQueryParams(String query)
+    {
+        String[] params = query.split("&");
+        HashMap<String, String> map = new HashMap<String, String>();
+        for (String param : params)
+        {
+            String name = param.split("=")[0];
+            String value = param.split("=")[1];
+            map.put(name, value);
+        }
+        return map;
+    }
+
+    private void authorizationRequestSend(final Context context, String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
         try {
             AuthorizationRequestManager tempAuthorizationRequestManager = new AuthorizationRequestManager();
-            tempAuthorizationRequestManager.initialize(null, listener);
+            tempAuthorizationRequestManager.initialize(context, listener);
             tempAuthorizationRequestManager.sendRequest(path, options);
         } catch (Exception e) {
             handleAuthorizationFailure(e);
@@ -333,7 +345,7 @@ public class AuthorizationProcessManager {
             }
         };
 
-        authorizationRequestSend("token", options, listener);
+        authorizationRequestSend(null, "token", options, listener);
         /*
         ResponseListener listener = new ResponseListener() {
             @Override
