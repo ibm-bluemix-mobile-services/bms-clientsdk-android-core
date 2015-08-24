@@ -66,10 +66,10 @@ public class Response {
     /**
      * This method parses the response body as a String.
      *
-     * @return The body of the response as a String. Null if there is no body.
+     * @return The body of the response as a String. Null if there is no body or exception occurred when building the response string.
      */
     public String getResponseText() {
-        if (okHttpResponse == null || bodyBytes == null) {
+        if (bodyBytes == null) {
             return null;
         }
 
@@ -77,7 +77,7 @@ public class Response {
             Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
             return new String(bodyBytes, charset.name());
         } catch (Exception e) {
-           return "";
+           return null;
         }
     }
 
@@ -87,18 +87,17 @@ public class Response {
      * @return The body of the response as a JSONObject. Null if there is no body or if it is not a valid JSONObject.
      */
     public JSONObject getResponseJSON() {
-        if (okHttpResponse == null) {
+        String responseText = getResponseText();
+
+        if (responseText == null) {
             return null;
         }
 
-        JSONObject json;
         try {
-            json = new JSONObject(getResponseText());
+            return new JSONObject(getResponseText());
         } catch (Throwable t) {
             return null;
         }
-
-        return json;
     }
 
     /**
