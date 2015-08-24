@@ -11,12 +11,12 @@
  *     limitations under the License.
  */
 
-package com.ibm.bms.clientsdk.android.security.internal.security;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.security;
 
 
 import android.test.InstrumentationTestCase;
 
-import com.ibm.bms.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 
 import org.json.JSONObject;
 
