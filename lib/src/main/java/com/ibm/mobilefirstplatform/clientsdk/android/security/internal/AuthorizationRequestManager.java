@@ -34,13 +34,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by vitalym on 7/16/15.
  */
 
-//TODO: split it to AuthorizationRequestManager and AuthorizationRequestManager
 public class AuthorizationRequestManager implements ResponseListener {
 
     private final static String AUTH_SERVER_NAME = "imf-authserver";
@@ -61,7 +59,6 @@ public class AuthorizationRequestManager implements ResponseListener {
 
         public HashMap<String, String> headers;
         public HashMap<String, String> parameters;
-        public JSONObject userInfo;
     }
 
     public void initialize(Context context, ResponseListener listener) {
@@ -102,9 +99,6 @@ public class AuthorizationRequestManager implements ResponseListener {
                 .host(root.host())
                 .port(root.port());
 
-                //.addPathSegment(path)
-                //.build();
-
         for (String segment : root.pathSegments()) {
             urlBuilder.addPathSegment(segment);
         }
@@ -144,15 +138,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
         request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
 
-        // TODO add lang code
-
         // TODO add user agent
-
-        // TODO set user info
 
         request.setFollowRedirects(false);
 
-        // there is no need to check for null
         if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
             request.setQueryParameters(options.parameters);
             request.send(this);
@@ -277,21 +266,13 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
-    //TODO: move the challange handling outside this class
     private void startHandleChallenges(JSONObject jsonChallenges, Response response) {
-        Iterator<String> challengesIterator = jsonChallenges.keys();
-        ArrayList<String> challenges = new ArrayList<String>();
-
-        while (challengesIterator.hasNext()) {
-            challenges.add(challengesIterator.next());
-        }
+        ArrayList<String> challenges = getRealmsFromJson(jsonChallenges);
 
         if (is401(response)) {
-            // TODO make array of realms from JSON
             setExpectedAnswers(challenges);
         }
 
-        // TODO for all challenegs in JSONchallenges
         for (String realm : challenges) {
             ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
             if (handler != null) {
@@ -315,28 +296,56 @@ public class AuthorizationRequestManager implements ResponseListener {
         return false;
     }
 
-    private boolean is403(Response response) {
-        if (response.getStatus() == 403) {
-            JSONObject jsonResponse = response.getResponseJSON();
-            if (jsonResponse.optJSONObject("WL-Authentication-Failure") != null) {
-                // TODO do something with error???
-                return true;
-            }
+    private void processFailures(JSONObject jsonFailures) {
+        if (jsonFailures == null) {
+            return;
         }
 
-        return false;
-    }
-
-    private void processFailures(JSONObject jsonFailures) {
-
+        ArrayList<String> challenges = getRealmsFromJson(jsonFailures);
+        for (String realm : challenges) {
+            ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
+            if (handler != null) {
+                JSONObject challenge = jsonFailures.optJSONObject(realm);
+                handler.handleFailure(challenge);
+            } else {
+                // TODO Log - challenge handler does not exist
+            }
+        }
     }
 
     private void processSuccesses(JSONObject jsonSuccesses) {
+        if (jsonSuccesses == null) {
+            return;
+        }
 
+        ArrayList<String> challenges = getRealmsFromJson(jsonSuccesses);
+        for (String realm : challenges) {
+            ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
+            if (handler != null) {
+                JSONObject challenge = jsonSuccesses.optJSONObject(realm);
+                handler.handleSuccess(challenge);
+            } else {
+                // TODO Log - challenge handler does not exist
+            }
+        }
     }
 
     public void requestFailed(JSONObject info) {
+        // TODO - need fail response that can accept JSONObject
+        if (listener != null) {
+            listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+        }
+    }
 
+    private ArrayList<String> getRealmsFromJson(JSONObject jsonChallenges) {
+        Iterator<String> challengesIterator = jsonChallenges.keys();
+        ArrayList<String> challenges = new ArrayList<String>();
+
+        while (challengesIterator.hasNext()) {
+            challenges.add(challengesIterator.next());
+        }
+
+        return challenges;
     }
 
     @Override
