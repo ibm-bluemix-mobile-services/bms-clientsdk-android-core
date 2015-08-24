@@ -19,7 +19,6 @@ import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 
-import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -116,7 +115,7 @@ public class FileLogger extends FileLoggerInterface {
                 Log.e(Logger.LOG_PACKAGE_NAME, "problem reading file " + fl.toString(), e);
             }
         }
-        return ret.getBytes (HTTP.UTF_8);
+        return ret.getBytes ("UTF-8");
     }
 
     private static void copyStream (InputStream is, OutputStream os)
