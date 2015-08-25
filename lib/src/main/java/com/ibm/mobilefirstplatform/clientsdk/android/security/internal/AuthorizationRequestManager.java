@@ -333,7 +333,11 @@ public class AuthorizationRequestManager implements ResponseListener {
     public void requestFailed(JSONObject info) {
         // TODO - need fail response that can accept JSONObject
         if (listener != null) {
-            listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+            Throwable t = null;
+            if (info != null) {
+                t = new RuntimeException(info.toString());
+            }
+            listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), t);
         }
     }
 

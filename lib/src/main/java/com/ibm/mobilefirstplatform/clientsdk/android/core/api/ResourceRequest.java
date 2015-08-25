@@ -105,7 +105,7 @@ public class ResourceRequest extends MFPRequest {
 
                                     @Override
                                     public void onFailure(FailResponse response, Throwable t) {
-                                        listener.onFailure(response, null);
+                                        listener.onFailure(response, t);
                                     }
                                 }
                         );
