@@ -18,9 +18,10 @@ import org.json.JSONObject;
 import java.security.KeyPair;
 
 /**
+ * Interface for signing JSON object using key pair
  * Created by cirilla on 8/10/15.
  */
-public interface IJSONSigner {
+public interface JSONSigner {
 
-    public String sign(KeyPair keyPair, JSONObject json) throws Exception;
+    String sign(KeyPair keyPair, JSONObject json) throws Exception;
 }

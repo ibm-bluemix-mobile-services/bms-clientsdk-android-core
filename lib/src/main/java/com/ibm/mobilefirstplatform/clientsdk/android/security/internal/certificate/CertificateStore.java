@@ -27,6 +27,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
+ * Stores certificate and his key pair on local storage
  * Created by cirilla on 8/6/15.
  */
 public class CertificateStore {
@@ -97,7 +98,7 @@ public class CertificateStore {
         if (keyStore.containsAlias(alias)){
             Certificate[] chain = keyStore.getCertificateChain(alias);
             if (chain==null || chain.length==0){
-                throw new IOException("no certificate found!");
+                throw new IOException("No certificate found");
             }
 
             certificate = (X509Certificate) chain[0];
@@ -112,7 +113,7 @@ public class CertificateStore {
             loadKeyStore();
 
             Certificate[] chain = keyStore.getCertificateChain(alias);
-            if (chain!=null || chain.length > 0){
+            if (chain!=null && chain.length > 0){
                 return true;
             }
 

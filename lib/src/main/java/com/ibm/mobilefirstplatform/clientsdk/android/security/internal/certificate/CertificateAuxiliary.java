@@ -20,19 +20,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.regex.Pattern;
 
 /**
+ * General help methods for handling certificates
  * Created by cirilla on 8/6/15.
  */
 public class CertificateAuxiliary {
-
-    private static final int RSA_KEY_SIZE = 512;
-
-    //X509Certificate certificate;
 
     public static X509Certificate base64StringToCertificate(String certificateString) throws CertificateException, IOException {
 
@@ -49,29 +48,23 @@ public class CertificateAuxiliary {
         return cert;
     }
 
-    public static boolean checkValidityWithPublicKey(X509Certificate certificate, PublicKey publicKey){
-        try {
-            Date now = new Date();
-            long nowTime = now.getTime();
-            Date afterAddingOneMinute=new Date(nowTime + 60000);
+    public static void checkValidityWithPublicKey(X509Certificate certificate, PublicKey publicKey) throws CertificateNotYetValidException, CertificateExpiredException {
 
-            //we are checking the certificate against current time plus one minute to prevent false failure because of sync problems
-            certificate.checkValidity(afterAddingOneMinute);
-            if (certificate.getPublicKey().equals(publicKey)){
-                return true;
-            }
+        Date now = new Date();
+        long nowTime = now.getTime();
+        Date afterAddingOneMinute = new Date(nowTime + 60000);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        //we are checking the certificate against current time plus one minute to prevent false failure because of sync problems
+        certificate.checkValidity(afterAddingOneMinute);
+        if (certificate.getPublicKey().equals(publicKey)) {
+            throw new RuntimeException("Failed to validate public key");
         }
-
-        return false;
     }
 
     public static String getClientIdFromCertificate(X509Certificate certificate){
 
         if (certificate == null){
-            throw new IllegalArgumentException("certificate cannot be null");
+            throw new IllegalArgumentException("Certificate cannot be null");
         }
 
         //subjectDN is of the form: "UID=<clientId>, DC=<some other value>" or "DC=<some other value>, UID=<clientId>"

@@ -114,14 +114,17 @@ public class AuthorizationManager {
     }
 
     public JSONObject getUserIdentity() {
+
         return preferences.userIdentity.getAsJSON();
     }
 
     public JSONObject getDeviceIdentity() {
+
         return preferences.deviceIdentity.getAsJSON();
     }
 
     public JSONObject getAppIdentity() {
+
         return preferences.appIdentity.getAsJSON();
     }
 }

@@ -20,13 +20,14 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * Manage ResponseListener lists by scopes
  * Created by cirilla on 8/19/15.
  */
 public class AuthorizationQueue {
     private HashMap<String, ArrayList<ResponseListener>> authorizationHash;
 
     public AuthorizationQueue() {
-        authorizationHash = new HashMap<String, ArrayList<ResponseListener>>();
+        authorizationHash = new HashMap<>();
     }
 
     public void addListener(String scope, ResponseListener listener) {
@@ -36,7 +37,7 @@ public class AuthorizationQueue {
 
         ArrayList<ResponseListener> array = authorizationHash.get(scope);
         if (array == null) {
-            array = new ArrayList<ResponseListener>();
+            array = new ArrayList<>();
             authorizationHash.put(scope, array);
         }
 
