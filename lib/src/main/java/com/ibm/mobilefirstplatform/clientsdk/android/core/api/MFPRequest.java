@@ -36,7 +36,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by vitalym on 8/17/15.
+ * This class is used to create and send a request. It allows to add all the parameters to the request
+ * before sending it.
  */
 public class MFPRequest {
 
@@ -45,7 +46,7 @@ public class MFPRequest {
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String TEXT_PLAIN = "text/plain";
 
-    private URL url = null;
+    private String url = null;
     private String method = null;
     private int timeout;
 
@@ -105,8 +106,8 @@ public class MFPRequest {
      * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
      * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public MFPRequest(String url, String method, int timeout) throws MalformedURLException {
-        this.url = getUrlFromString(url);
+    public MFPRequest(String url, String method, int timeout) {
+        this.url = url;
         this.method = method;
 
         setTimeout(timeout);
@@ -127,9 +128,9 @@ public class MFPRequest {
     /**
      * Returns the URL for this resource request.
      *
-     * @return The URL object representing the path for this resource request.
+     * @return String The URL representing the path for this resource request.
      */
-    public URL getUrl() {
+    public String getUrl() throws MalformedURLException {
         return url;
     }
 
@@ -331,9 +332,9 @@ public class MFPRequest {
         httpClient.setFollowRedirects(followRedirects);
     }
 
-    protected URL getURLWithQueryParameters(URL url, Map<String, String> queryParameters) throws MalformedURLException {
+    protected URL getURLWithQueryParameters(String url, Map<String, String> queryParameters) throws MalformedURLException {
         if (url == null || queryParameters == null || queryParameters.size() == 0) {
-            return url;
+            return new URL(url);
         }
 
         String queryParamsURLFragment = "";
@@ -350,7 +351,7 @@ public class MFPRequest {
             i++;
         }
 
-        String newURL = url.toString();
+        String newURL = url;
 
         if (!urlContainsURIPath(newURL)) {
             newURL += "/";
@@ -383,16 +384,18 @@ public class MFPRequest {
         Request.Builder requestBuilder = new Request.Builder();
 
         requestBuilder.headers(headers.build());
-        if (getQueryParamsMap().size() == 0) {
-            requestBuilder.url(url);
-        } else {
-            try {
+
+        try {
+            if (getQueryParamsMap().size() == 0) {
+                requestBuilder.url(url);
+            } else {
                 requestBuilder.url(getURLWithQueryParameters(url, getQueryParamsMap()));
-            } catch (MalformedURLException e) {
-                FailResponse response = new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT);
-                listener.onFailure(response, new IllegalArgumentException("The given query parameters are not correct.", e));
-                return;
+
             }
+        } catch (MalformedURLException e) {
+            FailResponse response = new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT);
+            listener.onFailure(response, e);
+            return;
         }
 
         //A GET request cannot have a body in OKHTTP

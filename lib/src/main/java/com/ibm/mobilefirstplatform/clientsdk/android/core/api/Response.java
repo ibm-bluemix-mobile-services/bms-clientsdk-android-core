@@ -31,7 +31,7 @@ import static com.squareup.okhttp.internal.Util.UTF_8;
 public class Response {
     private com.squareup.okhttp.Response okHttpResponse;
     private Headers headers;
-    private String bodyText;
+    private MediaType contentType;
     private byte bodyBytes[];
 
     protected Response(com.squareup.okhttp.Response response) {
@@ -46,13 +46,7 @@ public class Response {
                 bodyBytes = null;
             }
 
-            try {
-                MediaType contentType = okHttpResponse.body().contentType();
-                Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
-                bodyText = new String(bodyBytes, charset.name());
-            } catch (Exception e) {
-                bodyText = "";
-            }
+            contentType = okHttpResponse.body().contentType();
         }
     }
 
@@ -72,21 +66,19 @@ public class Response {
     /**
      * This method parses the response body as a String.
      *
-     * @return The body of the response as a String. Null if there is no body.
+     * @return The body of the response as a String. Null if there is no body or exception occurred when building the response string.
      */
     public String getResponseText() {
-        if (okHttpResponse == null) {
+        if (bodyBytes == null) {
             return null;
         }
-/*
-        String text;
+
         try {
-            text = body.string();
-        } catch (IOException e) {
-            return null;
+            Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
+            return new String(bodyBytes, charset.name());
+        } catch (Exception e) {
+           return null;
         }
-*/
-        return bodyText;
     }
 
     /**
@@ -95,18 +87,17 @@ public class Response {
      * @return The body of the response as a JSONObject. Null if there is no body or if it is not a valid JSONObject.
      */
     public JSONObject getResponseJSON() {
-        if (okHttpResponse == null) {
+        String responseText = getResponseText();
+
+        if (responseText == null) {
             return null;
         }
 
-        JSONObject json;
         try {
-            json = new JSONObject(getResponseText());
+            return new JSONObject(getResponseText());
         } catch (Throwable t) {
             return null;
         }
-
-        return json;
     }
 
     /**
@@ -115,20 +106,10 @@ public class Response {
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        if (okHttpResponse == null) {
-            return null;
-        }
-/*
-        byte[] bytes;
-        try {
-            bytes = body.bytes();
-        } catch (IOException e) {
-            return null;
-        }
-*/
         return bodyBytes;
     }
 
+    /** Returns true if this response redirects to another resource. */
     public boolean isRedirect() {
         if (okHttpResponse == null) {
             return false;
@@ -136,6 +117,10 @@ public class Response {
         return okHttpResponse.isRedirect();
     }
 
+    /**
+     * Returns true if the code is in [200..300), which means the request was
+     * successfully received, understood, and accepted.
+     */
     public boolean isSuccessful() {
         if (okHttpResponse == null) {
             return false;

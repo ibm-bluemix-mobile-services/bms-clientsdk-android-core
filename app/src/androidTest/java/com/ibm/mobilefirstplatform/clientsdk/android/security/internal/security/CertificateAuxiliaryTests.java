@@ -11,11 +11,11 @@
  *     limitations under the License.
  */
 
-package com.ibm.bms.clientsdk.android.security.internal.security;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.security;
 
 import android.test.InstrumentationTestCase;
 
-import com.ibm.bms.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;

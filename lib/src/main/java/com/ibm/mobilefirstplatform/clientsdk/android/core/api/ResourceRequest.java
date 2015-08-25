@@ -41,7 +41,7 @@ public class ResourceRequest extends MFPRequest {
      * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
      * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public ResourceRequest(Context context, String url, String method) throws MalformedURLException {
+    public ResourceRequest(Context context, String url, String method) {
         super(url, method, DEFAULT_TIMEOUT);
         this.context = context;
     }
@@ -56,7 +56,7 @@ public class ResourceRequest extends MFPRequest {
      * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
      * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public ResourceRequest(String url, String method, int timeout) throws MalformedURLException {
+    public ResourceRequest(String url, String method, int timeout) {
         super(url, method, timeout);
 	}
 
@@ -105,7 +105,7 @@ public class ResourceRequest extends MFPRequest {
 
                                     @Override
                                     public void onFailure(FailResponse response, Throwable t) {
-                                        listener.onFailure(response, null);
+                                        listener.onFailure(response, t);
                                     }
                                 }
                         );
