@@ -17,6 +17,7 @@ import android.content.Context;
 import android.util.Base64;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManagerPreferences;
@@ -27,22 +28,18 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certifica
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyPair;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 /**
+ * AuthorizationProcessManager
  * Created by cirilla on 8/3/15.
  */
 public class AuthorizationProcessManager {
@@ -90,10 +87,14 @@ public class AuthorizationProcessManager {
         if (!isAuthorizationInProgress) {
             isAuthorizationInProgress = true;
 
-            if (preferences.clientId.get() == null) {
-                invokeInstanceRegistrationRequest(context);
-            } else {
-                invokeAuthorizationRequest(context);
+            try {
+                if (preferences.clientId.get() == null) {
+                    invokeInstanceRegistrationRequest(context);
+                } else {
+                    invokeAuthorizationRequest(context);
+                }
+            } catch (Throwable t) {
+                handleAuthorizationFailure(t);
             }
         }
     }
@@ -102,7 +103,7 @@ public class AuthorizationProcessManager {
         registrationKeyPair = KeyPairAuxiliary.generateRandomKeyPair();
 
         JSONObject csrJSON = new JSONObject();
-        HashMap<String, String> params = null;
+        HashMap<String, String> params;
 
         try {
             DeviceData deviceData = new DeviceData(preferences.deviceIdentity.getAsJSON());
@@ -117,19 +118,26 @@ public class AuthorizationProcessManager {
 
             String csrValue = jsonSigner.sign(registrationKeyPair, csrJSON);
 
-            params = new HashMap<String, String>();
+            params = new HashMap<>();
             params.put("CSR", csrValue);
 
-        } catch (Exception e) { //TODO: handle the exception in other place
-            e.printStackTrace();
+            return params;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create registration params", e);
         }
+    }
 
-        return params;
+    private HashMap<String, String> createRegistrationHeaders() {
+        HashMap<String, String> headers = new HashMap<>();
+        addSessionIdHeader(headers);
+        headers.put("X-WL-Auth", "0");
+
+        return headers;
     }
 
     private HashMap<String, String> createTokenRequestParams(String grantCode) {
 
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
 
         params.put("code", grantCode);
         params.put("client_id", preferences.clientId.get());
@@ -145,7 +153,7 @@ public class AuthorizationProcessManager {
         try {
             payload.put("code", grantCode);
 
-            headers = new HashMap<String, String>();
+            headers = new HashMap<>();
 
             KeyPair keyPair = certificateStore.getStoredKeyPair();
             String jws = jsonSigner.sign(keyPair, payload);
@@ -153,10 +161,8 @@ public class AuthorizationProcessManager {
             headers.put("X-WL-Authenticate", jws);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("Failed to create token request headers", e);
         }
-
 
         return headers;
     }
@@ -167,7 +173,7 @@ public class AuthorizationProcessManager {
 
     private HashMap<String, String> createAuthorizationParams() {
 
-        HashMap<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<>();
         params.put("response_type", "code");
         params.put("client_id", preferences.clientId.get());
         params.put("redirect_uri", HTTP_LOCALHOST);
@@ -181,10 +187,8 @@ public class AuthorizationProcessManager {
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
 
         options.parameters = createRegistrationParams();
-        options.headers = new HashMap<String, String>();
-        addSessionIdHeader(options.headers);
-        options.headers.put("X-WL-Auth", "0");
-        options.requestMethod = "POST";
+        options.headers = createRegistrationHeaders();
+        options.requestMethod = MFPRequest.POST;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
@@ -195,49 +199,28 @@ public class AuthorizationProcessManager {
         };
 
         authorizationRequestSend(null, "clients/instance", options, listener);
-
-        /*
-        ResponseListener listener = new ResponseListener() {
-            @Override
-            public void onSuccess(com.ibm.bms.clientsdk.android.core.api.Response response) {
-                saveCertificateFromResponse(response);
-                invokeAuthorizationRequest();
-            }
-
-            @Override
-            public void onFailure(FailResponse response, Throwable t) {
-                handleAuthorizationFailure(response, t);
-            }
-        };
-        */
     }
 
 
-    private void saveCertificateFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) throws JSONException, CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
+    private void saveCertificateFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+        try {
+            String responseBody = response.getResponseText();
+            JSONObject jsonResponse = new JSONObject(responseBody);
 
-        //try {
-        String responseBody = response.getResponseText();
-        JSONObject jsonResponse = new JSONObject(responseBody);
+            //handle certificate
+            String certificateString = jsonResponse.getString("certificate");
+            X509Certificate certificate = CertificateAuxiliary.base64StringToCertificate(certificateString);
 
-        // handle certificate
-        String certificateString = jsonResponse.getString("certificate");
-        X509Certificate certificate = CertificateAuxiliary.base64StringToCertificate(certificateString);
+            CertificateAuxiliary.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic());
 
-        if (CertificateAuxiliary.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic())) {
             certificateStore.saveCertificate(registrationKeyPair, certificate);
 
             //save the clientID separately
             preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
-        } else {
-            throw new RuntimeException("Invalid Certificate Key");
-            //handleAuthorizationFailure("Invalid Certificate Key");
-        }
 
-        /*
         } catch (Exception e) {
-            handleAuthorizationFailure(e);
+            throw new RuntimeException("Failed to save certificate from response", e);
         }
-        */
     }
 
     private void invokeAuthorizationRequest(Context context) {
@@ -245,69 +228,51 @@ public class AuthorizationProcessManager {
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
 
         options.parameters = createAuthorizationParams();
-        options.headers = new HashMap<String, String>();
+        options.headers = new HashMap<>();
         addSessionIdHeader(options.headers);
-        options.requestMethod = "GET";
+        options.requestMethod = MFPRequest.GET;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
             public void handleAuthorizationSuccessResponse(Response response) throws Exception {
-                List<String> location = response.getResponseHeaders().get("Location");
 
-                if (location == null) {
-                    throw new RuntimeException("Can't find 'Location' Header");
-                }
-
-                String grantCode = extractGrantCode(location.get(0));
+                String location = extractLocationHeader(response);
+                String grantCode = extractGrantCode(location);
                 invokeTokenRequest(grantCode);
             }
         };
 
         authorizationRequestSend(context, "authorization", options, listener);
-        /*
-        ResponseListener listener = new ResponseListener() {
-            @Override
-            public void onSuccess(com.ibm.bms.clientsdk.android.core.api.Response response) {
-
-                List<String> location = response.getResponseHeaders().get("Location");
-
-                if (location == null) {
-                    handleAuthorizationFailure("Can't find 'Location' Header");
-                } else {
-                    String grantCode = extractGrantCode(location.get(0)); //TODO: check if we should handle all the list
-                    invokeTokenRequest(grantCode);
-                }
-            }
-
-            @Override
-            public void onFailure(FailResponse response, Throwable t) {
-                handleAuthorizationFailure(response, t);
-            }
-        };
-        */
-
     }
 
 
+    private String extractLocationHeader(Response response) {
+        List<String> location = response.getResponseHeaders().get("Location");
+
+        if (location == null) {
+            throw new RuntimeException("Failed to find 'Location' header");
+        }
+        return location.get(0);
+    }
+
+    //TODO: maybe use getParameterValueFromQuery in Utils
     private String extractGrantCode(String url) throws URISyntaxException {
 
+        //http://localhost?code=3IIXxqIKad4Zjq5VyhdlbnG0__KW5KaIIgpfub3I64qpxLPn4YMdPFysxBUp-swd3SFc8aVKsPzLKGYMpzZctv3PDonYZgf-UMalerjRLlsaCd21A2xfHMvfwJy_kY31wXWngzYQauyDp6-xI58nPu3sDsl2J_6Ce6nxyJHXUwrRk47_XmY4w3GqJVGJ3rKs&wl_result=%7B%7D
         HashMap<String, String> queryParams = getQueryParams(url);
-        String result = null;
-        for (String name : queryParams.keySet()){
-            if (name.equals("code")){
-                result = queryParams.get(name);
-                break;
+        for (String name : queryParams.keySet()) {
+            if (name.contains("code")) {
+                return queryParams.get(name);
             }
         }
-        return result;
+
+        throw new RuntimeException("Failed to extract grant code from url");
     }
 
-    private HashMap<String, String> getQueryParams(String query)
-    {
+    private HashMap<String, String> getQueryParams(String query) {
         String[] params = query.split("&");
-        HashMap<String, String> map = new HashMap<String, String>();
-        for (String param : params)
-        {
+        HashMap<String, String> map = new HashMap<>();
+        for (String param : params) {
             String name = param.split("=")[0];
             String value = param.split("=")[1];
             map.put(name, value);
@@ -321,7 +286,7 @@ public class AuthorizationProcessManager {
             tempAuthorizationRequestManager.initialize(context, listener);
             tempAuthorizationRequestManager.sendRequest(path, options);
         } catch (Exception e) {
-            handleAuthorizationFailure(e);
+            throw new RuntimeException("Failed to send authorization request", e);
         }
     }
 
@@ -329,13 +294,10 @@ public class AuthorizationProcessManager {
 
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
 
-        HashMap<String, String> tokenRequestHeaders = createTokenRequestHeaders(grantCode);
-        HashMap<String, String> tokenRequestParams = createTokenRequestParams(grantCode);
-
-        options.parameters = tokenRequestParams;
-        options.headers = tokenRequestHeaders;
+        options.parameters = createTokenRequestParams(grantCode);
+        options.headers = createTokenRequestHeaders(grantCode);
         addSessionIdHeader(options.headers);
-        options.requestMethod = "POST";
+        options.requestMethod = MFPRequest.POST;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
@@ -346,49 +308,34 @@ public class AuthorizationProcessManager {
         };
 
         authorizationRequestSend(null, "token", options, listener);
-        /*
-        ResponseListener listener = new ResponseListener() {
-            @Override
-            public void onSuccess(com.ibm.bms.clientsdk.android.core.api.Response response) {
-                saveTokenFromResponse(response); //TOOD: not good! if there is exception the handleSucess will be called anyway
-                handleAuthorizationSuccess(response);
-            }
-
-            @Override
-            public void onFailure(FailResponse response, Throwable t) {
-                handleAuthorizationFailure(response, t);
-            }
-        };
-        */
     }
 
-    private void saveTokenFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) throws JSONException {
+    private void saveTokenFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+        try {
+            JSONObject responseJSON = response.getResponseJSON();
 
-        JSONObject responseJSON = response.getResponseJSON();
+            String accessToken = responseJSON.getString("access_token");
+            String idToken = responseJSON.getString("id_token");
 
-        String accessToken = responseJSON.getString("access_token");
-        String idToken = responseJSON.getString("id_token");
+            //save the tokens
+            preferences.accessToken.set(accessToken);
+            preferences.idToken.set(idToken);
 
-        //save the tokens
-        preferences.accessToken.set(accessToken);
-        preferences.idToken.set(idToken);
+            //save the user identity separately
+            String[] idTokenData = idToken.split("\\.");
+            byte[] decodedIdTokenData = Base64.decode(idTokenData[1], Base64.DEFAULT);
+            String decodedIdTokenString = new String(decodedIdTokenData);
+            JSONObject idTokenJSON = new JSONObject(decodedIdTokenString);
 
-        //save the user identity separately
-        String[] idTokenData = idToken.split("\\.");
-        byte[] decodedIdTokenData = Base64.decode(idTokenData[1], Base64.DEFAULT);
-        String decodedIdTokenString = new String(decodedIdTokenData);
-        JSONObject idTokenJSON = new JSONObject(decodedIdTokenString);
-
-        preferences.userIdentity.set(idTokenJSON);
+            preferences.userIdentity.set(idTokenJSON);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save token from response", e);
+        }
     }
 
-    private void handleAuthorizationFailure(Exception e) {
-        handleAuthorizationFailure(null, e);
+    private void handleAuthorizationFailure(Throwable t) {
+        handleAuthorizationFailure(null, t);
     }
-
-//    private void handleAuthorizationFailure(String message) {
-//        handleAuthorizationFailure(null, new Error(message));
-//    }
 
     //General failure for authorization
     private void handleAuthorizationFailure(FailResponse request, Throwable t) {
@@ -406,7 +353,7 @@ public class AuthorizationProcessManager {
         authorizationQueue.clearListenersByScope(defaultScope);
     }
 
-    private void handleAuthorizationSuccess(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+    private void handleAuthorizationSuccess(Response response) {
 
         //iterate over the queue and call onSuccess
         List<ResponseListener> listenersByScope = authorizationQueue.getListenersByScope(defaultScope);
@@ -417,6 +364,7 @@ public class AuthorizationProcessManager {
 
         authorizationQueue.clearListenersByScope(defaultScope);
     }
+
 
     private abstract class InnerAuthorizationResponseListener implements ResponseListener {
 
