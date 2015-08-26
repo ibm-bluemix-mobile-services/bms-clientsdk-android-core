@@ -108,7 +108,7 @@ public class CertificateStore {
     }
 
 
-    public boolean isContainsCertificate(){
+    public boolean isCertificateStored(){
         try {
             loadKeyStore();
 

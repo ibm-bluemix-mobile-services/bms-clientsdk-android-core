@@ -16,13 +16,16 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.api;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationHeaderHelper;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationProcessManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
-import com.squareup.okhttp.Response;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URLConnection;
 
 
@@ -34,10 +37,11 @@ public class AuthorizationManager {
     private AuthorizationManagerPreferences preferences;
     private AuthorizationProcessManager authorizationProcessManager;
 
-    public static synchronized void createInstance(Context context) {
+    public static synchronized AuthorizationManager createInstance(Context context) {
         if (instance == null) {
             instance = new AuthorizationManager(context.getApplicationContext());
         }
+        return instance;
     }
 
     public static AuthorizationManager getInstance() {
@@ -69,13 +73,13 @@ public class AuthorizationManager {
         return AuthorizationHeaderHelper.isAuthorizationRequired(statusCode, responseAuthorizationHeader);
     }
 
-    public boolean isAuthorizationRequired(Response response) {
-        return AuthorizationHeaderHelper.isAuthorizationRequired(response);
+    public boolean isAuthorizationRequired(HttpURLConnection urlConnection) throws IOException {
+        return AuthorizationHeaderHelper.isAuthorizationRequired(urlConnection);
     }
 
     /**
      * Adds the cached authorization header to the given URL connection object.
-     *
+     * int the cached authorization header is equals to null then this operation has no effect.
      * @param urlConnection The URL connection to add the header to.
      */
     public void addCachedAuthorizationHeader(URLConnection urlConnection) {
@@ -114,17 +118,14 @@ public class AuthorizationManager {
     }
 
     public JSONObject getUserIdentity() {
-
         return preferences.userIdentity.getAsJSON();
     }
 
     public JSONObject getDeviceIdentity() {
-
         return preferences.deviceIdentity.getAsJSON();
     }
 
     public JSONObject getAppIdentity() {
-
         return preferences.appIdentity.getAsJSON();
     }
 }

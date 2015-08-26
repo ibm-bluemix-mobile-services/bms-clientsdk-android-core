@@ -52,7 +52,7 @@ public class CertificateStoreTests {
 
     @Test
     public void testEmpty(){
-        Assert.assertFalse(store.isContainsCertificate());
+        Assert.assertFalse(store.isCertificateStored());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class CertificateStoreTests {
         store.saveCertificate(keyPair,certificate);
 
         //store now contains certificate
-        Assert.assertTrue(store.isContainsCertificate());
+        Assert.assertTrue(store.isCertificateStored());
         store = null;
 
         CertificateStore store2 = new CertificateStore(tempFile,PASSWORD.toCharArray());
@@ -78,7 +78,7 @@ public class CertificateStoreTests {
         KeyPair savedKeyPair = store2.getStoredKeyPair();
 
         //store 2 should contain certificate
-        Assert.assertTrue(store2.isContainsCertificate());
+        Assert.assertTrue(store2.isCertificateStored());
 
         //check key pair
         Assert.assertNotNull(savedKeyPair.getPublic());

@@ -11,7 +11,7 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.api;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,56 +28,56 @@ public class SharedPreferencesManager {
     protected SharedPreferences sharedPreferences;
     protected SharedPreferences.Editor editor;
 
-    public SharedPreferencesManager(Context context, String name, int mode){
+    public SharedPreferencesManager(Context context, String name, int mode) {
         this.sharedPreferences = context.getSharedPreferences(name, mode);
         this.editor = sharedPreferences.edit();
     }
 
-    public class StringPreference{
+    public class StringPreference {
 
         String prefName;
         String value;
 
-        StringPreference(String prefName){
-            this(prefName,null);
+        StringPreference(String prefName) {
+            this(prefName, null);
         }
 
-        StringPreference(String prefName,String defaultValue){
+        StringPreference(String prefName, String defaultValue) {
             this.prefName = prefName;
-            this.value = sharedPreferences.getString(prefName,defaultValue);
+            this.value = sharedPreferences.getString(prefName, defaultValue);
         }
 
-        public void set(String value){
+        public String get() {
+            return value;
+        }
+
+        public void set(String value) {
             this.value = value;
             commit();
         }
 
-        public void clear(){
+        public void clear() {
             this.value = null;
             commit();
         }
 
-        private void commit(){
+        private void commit() {
             editor.putString(prefName, value);
             editor.commit();
         }
-
-        public String get(){
-            return value;
-        }
     }
 
-    public class JSONPreference extends StringPreference{
+    public class JSONPreference extends StringPreference {
 
         JSONPreference(String prefName) {
             super(prefName);
         }
 
-        public void set(JSONObject json){
+        public void set(JSONObject json) {
             set(json.toString());
         }
 
-        public JSONObject getAsJSON(){
+        public JSONObject getAsJSON() {
             try {
                 return new JSONObject(get());
             } catch (JSONException e) {

@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Manage ResponseListener lists by scopes
+ * Manage ResponseListener lists with thread safe operations
  * Created by cirilla on 8/19/15.
  */
 public class AuthorizationQueue {

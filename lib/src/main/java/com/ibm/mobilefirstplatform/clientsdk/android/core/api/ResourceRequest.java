@@ -16,6 +16,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationHeaderHelper;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
@@ -92,7 +93,7 @@ public class ResourceRequest extends MFPRequest {
                     return;
                 }
 
-                if (AuthorizationManager.getInstance().isAuthorizationRequired(response)) {
+                if (AuthorizationHeaderHelper.isAuthorizationRequired(response)) {
                     if (oauthFailCounter++ < 2) {
                         AuthorizationManager.getInstance().obtainAuthorizationHeader(
                                 ctx,

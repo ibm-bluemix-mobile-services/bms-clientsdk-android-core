@@ -20,13 +20,13 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManagerPreferences;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateStore;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.DefaultJSONSigner;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairAuxiliary;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
 
 import org.json.JSONObject;
 
@@ -35,22 +35,23 @@ import java.net.URISyntaxException;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * AuthorizationProcessManager
+ * Handles the complete authorization process cycle
  * Created by cirilla on 8/3/15.
  */
 public class AuthorizationProcessManager {
 
-
     private static final String HTTP_LOCALHOST = "http://localhost";
 
     private AuthorizationManagerPreferences preferences;
-    private boolean isAuthorizationInProgress;
-    private AuthorizationQueue authorizationQueue;
-    private final String defaultScope = "defaultScore";
+    private ConcurrentLinkedQueue<ResponseListener> authorizationQueue;
+    //private AuthorizationQueue authorizationQueue;
+    private final String defaultScope = "defaultScope";
     private KeyPair registrationKeyPair;
     private DefaultJSONSigner jsonSigner;
 
@@ -61,14 +62,15 @@ public class AuthorizationProcessManager {
     public AuthorizationProcessManager(Context context, AuthorizationManagerPreferences preferences) {
 
         this.preferences = preferences;
-        this.authorizationQueue = new AuthorizationQueue();
+        //this.authorizationQueue = new AuthorizationQueue();
+        this.authorizationQueue = new ConcurrentLinkedQueue<>();
         this.jsonSigner = new DefaultJSONSigner();
 
         File keyStoreFile = new File(context.getFilesDir().getAbsolutePath(), "mfp.keystore");
         certificateStore = new CertificateStore(keyStoreFile, context.getPackageName().toCharArray());
 
         //case where the shared preferences were deleted but the certificate is saved in the keystore
-        if (preferences.clientId.get() == null && certificateStore.isContainsCertificate()) {
+        if (preferences.clientId.get() == null && certificateStore.isCertificateStored()) {
             try {
                 X509Certificate certificate = certificateStore.getCertificate();
                 preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
@@ -81,12 +83,16 @@ public class AuthorizationProcessManager {
         sessionId = UUID.randomUUID().toString();
     }
 
+    /**
+     * Main method to start authorization process
+     * @param context android context
+     * @param listener response listener that will get the result of the process
+     */
     public void startAuthorizationProcess(final Context context, ResponseListener listener) {
-        authorizationQueue.addListener(defaultScope, listener);
+        authorizationQueue.add(listener);
 
-        if (!isAuthorizationInProgress) {
-            isAuthorizationInProgress = true;
-
+        //start the authorization process only if this is the first time we ask for authorization
+        if (authorizationQueue.size() == 1) {
             try {
                 if (preferences.clientId.get() == null) {
                     invokeInstanceRegistrationRequest(context);
@@ -99,6 +105,11 @@ public class AuthorizationProcessManager {
         }
     }
 
+
+    /**
+     * Generate the params that will be used during the registration phase
+     * @return Map with all the parameters
+     */
     private HashMap<String, String> createRegistrationParams() {
         registrationKeyPair = KeyPairAuxiliary.generateRandomKeyPair();
 
@@ -118,7 +129,7 @@ public class AuthorizationProcessManager {
 
             String csrValue = jsonSigner.sign(registrationKeyPair, csrJSON);
 
-            params = new HashMap<>();
+            params = new HashMap<>(1);
             params.put("CSR", csrValue);
 
             return params;
@@ -127,6 +138,10 @@ public class AuthorizationProcessManager {
         }
     }
 
+    /**
+     * Generate the headers that will be used during the registration phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createRegistrationHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         addSessionIdHeader(headers);
@@ -135,6 +150,11 @@ public class AuthorizationProcessManager {
         return headers;
     }
 
+    /**
+     * Generate the params that will be used during the token request phase
+     * @param grantCode from the authorization phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createTokenRequestParams(String grantCode) {
 
         HashMap<String, String> params = new HashMap<>();
@@ -147,17 +167,21 @@ public class AuthorizationProcessManager {
         return params;
     }
 
+    /**
+     * Generate the headers that will be used during the token request phase
+     * @param grantCode from the authorization phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createTokenRequestHeaders(String grantCode) {
         JSONObject payload = new JSONObject();
         HashMap<String, String> headers;
         try {
             payload.put("code", grantCode);
 
-            headers = new HashMap<>();
-
             KeyPair keyPair = certificateStore.getStoredKeyPair();
             String jws = jsonSigner.sign(keyPair, payload);
 
+            headers = new HashMap<>(1);
             headers.put("X-WL-Authenticate", jws);
 
         } catch (Exception e) {
@@ -167,21 +191,35 @@ public class AuthorizationProcessManager {
         return headers;
     }
 
+    /**
+     * Adding current session id value to the headers map
+     * @param headers map of headers to add the new header
+     */
     private void addSessionIdHeader(HashMap<String, String> headers) {
         headers.put("X-WL-Session", sessionId);
     }
 
+
+    /**
+     * Generate the params that will be used during the authorization phase
+     * @return Map with all the params
+     */
     private HashMap<String, String> createAuthorizationParams() {
 
-        HashMap<String, String> params = new HashMap<>();
+        HashMap<String, String> params = new HashMap<>(3);
         params.put("response_type", "code");
         params.put("client_id", preferences.clientId.get());
         params.put("redirect_uri", HTTP_LOCALHOST);
-        params.put("PARAM_SCOPE_KEY", defaultScope);
+        //params.put("PARAM_SCOPE_KEY", defaultScope);
 
         return params;
     }
 
+
+    /**
+     * Invoke request for registration, the result of the request should contain ClientId.
+     * @param context
+     */
     private void invokeInstanceRegistrationRequest(final Context context) {
 
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
@@ -216,7 +254,7 @@ public class AuthorizationProcessManager {
             certificateStore.saveCertificate(registrationKeyPair, certificate);
 
             //save the clientID separately
-            preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
+            preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate)); //TODO: save the clientID directly
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to save certificate from response", e);
@@ -228,7 +266,7 @@ public class AuthorizationProcessManager {
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
 
         options.parameters = createAuthorizationParams();
-        options.headers = new HashMap<>();
+        options.headers = new HashMap<>(1);
         addSessionIdHeader(options.headers);
         options.requestMethod = MFPRequest.GET;
 
@@ -282,9 +320,9 @@ public class AuthorizationProcessManager {
 
     private void authorizationRequestSend(final Context context, String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
         try {
-            AuthorizationRequestManager tempAuthorizationRequestManager = new AuthorizationRequestManager();
-            tempAuthorizationRequestManager.initialize(context, listener);
-            tempAuthorizationRequestManager.sendRequest(path, options);
+            AuthorizationRequestManager authorizationRequestManager = new AuthorizationRequestManager();
+            authorizationRequestManager.initialize(context, listener);
+            authorizationRequestManager.sendRequest(path, options);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send authorization request", e);
         }
@@ -343,28 +381,25 @@ public class AuthorizationProcessManager {
             t.printStackTrace();
         }
 
-        //iterate over the queue and call onFailure
-        List<ResponseListener> listenersByScope = authorizationQueue.getListenersByScope(defaultScope);
+        Iterator<ResponseListener> iterator = authorizationQueue.iterator();
 
-        for (ResponseListener listener : listenersByScope) {
-            listener.onFailure(request, t);
+        while(iterator.hasNext()) {
+            ResponseListener next = iterator.next();
+            next.onFailure(request,t);
+            iterator.remove();
         }
-
-        authorizationQueue.clearListenersByScope(defaultScope);
     }
 
     private void handleAuthorizationSuccess(Response response) {
 
-        //iterate over the queue and call onSuccess
-        List<ResponseListener> listenersByScope = authorizationQueue.getListenersByScope(defaultScope);
+        Iterator<ResponseListener> iterator = authorizationQueue.iterator();
 
-        for (ResponseListener listener : listenersByScope) {
-            listener.onSuccess(response);
+        while(iterator.hasNext()) {
+            ResponseListener next = iterator.next();
+            next.onSuccess(response);
+            iterator.remove();
         }
-
-        authorizationQueue.clearListenersByScope(defaultScope);
     }
-
 
     private abstract class InnerAuthorizationResponseListener implements ResponseListener {
 
