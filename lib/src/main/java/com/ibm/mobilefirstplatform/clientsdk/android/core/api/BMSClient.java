@@ -17,6 +17,7 @@ import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.challengehandlers.ChallengeHandler;
 
 import java.net.MalformedURLException;
@@ -41,8 +42,6 @@ public class BMSClient {
 
 	private int defaultTimeout = 20000;
 
-	private Context context = null;
-
 	//TODO: change to challage hander
 	private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
 
@@ -66,7 +65,7 @@ public class BMSClient {
 	 * @param backendGUID Specifies the GUID of the application
 	 * @throws MalformedURLException if {@code backendRoute} could not be parsed as a URL.
 	 */
-	public void initialize(String backendRoute, String backendGUID) throws MalformedURLException {
+	public void initialize(Context context, String backendRoute, String backendGUID) throws MalformedURLException {
 		this.backendGUID = backendGUID;
 		this.backendRoute = backendRoute;
 		this.subzone = null;
@@ -96,6 +95,7 @@ public class BMSClient {
 		}
 
 		this.rewriteDomain = buildRewriteDomain();
+		AuthorizationManager.createInstance(context);
 	}
 
 	public String getBackendRoute() {return backendRoute;}
@@ -186,11 +186,5 @@ public class BMSClient {
 		}
 
 		return rewriteDomain;
-	}
-
-	public void setApplicationContext(Context context){
-		this.context = context;
-
-		Logger.setContext(context);
 	}
 }
