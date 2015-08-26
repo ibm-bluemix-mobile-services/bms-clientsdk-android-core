@@ -142,8 +142,6 @@ public class AuthorizationRequestManager implements ResponseListener {
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
         request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
 
-        // TODO add user agent
-
         request.setFollowRedirects(false);
 
         if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
@@ -233,7 +231,6 @@ public class AuthorizationRequestManager implements ResponseListener {
 
                 if (jsonFailures != null) {
                     processFailures(jsonFailures);
-                    // TODO fill the resposne properly
                     listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
                     return;
                 }
@@ -279,6 +276,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonChallenges.optJSONObject(realm);
                 handler.handleChallenge(this, challenge, context);
             } else {
+                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
                 listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
             }
         }
@@ -308,7 +306,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonFailures.optJSONObject(realm);
                 handler.handleFailure(challenge);
             } else {
-                // TODO Log - challenge handler does not exist
+                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
             }
         }
     }
@@ -325,7 +323,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonSuccesses.optJSONObject(realm);
                 handler.handleSuccess(challenge);
             } else {
-                // TODO Log - challenge handler does not exist
+                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
             }
         }
     }
@@ -336,6 +334,7 @@ public class AuthorizationRequestManager implements ResponseListener {
             if (info != null) {
                 t = new RuntimeException(info.toString());
             }
+            Logger.getInstance(PACKAGE_NAME).error("Request failed with info: " + info == null ? "info is null" : info.toString());
             listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), t);
         }
     }
