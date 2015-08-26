@@ -54,7 +54,7 @@ public class ChallengeHandler implements AuthenticationContext {
     }
 
     @Override
-    public synchronized void submitAuthenticationChallengeSuccess() {
+    public synchronized void submitAuthenticationSuccess () {
         if (activeRequest != null) {
             activeRequest.removeExpectedAnswer(realm);
             setActiveRequest(null);
@@ -64,7 +64,7 @@ public class ChallengeHandler implements AuthenticationContext {
     }
 
     @Override
-    public synchronized void submitAuthenticationChallengeFailure(JSONObject info) {
+    public synchronized void submitAuthenticationFailure (JSONObject info) {
         if (activeRequest != null) {
             activeRequest.requestFailed(info);
             setActiveRequest(null);
