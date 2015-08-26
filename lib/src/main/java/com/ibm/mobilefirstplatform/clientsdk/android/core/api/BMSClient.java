@@ -83,8 +83,8 @@ public class BMSClient {
 		}
 
 		this.rewriteDomain = buildRewriteDomain();
-		AuthorizationManager.createInstance(context);
-		Logger.setContext(context);
+		AuthorizationManager.createInstance(context.getApplicationContext());
+		Logger.setContext(context.getApplicationContext());
 	}
 
 	public String getBackendRoute() {return backendRoute;}
