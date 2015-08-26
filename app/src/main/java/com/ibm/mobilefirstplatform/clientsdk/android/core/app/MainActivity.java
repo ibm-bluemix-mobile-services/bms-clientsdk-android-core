@@ -27,7 +27,7 @@ public class MainActivity extends Activity implements ResponseListener{
         setContentView(R.layout.activity_main);
 
 		try {
-			BMSClient.getInstance().initialize("http://9.148.225.106:9080", "vit1");
+			BMSClient.getInstance().initialize("http://9.148.225.198:9080", "vit1");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -35,14 +35,13 @@ public class MainActivity extends Activity implements ResponseListener{
         BMSClient.getInstance().registerAuthenticationListener("customAuthRealm_1", new CustomChallengeHandler());
 
 		AuthorizationManager.createInstance(this.getApplicationContext());
-		AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
+		//AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
 
-        try {
-            ResourceRequest r = new ResourceRequest(this, "http://9.148.225.106:3000/v1/apps/vit1/service", MFPRequest.GET);
-            r.send(this);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        MFPRequest.registerInterceptor(null);
+
+        ResourceRequest r = new ResourceRequest(this, "http://9.148.225.198:3000/v1/apps/vit1/service", MFPRequest.GET);
+        r.send(this);
+
 
     }
 
@@ -63,7 +62,8 @@ class CustomChallengeHandler implements AuthenticationListener {
     public void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context) {
         try {
             JSONObject answer = new JSONObject("{\"userName\":\"asaf\",\"password\":\"123\"}");
-            authContext.submitAuthenticationChallengeAnswer(answer);
+            //authContext.submitAuthenticationChallengeAnswer(answer);
+            authContext.submitAuthenticationChallengeFailure(answer);
         } catch (JSONException e) {
             e.printStackTrace();
         }
