@@ -55,7 +55,7 @@ public class BMSClient {
 		return instance;
 	}
 
-	//TODO: make private constractor
+	private BMSClient() {}
 
 	/**
 	 * Sets the base URL for the authorization server.
@@ -84,6 +84,7 @@ public class BMSClient {
 
 		this.rewriteDomain = buildRewriteDomain();
 		AuthorizationManager.createInstance(context);
+		Logger.setContext(context);
 	}
 
 	public String getBackendRoute() {return backendRoute;}
