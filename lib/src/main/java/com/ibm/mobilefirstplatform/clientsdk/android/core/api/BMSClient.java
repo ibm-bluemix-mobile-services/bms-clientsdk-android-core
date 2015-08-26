@@ -18,7 +18,7 @@ import android.content.Context;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.challengehandlers.ChallengeHandler;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
 
 import java.net.MalformedURLException;
