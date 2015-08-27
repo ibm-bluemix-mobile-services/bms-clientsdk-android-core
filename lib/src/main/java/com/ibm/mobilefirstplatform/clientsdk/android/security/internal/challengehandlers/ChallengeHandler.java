@@ -54,7 +54,7 @@ public class ChallengeHandler implements AuthenticationContext {
     }
 
     @Override
-    public synchronized void submitAuthenticationChallengeSuccess() {
+    public synchronized void submitAuthenticationSuccess () {
         if (activeRequest != null) {
             activeRequest.removeExpectedAnswer(realm);
             setActiveRequest(null);
@@ -64,7 +64,7 @@ public class ChallengeHandler implements AuthenticationContext {
     }
 
     @Override
-    public synchronized void submitAuthenticationChallengeFailure(JSONObject info) {
+    public synchronized void submitAuthenticationFailure (JSONObject info) {
         if (activeRequest != null) {
             activeRequest.requestFailed(info);
             setActiveRequest(null);
@@ -76,7 +76,9 @@ public class ChallengeHandler implements AuthenticationContext {
     public synchronized void handleChallenge(AuthorizationRequestManager request, JSONObject challenge, Context context) {
         if (activeRequest == null) {
             setActiveRequest(request);
-            listener.onAuthenticationChallengeReceived(this, challenge, context);
+            if (listener != null) {
+                listener.onAuthenticationChallengeReceived(this, challenge, context);
+            }
         } else {
             waitingRequests.add(request);
         }
@@ -84,14 +86,18 @@ public class ChallengeHandler implements AuthenticationContext {
 
     //TODO - should it accept Context like handleChallenge???
     public synchronized void handleSuccess(JSONObject success) {
-        listener.onAuthenticationSuccess(success);
+        if (listener != null) {
+            listener.onAuthenticationSuccess(success);
+        }
         releaseWaitingList();
         setActiveRequest(null);
     }
 
     //TODO - should it accept Context like handleChallenge???
     public synchronized void handleFailure(JSONObject failure) {
-        listener.onAuthenticationFailure(failure);
+        if (listener != null) {
+            listener.onAuthenticationFailure(failure);
+        }
         clearWaitingList();
         setActiveRequest(null);
     }

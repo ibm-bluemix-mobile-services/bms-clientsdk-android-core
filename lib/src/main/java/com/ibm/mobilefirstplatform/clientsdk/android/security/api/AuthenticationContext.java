@@ -21,7 +21,7 @@ import org.json.JSONObject;
 public interface AuthenticationContext {
 
 	void submitAuthenticationChallengeAnswer(JSONObject answer);
-	void submitAuthenticationChallengeSuccess();
-	void submitAuthenticationChallengeFailure(JSONObject error);
+	void submitAuthenticationSuccess ();
+	void submitAuthenticationFailure (JSONObject info);
 
 }

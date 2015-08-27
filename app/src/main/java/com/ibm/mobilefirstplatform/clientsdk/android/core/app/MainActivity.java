@@ -26,25 +26,18 @@ public class MainActivity extends Activity implements ResponseListener{
         setContentView(R.layout.activity_main);
 
 		try {
-			BMSClient.getInstance().initialize(getApplicationContext(), "http://9.148.225.106:9080", "vit1");
+			BMSClient.getInstance().initialize(getApplicationContext(), "http://9.148.225.198:9080", "vit1");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 
         BMSClient.getInstance().registerAuthenticationListener("customAuthRealm_1", new CustomChallengeHandler());
-//
-//		AuthorizationManager.createInstance(this.getApplicationContext());
+
 //		AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
         MFPRequest.registerInterceptor(null);
         
-        ResourceRequest r = new ResourceRequest(this, "http://9.148.225.106:3000/v1/apps/vit1/service", MFPRequest.GET);
+        ResourceRequest r = new ResourceRequest(this, "http://9.148.225.198:3000/v1/apps/vit1/service", MFPRequest.GET);
         r.send(this);
-		
-		//AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
-
-       
-        
-
     }
 
 	@Override
