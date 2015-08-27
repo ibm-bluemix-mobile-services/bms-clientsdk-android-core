@@ -56,7 +56,7 @@ public class CertificatesUtility {
 
         //we are checking the certificate against current time plus one minute to prevent false failure because of sync problems
         certificate.checkValidity(afterAddingOneMinute);
-        if (certificate.getPublicKey().equals(publicKey)) {
+        if (!certificate.getPublicKey().equals(publicKey)) {
             throw new RuntimeException("Failed to validate public key");
         }
     }

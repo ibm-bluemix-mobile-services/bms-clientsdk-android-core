@@ -20,10 +20,11 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateStore;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificatesUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.DefaultJSONSigner;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
@@ -31,7 +32,8 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferenc
 import org.json.JSONObject;
 
 import java.io.File;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -50,16 +52,16 @@ public class AuthorizationProcessManager {
 
     private AuthorizationManagerPreferences preferences;
     private ConcurrentLinkedQueue<ResponseListener> authorizationQueue;
-    //private AuthorizationQueue authorizationQueue;
     private final String defaultScope = "defaultScope";
     private KeyPair registrationKeyPair;
     private DefaultJSONSigner jsonSigner;
 
     private CertificateStore certificateStore;
-
+    private Logger logger;
     private String sessionId;
 
     public AuthorizationProcessManager(Context context, AuthorizationManagerPreferences preferences) {
+        this.logger = Logger.getInstance(AuthorizationProcessManager.class.getSimpleName());
 
         this.preferences = preferences;
         //this.authorizationQueue = new AuthorizationQueue();
@@ -73,7 +75,7 @@ public class AuthorizationProcessManager {
         if (preferences.clientId.get() == null && certificateStore.isCertificateStored()) {
             try {
                 X509Certificate certificate = certificateStore.getCertificate();
-                preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
+                preferences.clientId.set(CertificatesUtility.getClientIdFromCertificate(certificate));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -95,13 +97,20 @@ public class AuthorizationProcessManager {
         if (authorizationQueue.size() == 1) {
             try {
                 if (preferences.clientId.get() == null) {
+                    logger.info("starting registration process");
                     invokeInstanceRegistrationRequest(context);
                 } else {
+                    logger.info("starting authorization process");
                     invokeAuthorizationRequest(context);
                 }
             } catch (Throwable t) {
                 handleAuthorizationFailure(t);
             }
+        }
+
+        else{
+            logger.info("authorization process already running, adding response listener to the queue");
+            logger.debug(String.format("authorization process currently handling %d requests", authorizationQueue.size()));
         }
     }
 
@@ -111,7 +120,7 @@ public class AuthorizationProcessManager {
      * @return Map with all the parameters
      */
     private HashMap<String, String> createRegistrationParams() {
-        registrationKeyPair = KeyPairAuxiliary.generateRandomKeyPair();
+        registrationKeyPair = KeyPairUtility.generateRandomKeyPair();
 
         JSONObject csrJSON = new JSONObject();
         HashMap<String, String> params;
@@ -145,7 +154,7 @@ public class AuthorizationProcessManager {
     private HashMap<String, String> createRegistrationHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         addSessionIdHeader(headers);
-        headers.put("X-WL-Auth", "0");
+        //headers.put("X-WL-Auth", "0"); //TODO: remove this one later
 
         return headers;
     }
@@ -210,7 +219,7 @@ public class AuthorizationProcessManager {
         params.put("response_type", "code");
         params.put("client_id", preferences.clientId.get());
         params.put("redirect_uri", HTTP_LOCALHOST);
-        //params.put("PARAM_SCOPE_KEY", defaultScope);
+        //params.put("PARAM_SCOPE_KEY", defaultScope);  //TODO: remove it later after automation testing
 
         return params;
     }
@@ -247,18 +256,20 @@ public class AuthorizationProcessManager {
 
             //handle certificate
             String certificateString = jsonResponse.getString("certificate");
-            X509Certificate certificate = CertificateAuxiliary.base64StringToCertificate(certificateString);
+            X509Certificate certificate = CertificatesUtility.base64StringToCertificate(certificateString);
 
-            CertificateAuxiliary.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic());
+            CertificatesUtility.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic());
 
             certificateStore.saveCertificate(registrationKeyPair, certificate);
 
-            //save the clientID separately
-            preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate)); //TODO: save the clientID directly
+            //save the clientId separately
+            preferences.clientId.set(jsonResponse.getString("clientId"));
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to save certificate from response", e);
         }
+
+        logger.info("certificate successfully saved");
     }
 
     private void invokeAuthorizationRequest(Context context) {
@@ -290,23 +301,26 @@ public class AuthorizationProcessManager {
         if (location == null) {
             throw new RuntimeException("Failed to find 'Location' header");
         }
+
+        logger.debug("Location header extracted successfully");
         return location.get(0);
     }
 
-    //TODO: maybe use getParameterValueFromQuery in Utils
-    private String extractGrantCode(String url) throws URISyntaxException {
+    private String extractGrantCode(String urlString) throws MalformedURLException {
 
         //http://localhost?code=3IIXxqIKad4Zjq5VyhdlbnG0__KW5KaIIgpfub3I64qpxLPn4YMdPFysxBUp-swd3SFc8aVKsPzLKGYMpzZctv3PDonYZgf-UMalerjRLlsaCd21A2xfHMvfwJy_kY31wXWngzYQauyDp6-xI58nPu3sDsl2J_6Ce6nxyJHXUwrRk47_XmY4w3GqJVGJ3rKs&wl_result=%7B%7D
-        HashMap<String, String> queryParams = getQueryParams(url);
-        for (String name : queryParams.keySet()) {
-            if (name.contains("code")) {
-                return queryParams.get(name);
-            }
+        URL url = new URL(urlString);
+        String code = Utils.getParameterValueFromQuery(url.getQuery(), "code");
+
+        if (code == null){
+            throw new RuntimeException("Failed to extract grant code from url");
         }
 
-        throw new RuntimeException("Failed to extract grant code from url");
+        logger.debug("Grant code extracted successfully");
+        return code;
     }
 
+    /*
     private HashMap<String, String> getQueryParams(String query) {
         String[] params = query.split("&");
         HashMap<String, String> map = new HashMap<>();
@@ -317,6 +331,7 @@ public class AuthorizationProcessManager {
         }
         return map;
     }
+    */
 
     private void authorizationRequestSend(final Context context, String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
         try {

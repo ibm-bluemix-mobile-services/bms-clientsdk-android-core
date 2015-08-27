@@ -29,7 +29,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     public void initialize(Context context, ResponseListener listener) {
+        //this.logger = Logger.getInstance(this.getClass().getPackage().getName());
         this.context = context;
         this.listener = listener;
     }

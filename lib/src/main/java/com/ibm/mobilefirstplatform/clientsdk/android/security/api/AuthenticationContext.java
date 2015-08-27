@@ -22,6 +22,6 @@ public interface AuthenticationContext {
 
 	void submitAuthenticationChallengeAnswer(JSONObject answer);
 	void submitAuthenticationChallengeSuccess();
-	void submitAuthenticationChallengeFailure(JSONObject info);
+	void submitAuthenticationChallengeFailure(JSONObject error);
 
 }

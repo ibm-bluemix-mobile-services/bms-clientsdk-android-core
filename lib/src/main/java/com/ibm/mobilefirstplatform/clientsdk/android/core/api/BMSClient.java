@@ -27,153 +27,169 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 
 public class BMSClient {
-	public final static String HTTP_SCHEME = "http";
+    public final static String HTTP_SCHEME = "http";
 
-	private final static String QUERY_PARAM_SUBZONE = "subzone";
-	private final static String HTTPS_SCHEME = "https";
-	private final static String BLUEMIX_NAME = "bluemix";
-	private final static String BLUEMIX_DOMAIN = "bluemix.net";
-	private final static String STAGE1_NAME = "stage1";
+    private final static String QUERY_PARAM_SUBZONE = "subzone";
+    private final static String HTTPS_SCHEME = "https";
+    private final static String BLUEMIX_NAME = "bluemix";
+    private final static String BLUEMIX_DOMAIN = "bluemix.net";
+    private final static String STAGE1_NAME = "stage1";
 
-	private static BMSClient instance = null;
-	private String backendRoute;
-	private String backendGUID;
-	private String subzone;
-	private String rewriteDomain;
+    private static BMSClient instance = null;
+    private String backendRoute;
+    private String backendGUID;
+    private String subzone;
+    private String rewriteDomain;
 
-	private int defaultTimeout = 20000;
+    private int defaultTimeout = 20000;
 
-	//TODO: change to challage hander
-	private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
+    //TODO: change to challage hander
+    private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
 
-	public static BMSClient getInstance() {
-		if (instance == null) {
-			instance = new BMSClient();
+    public static BMSClient getInstance() {
+        if (instance == null) {
+            instance = new BMSClient();
 
-			MFPRequest.setup(); //Set up network interceptor to log network event times analytics.
-		}
-		return instance;
-	}
+            MFPRequest.setup(); //Set up network interceptor to log network event times analytics.
+        }
+        return instance;
+    }
 
-	private BMSClient() {}
+    private BMSClient() {
+    }
 
-	/**
-	 * Sets the base URL for the authorization server.
-	 * <p>
-	 * This method should be called before you send the first request that requires authorization.
-	 * </p>
-	 * @param backendRoute Specifies the base URL for the authorization server
-	 * @param backendGUID Specifies the GUID of the application
-	 * @throws MalformedURLException if {@code backendRoute} could not be parsed as a URL.
-	 */
-	public void initialize(Context context, String backendRoute, String backendGUID) throws MalformedURLException {
-		this.backendGUID = backendGUID;
-		this.backendRoute = backendRoute;
-		this.subzone = null;
-		this.rewriteDomain = null;
+    /**
+     * Sets the base URL for the authorization server.
+     * <p>
+     * This method should be called before you send the first request that requires authorization.
+     * </p>
+     *
+     * @param backendRoute Specifies the base URL for the authorization server
+     * @param backendGUID  Specifies the GUID of the application
+     * @throws MalformedURLException if {@code backendRoute} could not be parsed as a URL.
+     */
+    public void initialize(Context context, String backendRoute, String backendGUID) throws MalformedURLException {
+        this.backendGUID = backendGUID;
+        this.backendRoute = backendRoute;
+        this.subzone = null;
+        this.rewriteDomain = null;
 
-		if (backendRoute != null) {
-			URL url = new URL(backendRoute);
+        if (backendRoute != null) {
+            URL url = new URL(backendRoute);
 
-			String query = url.getQuery();
-			if (query != null) {
-				this.subzone = Utils.getParameterValueFromQuery(query, QUERY_PARAM_SUBZONE);
-				this.backendRoute = backendRoute.substring(0, backendRoute.length() - query.length() - 1);
-			}
-		}
+            String query = url.getQuery();
+            if (query != null) {
+                this.subzone = Utils.getParameterValueFromQuery(query, QUERY_PARAM_SUBZONE);
+                this.backendRoute = backendRoute.substring(0, backendRoute.length() - query.length() - 1);
+            }
+        }
 
-		this.rewriteDomain = buildRewriteDomain();
-		AuthorizationManager.createInstance(context);
-		Logger.setContext(context);
-	}
+        this.rewriteDomain = buildRewriteDomain();
+        AuthorizationManager.createInstance(context);
+        Logger.setContext(context);
+    }
 
-	public String getBackendRoute() {return backendRoute;}
-	public String getBackendGUID() {return backendGUID;}
+    public String getBackendRoute() {
+        return backendRoute;
+    }
 
-	public void registerAuthenticationListener(String realm, AuthenticationListener authenticationListener) {
-		if (realm == null || realm.isEmpty()) {
-			throw new InvalidParameterException("The realm name can't be null or empty.");
-		}
+    public String getBackendGUID() {
+        return backendGUID;
+    }
 
-		if (authenticationListener == null) {
-			throw new InvalidParameterException("The authentication listener object can't be null.");
-		}
+    public void registerAuthenticationListener(String realm, AuthenticationListener authenticationListener) {
+        if (realm == null || realm.isEmpty()) {
+            throw new InvalidParameterException("The realm name can't be null or empty.");
+        }
 
-		ChallengeHandler handler = new ChallengeHandler();
-		handler.initialize(realm, authenticationListener);
-		challengeHandlers.put(realm, handler);
-	}
+        if (authenticationListener == null) {
+            throw new InvalidParameterException("The authentication listener object can't be null.");
+        }
 
-	public void unregisterAuthenticationListener(String realm) {
-		if (realm != null && !realm.isEmpty()) {
-			challengeHandlers.remove(realm);
-		}
-	}
+        ChallengeHandler handler = new ChallengeHandler();
+        handler.initialize(realm, authenticationListener);
+        challengeHandlers.put(realm, handler);
+    }
 
-	public ChallengeHandler getChallengeHandler(String realm) {return challengeHandlers.get(realm);}
+    public void unregisterAuthenticationListener(String realm) {
+        if (realm != null && !realm.isEmpty()) {
+            challengeHandlers.remove(realm);
+        }
+    }
 
-	public int getDefaultTimeout() {return defaultTimeout;}
-	public void setDefaultTimeout(int timeout) {defaultTimeout = timeout;}
+    public ChallengeHandler getChallengeHandler(String realm) {
+        return challengeHandlers.get(realm);
+    }
 
-	public String getRewriteDomain() {return rewriteDomain;}
+    public int getDefaultTimeout() {
+        return defaultTimeout;
+    }
 
-	private String buildRewriteDomain() throws MalformedURLException {
-		if (backendRoute == null || backendRoute.isEmpty()) {
-			return null;
-		}
+    public void setDefaultTimeout(int timeout) {
+        defaultTimeout = timeout;
+    }
 
-		String applicationRoute = backendRoute;
+    public String getRewriteDomain() {
+        return rewriteDomain;
+    }
 
-		if (!applicationRoute.startsWith(HTTP_SCHEME)) {
-			applicationRoute = String.format("%s://%s", HTTPS_SCHEME, applicationRoute);
-		} else if (!applicationRoute.startsWith(HTTPS_SCHEME) && applicationRoute.contains(BLUEMIX_NAME)) {
-			applicationRoute = applicationRoute.replace(HTTP_SCHEME, HTTPS_SCHEME);
-		}
+    private String buildRewriteDomain() throws MalformedURLException {
+        if (backendRoute == null || backendRoute.isEmpty()) {
+            return null;
+        }
 
-		URL url = new URL(applicationRoute);
+        String applicationRoute = backendRoute;
 
-		String host = url.getHost();
-		String rewriteDomain;
-		String regionInDomain = "ng";
-		int port = url.getPort();
+        if (!applicationRoute.startsWith(HTTP_SCHEME)) {
+            applicationRoute = String.format("%s://%s", HTTPS_SCHEME, applicationRoute);
+        } else if (!applicationRoute.startsWith(HTTPS_SCHEME) && applicationRoute.contains(BLUEMIX_NAME)) {
+            applicationRoute = applicationRoute.replace(HTTP_SCHEME, HTTPS_SCHEME);
+        }
 
-		String serviceUrl = String.format("%s://%s", url.getProtocol(), host);
+        URL url = new URL(applicationRoute);
 
-		if (port != 0) {
-			serviceUrl += ":" + String.valueOf(port);
-		}
+        String host = url.getHost();
+        String rewriteDomain;
+        String regionInDomain = "ng";
+        int port = url.getPort();
 
-		String[] hostElements = host.split(".");
+        String serviceUrl = String.format("%s://%s", url.getProtocol(), host);
 
-		if (!serviceUrl.contains(STAGE1_NAME)) {
-			// Multi-region: myApp.eu-gb.mybluemix.net
-			// US: myApp.mybluemix.net
-			if (hostElements.length == 4) {
-				regionInDomain = hostElements[hostElements.length - 3];
-			}
+        if (port != 0) {
+            serviceUrl += ":" + String.valueOf(port);
+        }
 
-			// this is production, because STAGE1 is not found
-			// Multi-Region Eg: eu-gb.bluemix.net
-			// US Eg: ng.bluemix.net
-			rewriteDomain = String.format("%s.%s", regionInDomain, BLUEMIX_DOMAIN);
-		} else {
-			// Multi-region: myApp.stage1.eu-gb.mybluemix.net
-			// US: myApp.stage1.mybluemix.net
-			if (hostElements.length == 5) {
-				regionInDomain = hostElements[hostElements.length - 3];
-			}
+        String[] hostElements = host.split(".");
 
-			if (subzone != null && !subzone.isEmpty()) {
-				// Multi-region Dev subzone Eg: stage1-Dev.eu-gb.bluemix.net
-				// US Dev subzone Eg: stage1-Dev.ng.bluemix.net
-				rewriteDomain = String.format("%s-%s.%s.%s", STAGE1_NAME, subzone, regionInDomain, BLUEMIX_DOMAIN);
-			} else {
-				// Multi-region Eg: stage1.eu-gb.bluemix.net
-				// US  Eg: stage1.ng.bluemix.net
-				rewriteDomain = String.format("%s.%s.%s", STAGE1_NAME, regionInDomain, BLUEMIX_DOMAIN);
-			}
-		}
+        if (!serviceUrl.contains(STAGE1_NAME)) {
+            // Multi-region: myApp.eu-gb.mybluemix.net
+            // US: myApp.mybluemix.net
+            if (hostElements.length == 4) {
+                regionInDomain = hostElements[hostElements.length - 3];
+            }
 
-		return rewriteDomain;
-	}
+            // this is production, because STAGE1 is not found
+            // Multi-Region Eg: eu-gb.bluemix.net
+            // US Eg: ng.bluemix.net
+            rewriteDomain = String.format("%s.%s", regionInDomain, BLUEMIX_DOMAIN);
+        } else {
+            // Multi-region: myApp.stage1.eu-gb.mybluemix.net
+            // US: myApp.stage1.mybluemix.net
+            if (hostElements.length == 5) {
+                regionInDomain = hostElements[hostElements.length - 3];
+            }
+
+            if (subzone != null && !subzone.isEmpty()) {
+                // Multi-region Dev subzone Eg: stage1-Dev.eu-gb.bluemix.net
+                // US Dev subzone Eg: stage1-Dev.ng.bluemix.net
+                rewriteDomain = String.format("%s-%s.%s.%s", STAGE1_NAME, subzone, regionInDomain, BLUEMIX_DOMAIN);
+            } else {
+                // Multi-region Eg: stage1.eu-gb.bluemix.net
+                // US  Eg: stage1.ng.bluemix.net
+                rewriteDomain = String.format("%s.%s.%s", STAGE1_NAME, regionInDomain, BLUEMIX_DOMAIN);
+            }
+        }
+
+        return rewriteDomain;
+    }
 }

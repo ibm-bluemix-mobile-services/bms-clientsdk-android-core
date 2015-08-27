@@ -80,6 +80,7 @@ public class AuthorizationManager {
     /**
      * Adds the cached authorization header to the given URL connection object.
      * int the cached authorization header is equals to null then this operation has no effect.
+     *
      * @param urlConnection The URL connection to add the header to.
      */
     public void addCachedAuthorizationHeader(URLConnection urlConnection) {
