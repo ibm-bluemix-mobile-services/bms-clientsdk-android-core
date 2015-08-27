@@ -29,7 +29,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,8 +40,7 @@ import java.util.Map;
  */
 
 public class AuthorizationRequestManager implements ResponseListener {
-
-    private final static String PACKAGE_NAME = "com.ibm.mobilefirstplatform.clientsdk.android.security.internal";
+    protected static Logger logger = Logger.getInstance("com.ibm.mobilefirstplatform.clientsdk.android.security.internal");
     private final static String AUTH_SERVER_NAME = "imf-authserver";
     private final static String WL_RESULT = "wl_result";
     private final static String AUTH_PATH = "authorization/v1/apps/";
@@ -66,13 +64,14 @@ public class AuthorizationRequestManager implements ResponseListener {
     public void initialize(Context context, ResponseListener listener) {
         this.context = context;
         this.listener = listener;
+        logger.debug("AuthorizationRequestManager is initialized.");
     }
 
     public void sendRequest(String path, RequestOptions options) throws IOException, JSONException {
         String rootUrl = null;
 
         if (path == null) {
-            Logger.getInstance(PACKAGE_NAME).error("'path' parameter can't be null.");
+            logger.error("'path' parameter can't be null.");
             if (listener != null) {
                 listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), null);
             }
@@ -103,7 +102,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     private void sendRequestInternal(String rootUrl, String path, RequestOptions options) throws IOException, JSONException {
-        Logger.getInstance(PACKAGE_NAME).debug("Sending request to root: " + requestPath + " with path: " + path);
+        logger.debug("Sending request to root: " + requestPath + " with path: " + path);
 
         HttpUrl root = HttpUrl.parse(rootUrl);
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
@@ -145,7 +144,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
             String authorizationHeaderValue = String.format("Bearer %s", answer.replace("\n", ""));
             request.addHeader("Authorization", authorizationHeaderValue);
-            Logger.getInstance(PACKAGE_NAME).debug("Added authorization header to request: " + authorizationHeaderValue);
+            logger.debug("Added authorization header to request: " + authorizationHeaderValue);
         }
 
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
@@ -170,7 +169,7 @@ public class AuthorizationRequestManager implements ResponseListener {
             try {
                 answers.put(realm, "");
             } catch (JSONException t) {
-                Logger.getInstance(PACKAGE_NAME).error("setExpectedAnswers failed with exception: " + t.getLocalizedMessage(), t);
+                logger.error("setExpectedAnswers failed with exception: " + t.getLocalizedMessage(), t);
             }
         }
     }
@@ -185,7 +184,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 resendRequest();
             }
         } catch (Throwable t) {
-            Logger.getInstance(PACKAGE_NAME).error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
+            logger.error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
         }
     }
 
@@ -200,7 +199,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 resendRequest();
             }
         } catch (Throwable t) {
-            Logger.getInstance(PACKAGE_NAME).error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
+            logger.error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
         }
     }
 
@@ -264,7 +263,7 @@ public class AuthorizationRequestManager implements ResponseListener {
             }
 
         } catch (Throwable t) {
-            Logger.getInstance(PACKAGE_NAME).error("processRedirectResponse failed with exception: " + t.getLocalizedMessage(), t);
+            logger.error("processRedirectResponse failed with exception: " + t.getLocalizedMessage(), t);
             if (listener != null) {
                 listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
             }
@@ -297,7 +296,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonChallenges.optJSONObject(realm);
                 handler.handleChallenge(this, challenge, context);
             } else {
-                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
+                logger.error("Challenge handler for realm is not found: " + realm);
                 if (listener != null) {
                     listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
                 }
@@ -329,7 +328,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonFailures.optJSONObject(realm);
                 handler.handleFailure(challenge);
             } else {
-                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
+                logger.error("Challenge handler for realm is not found: " + realm);
             }
         }
     }
@@ -346,13 +345,13 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonSuccesses.optJSONObject(realm);
                 handler.handleSuccess(challenge);
             } else {
-                Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
+                logger.error("Challenge handler for realm is not found: " + realm);
             }
         }
     }
 
     public void requestFailed(JSONObject info) {
-        Logger.getInstance(PACKAGE_NAME).error("Request failed with info: " + info == null ? "info is null" : info.toString());
+        logger.error("Request failed with info: " + info == null ? "info is null" : info.toString());
 
         if (listener != null) {
             Throwable t = null;
