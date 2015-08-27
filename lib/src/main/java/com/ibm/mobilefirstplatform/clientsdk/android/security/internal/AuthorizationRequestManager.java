@@ -71,6 +71,15 @@ public class AuthorizationRequestManager implements ResponseListener {
     public void sendRequest(String path, RequestOptions options) throws IOException, JSONException {
         String rootUrl = null;
 
+        if (path == null) {
+            Logger.getInstance(PACKAGE_NAME).error("'path' parameter can't be null.");
+            if (listener != null) {
+                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), null);
+            }
+
+            return;
+        }
+
         if (path.indexOf(BMSClient.HTTP_SCHEME) == 0 && path.contains(":")) {
             // request using full path, split the URL to root and path
             URL url = new URL(path);
@@ -107,7 +116,7 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
 
         String segments[] = path.split("/");
-        for (int i = 0 ; i < segments.length; i++) {
+        for (int i = 0; i < segments.length; i++) {
             urlBuilder.addPathSegment(segments[i]);
         }
 
@@ -119,13 +128,13 @@ public class AuthorizationRequestManager implements ResponseListener {
 
         MFPRequest request = new MFPRequest(this.requestPath, options.requestMethod);
 
-        if (options.timeout != 0) {
+        if (options != null && options.timeout != 0) {
             request.setTimeout(options.timeout);
         } else {
             request.setTimeout(BMSClient.getInstance().getDefaultTimeout());
         }
 
-        if (options.headers != null) {
+        if (options != null && options.headers != null) {
             for (Map.Entry<String, String> entry : options.headers.entrySet()) {
                 request.addHeader(entry.getKey(), entry.getValue());
             }
@@ -144,7 +153,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
         request.setFollowRedirects(false);
 
-        if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
+        if (options != null && options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
             request.setQueryParameters(options.parameters);
             request.send(this);
         } else {
@@ -196,6 +205,10 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     public boolean isAnswersFilled() throws JSONException {
+        if (answers == null) {
+            return true;
+        }
+
         Iterator<String> it = answers.keys();
         while (it.hasNext()) {
             String key = it.next();
@@ -212,8 +225,10 @@ public class AuthorizationRequestManager implements ResponseListener {
     private void processRedirectResponse(Response response) {
         java.util.List<String> locationHeaders = response.getResponseHeader("Location");
 
-        if (locationHeaders.size() == 0) {
-            listener.onSuccess(response);
+        if (locationHeaders == null || locationHeaders.size() == 0) {
+            if (listener != null) {
+                listener.onSuccess(response);
+            }
             return;
         }
 
@@ -231,7 +246,9 @@ public class AuthorizationRequestManager implements ResponseListener {
 
                 if (jsonFailures != null) {
                     processFailures(jsonFailures);
-                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
+                    if (listener != null) {
+                        listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
+                    }
                     return;
                 }
 
@@ -242,11 +259,15 @@ public class AuthorizationRequestManager implements ResponseListener {
                 }
             }
 
-            listener.onSuccess(response);
+            if (listener != null) {
+                listener.onSuccess(response);
+            }
 
         } catch (Throwable t) {
             Logger.getInstance(PACKAGE_NAME).error("processRedirectResponse failed with exception: " + t.getLocalizedMessage(), t);
-            listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
+            if (listener != null) {
+                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
+            }
         }
 
 
@@ -258,7 +279,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
         if (jsonChallenges != null) {
             startHandleChallenges(jsonChallenges, response);
-        } else {
+        } else if (listener != null) {
             listener.onSuccess(response);
         }
     }
@@ -277,7 +298,9 @@ public class AuthorizationRequestManager implements ResponseListener {
                 handler.handleChallenge(this, challenge, context);
             } else {
                 Logger.getInstance(PACKAGE_NAME).error("Challenge handler for realm is not found: " + realm);
-                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
+                if (listener != null) {
+                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
+                }
             }
         }
     }
@@ -329,12 +352,13 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     public void requestFailed(JSONObject info) {
+        Logger.getInstance(PACKAGE_NAME).error("Request failed with info: " + info == null ? "info is null" : info.toString());
+
         if (listener != null) {
             Throwable t = null;
             if (info != null) {
                 t = new RuntimeException(info.toString());
             }
-            Logger.getInstance(PACKAGE_NAME).error("Request failed with info: " + info == null ? "info is null" : info.toString());
             listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), t);
         }
     }
@@ -363,7 +387,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     public void onFailure(FailResponse response, Throwable t) {
         if (is401(response)) {
             processResponse(response);
-        } else {
+        } else if (listener != null) {
             listener.onFailure(response, t);
         }
     }

@@ -42,8 +42,6 @@ public class BMSClient {
 	private String rewriteDomain;
 
 	private int defaultTimeout = 20000;
-
-	//TODO: change to challage hander
 	private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
 
 	public static BMSClient getInstance() {
