@@ -436,6 +436,24 @@ public class MFPRequest {
         httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
     }
 
+    /**
+     * @exclude
+     */
+    public static void registerInterceptor(Interceptor interceptor) {
+        if (interceptor != null) {
+            httpClient.networkInterceptors().add(interceptor);
+        }
+    }
+
+    /**
+     * @exclude
+     */
+    public static void unregisterInterceptor(Interceptor interceptor) {
+        if (interceptor != null) {
+            httpClient.networkInterceptors().remove(interceptor);
+        }
+    }
+
     private static class NetworkLoggingInterceptor implements Interceptor {
         @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
             Request request = chain.request();

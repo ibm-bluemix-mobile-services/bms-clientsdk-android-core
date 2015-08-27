@@ -11,7 +11,7 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.challengehandlers;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers;
 
 import android.content.Context;
 

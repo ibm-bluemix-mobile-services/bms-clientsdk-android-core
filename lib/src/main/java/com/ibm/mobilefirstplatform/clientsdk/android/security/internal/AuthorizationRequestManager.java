@@ -21,7 +21,8 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.challengehandlers.ChallengeHandler;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
 import com.squareup.okhttp.HttpUrl;
 
 import org.json.JSONException;
@@ -41,6 +42,7 @@ import java.util.Map;
 
 public class AuthorizationRequestManager implements ResponseListener {
 
+    private final static String PACKAGE_NAME = "com.ibm.mobilefirstplatform.clientsdk.android.security.internal";
     private final static String AUTH_SERVER_NAME = "imf-authserver";
     private final static String WL_RESULT = "wl_result";
     private final static String AUTH_PATH = "authorization/v1/apps/";
@@ -92,6 +94,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     private void sendRequestInternal(String rootUrl, String path, RequestOptions options) throws IOException, JSONException {
+        Logger.getInstance(PACKAGE_NAME).debug("Sending request to root: " + requestPath + " with path: " + path);
 
         HttpUrl root = HttpUrl.parse(rootUrl);
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
@@ -133,6 +136,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
             String authorizationHeaderValue = String.format("Bearer %s", answer.replace("\n", ""));
             request.addHeader("Authorization", authorizationHeaderValue);
+            Logger.getInstance(PACKAGE_NAME).debug("Added authorization header to request: " + authorizationHeaderValue);
         }
 
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
@@ -158,8 +162,8 @@ public class AuthorizationRequestManager implements ResponseListener {
         for (String realm : realms) {
             try {
                 answers.put(realm, "");
-            } catch (JSONException e) {
-                e.printStackTrace();
+            } catch (JSONException t) {
+                Logger.getInstance(PACKAGE_NAME).error("setExpectedAnswers failed with exception: " + t.getLocalizedMessage(), t);
             }
         }
     }
@@ -173,10 +177,8 @@ public class AuthorizationRequestManager implements ResponseListener {
             if (isAnswersFilled()) {
                 resendRequest();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Throwable t) {
+            Logger.getInstance(PACKAGE_NAME).error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
         }
     }
 
@@ -190,10 +192,8 @@ public class AuthorizationRequestManager implements ResponseListener {
             if (isAnswersFilled()) {
                 resendRequest();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Throwable t) {
+            Logger.getInstance(PACKAGE_NAME).error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
         }
     }
 
@@ -234,7 +234,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 if (jsonFailures != null) {
                     processFailures(jsonFailures);
                     // TODO fill the resposne properly
-                    listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
                     return;
                 }
 
@@ -245,14 +245,14 @@ public class AuthorizationRequestManager implements ResponseListener {
                 }
             }
 
+            listener.onSuccess(response);
 
-        } catch (MalformedURLException e) {
-
-        } catch (JSONException e) {
-
+        } catch (Throwable t) {
+            Logger.getInstance(PACKAGE_NAME).error("processRedirectResponse failed with exception: " + t.getLocalizedMessage(), t);
+            listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
         }
 
-        listener.onSuccess(response);
+
     }
 
     private void processResponse(Response response) {
@@ -279,7 +279,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                 JSONObject challenge = jsonChallenges.optJSONObject(realm);
                 handler.handleChallenge(this, challenge, context);
             } else {
-                listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), null);
+                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
             }
         }
     }
@@ -331,13 +331,12 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     public void requestFailed(JSONObject info) {
-        // TODO - need fail response that can accept JSONObject
         if (listener != null) {
             Throwable t = null;
             if (info != null) {
                 t = new RuntimeException(info.toString());
             }
-            listener.onFailure(new AuthorizationFailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), t);
+            listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), t);
         }
     }
 

@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * General help methods for handling certificates
  * Created by cirilla on 8/6/15.
  */
-public class CertificateAuxiliary {
+public class CertificatesUtility {
 
     public static X509Certificate base64StringToCertificate(String certificateString) throws CertificateException, IOException {
 

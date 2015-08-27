@@ -32,13 +32,19 @@ public class MainActivity extends Activity implements ResponseListener{
 			e.printStackTrace();
 		}
 
-//        BMSClient.getInstance().registerAuthenticationListener("customAuthRealm_1", new CustomChallengeHandler());
+        BMSClient.getInstance().registerAuthenticationListener("customAuthRealm_1", new CustomChallengeHandler());
 //
 //		AuthorizationManager.createInstance(this.getApplicationContext());
 //		AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
-
+        MFPRequest.registerInterceptor(null);
+        
         ResourceRequest r = new ResourceRequest(this, "http://9.148.225.106:3000/v1/apps/vit1/service", MFPRequest.GET);
         r.send(this);
+		
+		//AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
+
+       
+        
 
     }
 

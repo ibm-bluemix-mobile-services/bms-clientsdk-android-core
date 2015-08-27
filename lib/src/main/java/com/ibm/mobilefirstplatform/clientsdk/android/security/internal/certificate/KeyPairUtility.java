@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by cirilla on 8/3/15.
  */
-public class KeyPairAuxiliary {
+public class KeyPairUtility {
 
     private static final int RSA_KEY_SIZE = 512;
 
