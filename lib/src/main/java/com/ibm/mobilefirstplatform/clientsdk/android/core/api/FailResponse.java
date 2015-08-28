@@ -37,7 +37,7 @@ public class FailResponse extends Response {
 
 
     protected FailResponse(ErrorCode errorCode) {
-        this(errorCode, null);
+        this(errorCode, (com.squareup.okhttp.Response)null);
     }
 
     protected FailResponse(ErrorCode errorCode, com.squareup.okhttp.Response response) {
@@ -46,8 +46,8 @@ public class FailResponse extends Response {
         this.errorCode = errorCode;
     }
 
-    public FailResponse( Response response,  ErrorCode errorCode) {
-        this(errorCode, response.getInternalResponse());
+    public FailResponse(ErrorCode errorCode, Response response) {
+        this(errorCode, response != null ? response.getInternalResponse() : null);
     }
 
     /**

@@ -249,6 +249,8 @@ public final class Logger {
     private static boolean sendingLogs = false;
     private static boolean sendingAnalyticsLogs = false;
 
+
+
     /**
      * Levels supported in this Logger class.
      */
@@ -1324,7 +1326,7 @@ public final class Logger {
                     logger.error("Failed to POST data from file " + file + " due to: HTTP response code: " + response.getStatus());
 
                     if (userDefinedListener != null) {
-                        userDefinedListener.onFailure(new FailResponse(response, FailResponse.ErrorCode.SERVER_ERROR), null);
+                        userDefinedListener.onFailure(new FailResponse(FailResponse.ErrorCode.SERVER_ERROR, response), null);
                     }
                 }
 

@@ -20,58 +20,62 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManagerPreferences;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateStore;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificatesUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.DefaultJSONSigner;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
 
 import org.json.JSONObject;
 
 import java.io.File;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * AuthorizationProcessManager
+ * Handles the complete authorization process cycle
  * Created by cirilla on 8/3/15.
  */
 public class AuthorizationProcessManager {
 
-
     private static final String HTTP_LOCALHOST = "http://localhost";
 
     private AuthorizationManagerPreferences preferences;
-    private boolean isAuthorizationInProgress;
-    private AuthorizationQueue authorizationQueue;
-    private final String defaultScope = "defaultScore";
+    private ConcurrentLinkedQueue<ResponseListener> authorizationQueue;
+    private final String defaultScope = "defaultScope";
     private KeyPair registrationKeyPair;
     private DefaultJSONSigner jsonSigner;
 
     private CertificateStore certificateStore;
-
+    private Logger logger;
     private String sessionId;
 
     public AuthorizationProcessManager(Context context, AuthorizationManagerPreferences preferences) {
+        this.logger = Logger.getInstance(AuthorizationProcessManager.class.getSimpleName());
 
         this.preferences = preferences;
-        this.authorizationQueue = new AuthorizationQueue();
+        //this.authorizationQueue = new AuthorizationQueue();
+        this.authorizationQueue = new ConcurrentLinkedQueue<>();
         this.jsonSigner = new DefaultJSONSigner();
 
         File keyStoreFile = new File(context.getFilesDir().getAbsolutePath(), "mfp.keystore");
         certificateStore = new CertificateStore(keyStoreFile, context.getPackageName().toCharArray());
 
         //case where the shared preferences were deleted but the certificate is saved in the keystore
-        if (preferences.clientId.get() == null && certificateStore.isContainsCertificate()) {
+        if (preferences.clientId.get() == null && certificateStore.isCertificateStored()) {
             try {
                 X509Certificate certificate = certificateStore.getCertificate();
-                preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
+                preferences.clientId.set(CertificatesUtility.getClientIdFromCertificate(certificate));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -81,26 +85,42 @@ public class AuthorizationProcessManager {
         sessionId = UUID.randomUUID().toString();
     }
 
+    /**
+     * Main method to start authorization process
+     * @param context android context
+     * @param listener response listener that will get the result of the process
+     */
     public void startAuthorizationProcess(final Context context, ResponseListener listener) {
-        authorizationQueue.addListener(defaultScope, listener);
+        authorizationQueue.add(listener);
 
-        if (!isAuthorizationInProgress) {
-            isAuthorizationInProgress = true;
-
+        //start the authorization process only if this is the first time we ask for authorization
+        if (authorizationQueue.size() == 1) {
             try {
                 if (preferences.clientId.get() == null) {
+                    logger.info("starting registration process");
                     invokeInstanceRegistrationRequest(context);
                 } else {
+                    logger.info("starting authorization process");
                     invokeAuthorizationRequest(context);
                 }
             } catch (Throwable t) {
                 handleAuthorizationFailure(t);
             }
         }
+
+        else{
+            logger.info("authorization process already running, adding response listener to the queue");
+            logger.debug(String.format("authorization process currently handling %d requests", authorizationQueue.size()));
+        }
     }
 
+
+    /**
+     * Generate the params that will be used during the registration phase
+     * @return Map with all the parameters
+     */
     private HashMap<String, String> createRegistrationParams() {
-        registrationKeyPair = KeyPairAuxiliary.generateRandomKeyPair();
+        registrationKeyPair = KeyPairUtility.generateRandomKeyPair();
 
         JSONObject csrJSON = new JSONObject();
         HashMap<String, String> params;
@@ -118,7 +138,7 @@ public class AuthorizationProcessManager {
 
             String csrValue = jsonSigner.sign(registrationKeyPair, csrJSON);
 
-            params = new HashMap<>();
+            params = new HashMap<>(1);
             params.put("CSR", csrValue);
 
             return params;
@@ -127,14 +147,23 @@ public class AuthorizationProcessManager {
         }
     }
 
+    /**
+     * Generate the headers that will be used during the registration phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createRegistrationHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         addSessionIdHeader(headers);
-        headers.put("X-WL-Auth", "0");
+        //headers.put("X-WL-Auth", "0"); //TODO: remove this one later
 
         return headers;
     }
 
+    /**
+     * Generate the params that will be used during the token request phase
+     * @param grantCode from the authorization phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createTokenRequestParams(String grantCode) {
 
         HashMap<String, String> params = new HashMap<>();
@@ -147,17 +176,21 @@ public class AuthorizationProcessManager {
         return params;
     }
 
+    /**
+     * Generate the headers that will be used during the token request phase
+     * @param grantCode from the authorization phase
+     * @return Map with all the headers
+     */
     private HashMap<String, String> createTokenRequestHeaders(String grantCode) {
         JSONObject payload = new JSONObject();
         HashMap<String, String> headers;
         try {
             payload.put("code", grantCode);
 
-            headers = new HashMap<>();
-
             KeyPair keyPair = certificateStore.getStoredKeyPair();
             String jws = jsonSigner.sign(keyPair, payload);
 
+            headers = new HashMap<>(1);
             headers.put("X-WL-Authenticate", jws);
 
         } catch (Exception e) {
@@ -167,21 +200,35 @@ public class AuthorizationProcessManager {
         return headers;
     }
 
+    /**
+     * Adding current session id value to the headers map
+     * @param headers map of headers to add the new header
+     */
     private void addSessionIdHeader(HashMap<String, String> headers) {
         headers.put("X-WL-Session", sessionId);
     }
 
+
+    /**
+     * Generate the params that will be used during the authorization phase
+     * @return Map with all the params
+     */
     private HashMap<String, String> createAuthorizationParams() {
 
-        HashMap<String, String> params = new HashMap<>();
+        HashMap<String, String> params = new HashMap<>(3);
         params.put("response_type", "code");
         params.put("client_id", preferences.clientId.get());
         params.put("redirect_uri", HTTP_LOCALHOST);
-        params.put("PARAM_SCOPE_KEY", defaultScope);
+        //params.put("PARAM_SCOPE_KEY", defaultScope);  //TODO: remove it later after automation testing
 
         return params;
     }
 
+
+    /**
+     * Invoke request for registration, the result of the request should contain ClientId.
+     * @param context
+     */
     private void invokeInstanceRegistrationRequest(final Context context) {
 
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
@@ -209,18 +256,20 @@ public class AuthorizationProcessManager {
 
             //handle certificate
             String certificateString = jsonResponse.getString("certificate");
-            X509Certificate certificate = CertificateAuxiliary.base64StringToCertificate(certificateString);
+            X509Certificate certificate = CertificatesUtility.base64StringToCertificate(certificateString);
 
-            CertificateAuxiliary.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic());
+            CertificatesUtility.checkValidityWithPublicKey(certificate, registrationKeyPair.getPublic());
 
             certificateStore.saveCertificate(registrationKeyPair, certificate);
 
-            //save the clientID separately
-            preferences.clientId.set(CertificateAuxiliary.getClientIdFromCertificate(certificate));
+            //save the clientId separately
+            preferences.clientId.set(jsonResponse.getString("clientId"));
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to save certificate from response", e);
         }
+
+        logger.info("certificate successfully saved");
     }
 
     private void invokeAuthorizationRequest(Context context) {
@@ -228,7 +277,7 @@ public class AuthorizationProcessManager {
         AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
 
         options.parameters = createAuthorizationParams();
-        options.headers = new HashMap<>();
+        options.headers = new HashMap<>(1);
         addSessionIdHeader(options.headers);
         options.requestMethod = MFPRequest.GET;
 
@@ -252,23 +301,26 @@ public class AuthorizationProcessManager {
         if (location == null) {
             throw new RuntimeException("Failed to find 'Location' header");
         }
+
+        logger.debug("Location header extracted successfully");
         return location.get(0);
     }
 
-    //TODO: maybe use getParameterValueFromQuery in Utils
-    private String extractGrantCode(String url) throws URISyntaxException {
+    private String extractGrantCode(String urlString) throws MalformedURLException {
 
         //http://localhost?code=3IIXxqIKad4Zjq5VyhdlbnG0__KW5KaIIgpfub3I64qpxLPn4YMdPFysxBUp-swd3SFc8aVKsPzLKGYMpzZctv3PDonYZgf-UMalerjRLlsaCd21A2xfHMvfwJy_kY31wXWngzYQauyDp6-xI58nPu3sDsl2J_6Ce6nxyJHXUwrRk47_XmY4w3GqJVGJ3rKs&wl_result=%7B%7D
-        HashMap<String, String> queryParams = getQueryParams(url);
-        for (String name : queryParams.keySet()) {
-            if (name.contains("code")) {
-                return queryParams.get(name);
-            }
+        URL url = new URL(urlString);
+        String code = Utils.getParameterValueFromQuery(url.getQuery(), "code");
+
+        if (code == null){
+            throw new RuntimeException("Failed to extract grant code from url");
         }
 
-        throw new RuntimeException("Failed to extract grant code from url");
+        logger.debug("Grant code extracted successfully");
+        return code;
     }
 
+    /*
     private HashMap<String, String> getQueryParams(String query) {
         String[] params = query.split("&");
         HashMap<String, String> map = new HashMap<>();
@@ -279,12 +331,13 @@ public class AuthorizationProcessManager {
         }
         return map;
     }
+    */
 
     private void authorizationRequestSend(final Context context, String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
         try {
-            AuthorizationRequestManager tempAuthorizationRequestManager = new AuthorizationRequestManager();
-            tempAuthorizationRequestManager.initialize(context, listener);
-            tempAuthorizationRequestManager.sendRequest(path, options);
+            AuthorizationRequestManager authorizationRequestManager = new AuthorizationRequestManager();
+            authorizationRequestManager.initialize(context, listener);
+            authorizationRequestManager.sendRequest(path, options);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send authorization request", e);
         }
@@ -343,28 +396,25 @@ public class AuthorizationProcessManager {
             t.printStackTrace();
         }
 
-        //iterate over the queue and call onFailure
-        List<ResponseListener> listenersByScope = authorizationQueue.getListenersByScope(defaultScope);
+        Iterator<ResponseListener> iterator = authorizationQueue.iterator();
 
-        for (ResponseListener listener : listenersByScope) {
-            listener.onFailure(request, t);
+        while(iterator.hasNext()) {
+            ResponseListener next = iterator.next();
+            next.onFailure(request,t);
+            iterator.remove();
         }
-
-        authorizationQueue.clearListenersByScope(defaultScope);
     }
 
     private void handleAuthorizationSuccess(Response response) {
 
-        //iterate over the queue and call onSuccess
-        List<ResponseListener> listenersByScope = authorizationQueue.getListenersByScope(defaultScope);
+        Iterator<ResponseListener> iterator = authorizationQueue.iterator();
 
-        for (ResponseListener listener : listenersByScope) {
-            listener.onSuccess(response);
+        while(iterator.hasNext()) {
+            ResponseListener next = iterator.next();
+            next.onSuccess(response);
+            iterator.remove();
         }
-
-        authorizationQueue.clearListenersByScope(defaultScope);
     }
-
 
     private abstract class InnerAuthorizationResponseListener implements ResponseListener {
 

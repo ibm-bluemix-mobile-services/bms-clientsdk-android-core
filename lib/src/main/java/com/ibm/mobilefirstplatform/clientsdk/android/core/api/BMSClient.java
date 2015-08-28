@@ -18,7 +18,8 @@ import android.content.Context;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.challengehandlers.ChallengeHandler;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -41,8 +42,6 @@ public class BMSClient {
 	private String rewriteDomain;
 
 	private int defaultTimeout = 20000;
-
-	//TODO: change to challage hander
 	private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
 
 	public static BMSClient getInstance() {
@@ -54,7 +53,7 @@ public class BMSClient {
 		return instance;
 	}
 
-	//TODO: make private constractor
+	private BMSClient() {}
 
 	/**
 	 * Sets the base URL for the authorization server.
@@ -76,26 +75,14 @@ public class BMSClient {
 
 			String query = url.getQuery();
 			if (query != null) {
-				final String[] params = query.split("&");
-				for (String param : params) {
-					final String[] keyVal = param.split("=");
-
-					if (keyVal.length < 2) {
-						continue;
-					}
-
-					if (keyVal[0].equalsIgnoreCase(QUERY_PARAM_SUBZONE)) {
-						this.subzone = keyVal[1];
-						break;
-					}
-				}
-
+				this.subzone = Utils.getParameterValueFromQuery(query, QUERY_PARAM_SUBZONE);
 				this.backendRoute = backendRoute.substring(0, backendRoute.length() - query.length() - 1);
 			}
 		}
 
 		this.rewriteDomain = buildRewriteDomain();
-		AuthorizationManager.createInstance(context);
+		AuthorizationManager.createInstance(context.getApplicationContext());
+		Logger.setContext(context.getApplicationContext());
 	}
 
 	public String getBackendRoute() {return backendRoute;}
