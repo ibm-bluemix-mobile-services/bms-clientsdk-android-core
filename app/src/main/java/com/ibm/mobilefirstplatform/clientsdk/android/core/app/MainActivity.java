@@ -12,7 +12,6 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationContext;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;

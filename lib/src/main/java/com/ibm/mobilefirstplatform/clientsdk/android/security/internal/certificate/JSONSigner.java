@@ -13,28 +13,15 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate;
 
+import org.json.JSONObject;
+
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 
 /**
- * Created by cirilla on 8/3/15.
+ * Interface for signing JSON object using key pair
+ * Created by cirilla on 8/10/15.
  */
-public class KeyPairAuxiliary {
+public interface JSONSigner {
 
-    private static final int RSA_KEY_SIZE = 512;
-
-    public static KeyPair generateRandomKeyPair() {
-        KeyPair keyPair = null;
-
-        try {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(RSA_KEY_SIZE);
-            keyPair = kpg.genKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        return keyPair;
-    }
+    String sign(KeyPair keyPair, JSONObject json) throws Exception;
 }

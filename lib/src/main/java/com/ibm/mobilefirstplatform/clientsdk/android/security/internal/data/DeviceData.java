@@ -14,9 +14,6 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
 
@@ -29,7 +26,6 @@ import java.util.UUID;
  * Created by cirilla on 8/18/15.
  */
 public class DeviceData extends JSONObject {
-
 
     final static String ID = "id";
     final static String OS = "platform";
@@ -61,9 +57,12 @@ public class DeviceData extends JSONObject {
         return getString(MODEL);
     }
 
+    //TODO: remove the unneded code fafter code review
     public static String getDeviceUUID(Context context) {
+
         String deviceUuid;
 
+        /*
         String macAddr = null;
         PackageManager packageManager = context.getPackageManager();
         if (packageManager.hasSystemFeature (PackageManager.FEATURE_WIFI)) {
@@ -71,11 +70,13 @@ public class DeviceData extends JSONObject {
             WifiInfo wifiinfo = wfManager.getConnectionInfo();
             macAddr = wifiinfo.getMacAddress();
         }
+        */
+
         String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 
-        if (macAddr != null)  uuid += macAddr;
+        //if (macAddr != null)  uuid += macAddr;
         // Use a hashed UUID not exposing the device ANDROID_ID/Mac Address
-        deviceUuid = UUID.nameUUIDFromBytes(uuid.getBytes()).toString () ;
+        deviceUuid = UUID.nameUUIDFromBytes(uuid.getBytes()).toString ();
 
         return deviceUuid;
     }

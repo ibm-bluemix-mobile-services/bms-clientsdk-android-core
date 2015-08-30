@@ -249,6 +249,8 @@ public final class Logger {
     private static boolean sendingLogs = false;
     private static boolean sendingAnalyticsLogs = false;
 
+
+
     /**
      * Levels supported in this Logger class.
      */

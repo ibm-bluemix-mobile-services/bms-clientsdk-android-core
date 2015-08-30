@@ -17,7 +17,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.security
 import android.test.InstrumentationTestCase;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManagerPreferences;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
 
 import junit.framework.Assert;
 

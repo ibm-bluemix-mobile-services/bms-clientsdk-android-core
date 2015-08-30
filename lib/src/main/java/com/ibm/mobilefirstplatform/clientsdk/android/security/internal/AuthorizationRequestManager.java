@@ -62,6 +62,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     public void initialize(Context context, ResponseListener listener) {
+        //this.logger = Logger.getInstance(this.getClass().getPackage().getName());
         this.context = context;
         this.listener = listener;
         logger.debug("AuthorizationRequestManager is initialized.");

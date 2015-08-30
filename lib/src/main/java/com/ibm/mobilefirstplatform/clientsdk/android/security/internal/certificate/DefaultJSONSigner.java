@@ -27,9 +27,10 @@ import java.security.SignatureException;
 import java.security.interfaces.RSAPublicKey;
 
 /**
+ * Default implementation of the json payload signer
  * Created by cirilla on 8/3/15.
  */
-public class DefaultJSONSigner implements IJSONSigner{
+public class DefaultJSONSigner implements JSONSigner {
 
     private static final String ALG = "alg";
 
@@ -68,8 +69,7 @@ public class DefaultJSONSigner implements IJSONSigner{
         String jwsSignature = encodeUrlSafe(signCsrData(csrHeaderAndPayload,  privateKey));
 
         // Concatenate them all, and return the result.
-        String result = csrHeaderAndPayload + "." + jwsSignature;
-        return result;
+        return csrHeaderAndPayload + "." + jwsSignature;
     }
 
     private byte[] signCsrData(String csrJSONData, PrivateKey privateKey) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {

@@ -15,7 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.security
 
 import android.test.InstrumentationTestCase;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateAuxiliary;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificatesUtility;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -35,7 +35,7 @@ public class CertificateAuxiliaryTests extends InstrumentationTestCase {
 
         boolean isIlligalArgument = false;
         try{
-            CertificateAuxiliary.base64StringToCertificate(null);
+            CertificatesUtility.base64StringToCertificate(null);
         }catch (IllegalArgumentException e){
             isIlligalArgument = true;
         } catch (Exception e){
@@ -49,7 +49,7 @@ public class CertificateAuxiliaryTests extends InstrumentationTestCase {
 
         boolean isIlligalArgument = false;
         try{
-            CertificateAuxiliary.getClientIdFromCertificate(null);
+            CertificatesUtility.getClientIdFromCertificate(null);
         } catch (IllegalArgumentException e){
             isIlligalArgument = true;
         } catch (Exception e){
@@ -60,13 +60,13 @@ public class CertificateAuxiliaryTests extends InstrumentationTestCase {
     }
 
     public void testBase64ToCertificate() throws CertificateException, IOException {
-        X509Certificate x509Certificate = CertificateAuxiliary.base64StringToCertificate(certificateInBase64);
+        X509Certificate x509Certificate = CertificatesUtility.base64StringToCertificate(certificateInBase64);
         assertNotNull(x509Certificate);
     }
 
     public void testClientIdExtraction() throws CertificateException, IOException {
-        X509Certificate x509Certificate = CertificateAuxiliary.base64StringToCertificate(certificateInBase64);
-        String clientIdFromCertificate = CertificateAuxiliary.getClientIdFromCertificate(x509Certificate);
+        X509Certificate x509Certificate = CertificatesUtility.base64StringToCertificate(certificateInBase64);
+        String clientIdFromCertificate = CertificatesUtility.getClientIdFromCertificate(x509Certificate);
         assertEquals(expectedClientId,clientIdFromCertificate);
     }
 
