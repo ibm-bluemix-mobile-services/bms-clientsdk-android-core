@@ -191,4 +191,26 @@ public class Utils {
         return rewriteDomain;
     }
 
+    public static String concatenateUrls(String rootUrl, String path) {
+        if (rootUrl == null || rootUrl.isEmpty()) {
+            return path;
+        }
+
+        if (path == null || path.isEmpty()) {
+            return rootUrl;
+        }
+
+        String finalUrl;
+
+        if (rootUrl.charAt(rootUrl.length() - 1) == '/' && path.charAt(0) == '/') {
+            finalUrl = rootUrl.substring(0, rootUrl.length() - 2) + path;
+        } else if (rootUrl.charAt(rootUrl.length() - 1) != '/' && path.charAt(0) != '/') {
+            finalUrl = rootUrl + "/" + path;
+        } else {
+            finalUrl = rootUrl + path;
+        }
+
+        return finalUrl;
+    }
+
 }

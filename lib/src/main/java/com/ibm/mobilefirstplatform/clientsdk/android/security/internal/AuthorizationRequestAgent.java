@@ -18,12 +18,10 @@ import android.content.Context;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
-import com.squareup.okhttp.HttpUrl;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,11 +39,11 @@ import java.util.Map;
  */
 
 /**
- * AuthorizationRequestManager builds and sends requests to authorization server. It also handles
+ * AuthorizationRequestAgent builds and sends requests to authorization server. It also handles
  * authorization challenges and re-sends the requests as necessary.
  */
-public class AuthorizationRequestManager implements ResponseListener {
-    private static Logger logger = Logger.getInstance("AuthorizationRequestManager");
+public class AuthorizationRequestAgent implements ResponseListener {
+    private static Logger logger = Logger.getInstance("AuthorizationRequestAgent");
     /**
      * Parts of the path to authorization endpoint.
      */
@@ -128,7 +127,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     public void initialize(Context context, ResponseListener listener) {
         this.context = context;
         this.listener = listener;
-        logger.debug("AuthorizationRequestManager is initialized.");
+        logger.debug("AuthorizationRequestAgent is initialized.");
     }
 
     /**
@@ -197,25 +196,8 @@ public class AuthorizationRequestManager implements ResponseListener {
             options = new RequestOptions();
         }
 
-        HttpUrl root = HttpUrl.parse(rootUrl);
-        HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
-                .scheme(root.scheme())
-                .host(root.host())
-                .port(root.port());
-
-        for (String segment : root.pathSegments()) {
-            urlBuilder.addPathSegment(segment);
-        }
-
-        String segments[] = path.split("/");
-        for (String segment : segments) {
-            urlBuilder.addPathSegment(segment);
-        }
-
-        HttpUrl url = urlBuilder.build();
-
         // used to resend request
-        this.requestPath = url.toString();
+        this.requestPath = Utils.concatenateUrls(rootUrl, path);
         this.requestOptions = options;
 
         MFPRequest request = new MFPRequest(this.requestPath, options.requestMethod);
@@ -233,6 +215,7 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
 
         if (answers != null) {
+            // 0 means no spaces in the generated string
             String answer = answers.toString(0);
 
             String authorizationHeaderValue = String.format("Bearer %s", answer.replace("\n", ""));
@@ -246,7 +229,7 @@ public class AuthorizationRequestManager implements ResponseListener {
         // we want to handle redirects in-place
         request.setFollowRedirects(false);
 
-        if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
+        if (MFPRequest.GET.equalsIgnoreCase(options.requestMethod)) {
             request.setQueryParameters(options.parameters);
             request.send(this);
         } else {
@@ -329,7 +312,7 @@ public class AuthorizationRequestManager implements ResponseListener {
             String key = it.next();
             Object value = answers.get(key);
 
-            if ((value instanceof String) && ((String) value).compareTo("") == 0) {
+            if ((value instanceof String) && ((String) value).equals("")) {
                 return false;
             }
         }
@@ -344,11 +327,12 @@ public class AuthorizationRequestManager implements ResponseListener {
      */
     private void processRedirectResponse(Response response) {
         // a valid redirect response must contain the Location header.
-        java.util.List<String> locationHeaders = response.getResponseHeader(LOCATION_HEADER_NAME);
+        List<String> locationHeaders = response.getResponseHeader(LOCATION_HEADER_NAME);
 
         if (locationHeaders == null || locationHeaders.size() == 0) {
             if (listener != null) {
-                listener.onSuccess(response);
+                logger.error("Redirect response does not contain location.");
+                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
             }
             return;
         }
@@ -394,8 +378,6 @@ public class AuthorizationRequestManager implements ResponseListener {
                 listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
             }
         }
-
-
     }
 
     /**
@@ -406,7 +388,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     private void processResponse(Response response) {
         // at this point a server response should contain a secure JSON with challenges
         JSONObject jsonResponse = Utils.extractSecureJson(response);
-        JSONObject jsonChallenges = jsonResponse == null ? null : jsonResponse.optJSONObject(CHALLENGES_VALUE_NAME);
+        JSONObject jsonChallenges = (jsonResponse == null) ? null : jsonResponse.optJSONObject(CHALLENGES_VALUE_NAME);
 
         if (jsonChallenges != null) {
             startHandleChallenges(jsonChallenges, response);
@@ -424,7 +406,7 @@ public class AuthorizationRequestManager implements ResponseListener {
     private void startHandleChallenges(JSONObject jsonChallenges, Response response) {
         ArrayList<String> challenges = getRealmsFromJson(jsonChallenges);
 
-        if (is401(response)) {
+        if (isAuthorizationRequired(response)) {
             setExpectedAnswers(challenges);
         }
 
@@ -443,16 +425,16 @@ public class AuthorizationRequestManager implements ResponseListener {
     }
 
     /**
-     * Checks server response for MFP 401 error. This kond of response should contain MFP authentication challenges.
+     * Checks server response for MFP 401 error. This kind of response should contain MFP authentication challenges.
      *
      * @param response Server response.
      * @return <code>true</code> if the server response contains 401 status code along with MFP challenges.
      */
-    private boolean is401(Response response) {
+    private boolean isAuthorizationRequired(Response response) {
         if (response.getStatus() == 401) {
             String challengesHeader = response.getFirstResponseHeader(AUTHENTICATE_HEADER_NAME);
 
-            if (challengesHeader != null && challengesHeader.compareTo(AUTHENTICATE_HEADER_VALUE) == 0) {
+            if (AUTHENTICATE_HEADER_VALUE.equalsIgnoreCase(challengesHeader)) {
                 return true;
             }
         }
@@ -560,7 +542,7 @@ public class AuthorizationRequestManager implements ResponseListener {
      */
     @Override
     public void onFailure(FailResponse response, Throwable t) {
-        if (is401(response)) {
+        if (isAuthorizationRequired(response)) {
             processResponse(response);
         } else if (listener != null) {
             listener.onFailure(response, t);

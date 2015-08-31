@@ -231,7 +231,7 @@ public class AuthorizationProcessManager {
      */
     private void invokeInstanceRegistrationRequest(final Context context) {
 
-        AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
+        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
 
         options.parameters = createRegistrationParams();
         options.headers = createRegistrationHeaders();
@@ -274,7 +274,7 @@ public class AuthorizationProcessManager {
 
     private void invokeAuthorizationRequest(Context context) {
 
-        AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
+        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
 
         options.parameters = createAuthorizationParams();
         options.headers = new HashMap<>(1);
@@ -333,9 +333,9 @@ public class AuthorizationProcessManager {
     }
     */
 
-    private void authorizationRequestSend(final Context context, String path, AuthorizationRequestManager.RequestOptions options, ResponseListener listener) {
+    private void authorizationRequestSend(final Context context, String path, AuthorizationRequestAgent.RequestOptions options, ResponseListener listener) {
         try {
-            AuthorizationRequestManager authorizationRequestManager = new AuthorizationRequestManager();
+            AuthorizationRequestAgent authorizationRequestManager = new AuthorizationRequestAgent();
             authorizationRequestManager.initialize(context, listener);
             authorizationRequestManager.sendRequest(path, options);
         } catch (Exception e) {
@@ -345,7 +345,7 @@ public class AuthorizationProcessManager {
 
     private void invokeTokenRequest(String grantCode) {
 
-        AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
+        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
 
         options.parameters = createTokenRequestParams(grantCode);
         options.headers = createTokenRequestHeaders(grantCode);
