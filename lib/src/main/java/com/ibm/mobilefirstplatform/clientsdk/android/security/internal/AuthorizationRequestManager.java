@@ -121,7 +121,8 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Initializes the request manager.
-     * @param context Context to be cached and passed to challenge handlers later.
+     *
+     * @param context  Context to be cached and passed to challenge handlers later.
      * @param listener Response listener. Called when an authorization response has been processed.
      */
     public void initialize(Context context, ResponseListener listener) {
@@ -132,7 +133,8 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Assembles the request path from root and path to authorization endpoint and sends the request.
-     * @param path Path to authorization endpoint
+     *
+     * @param path    Path to authorization endpoint
      * @param options Request options
      * @throws IOException
      * @throws JSONException
@@ -169,6 +171,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Re-sends an authorization request after all challenges have been handled.
+     *
      * @throws IOException
      * @throws JSONException
      */
@@ -179,8 +182,9 @@ public class AuthorizationRequestManager implements ResponseListener {
     /**
      * Builds an authorization request and sends it. It also caches the request url and request options in
      * order to be able to re-send the request when authorization challenges have been handled.
+     *
      * @param rootUrl Root of authorization server.
-     * @param path Path to authorization endpoint.
+     * @param path    Path to authorization endpoint.
      * @param options Request options.
      * @throws IOException
      * @throws JSONException
@@ -252,6 +256,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Initializes the collection of expected challenge answers.
+     *
      * @param realms List of realms
      */
     private void setExpectedAnswers(ArrayList<String> realms) {
@@ -270,6 +275,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Removes an expected challenge answer from collection.
+     *
      * @param realm Realm of the answer to remove.
      */
     public void removeExpectedAnswer(String realm) {
@@ -288,8 +294,9 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Adds an expected challenge answer to collection of answers.
+     *
      * @param answer Answer to add.
-     * @param realm Authentication realm for the answer.
+     * @param realm  Authentication realm for the answer.
      */
     public void submitAnswer(JSONObject answer, String realm) {
         if (answers == null) {
@@ -308,6 +315,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Verifies whether all expected challenges have been answered, or not.
+     *
      * @return <code>true</code> if all answers have been submitted, otherwise <code>false</code>.
      * @throws JSONException
      */
@@ -331,6 +339,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Processes redirect response from authorization endpoint.
+     *
      * @param response Response from the server.
      */
     private void processRedirectResponse(Response response) {
@@ -391,6 +400,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Process a response from the server.
+     *
      * @param response Server response.
      */
     private void processResponse(Response response) {
@@ -407,8 +417,9 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Handles authentication challenges.
+     *
      * @param jsonChallenges Collection of challenges.
-     * @param response Server response.
+     * @param response       Server response.
      */
     private void startHandleChallenges(JSONObject jsonChallenges, Response response) {
         ArrayList<String> challenges = getRealmsFromJson(jsonChallenges);
@@ -433,6 +444,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Checks server response for MFP 401 error. This kond of response should contain MFP authentication challenges.
+     *
      * @param response Server response.
      * @return <code>true</code> if the server response contains 401 status code along with MFP challenges.
      */
@@ -450,6 +462,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Processes authentication failures.
+     *
      * @param jsonFailures Collection of authentication failures.
      */
     private void processFailures(JSONObject jsonFailures) {
@@ -471,6 +484,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Processes authentication successes.
+     *
      * @param jsonSuccesses Collection of authentication successes.
      */
     private void processSuccesses(JSONObject jsonSuccesses) {
@@ -492,6 +506,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Called when a request to authorization server failed.
+     *
      * @param info Extended information about the failure.
      */
     public void requestFailed(JSONObject info) {
@@ -508,6 +523,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Iterates a JSON object containing authorization challenges and builds a list of reals.
+     *
      * @param jsonChallenges Collection of challenges.
      * @return Array with realms.
      */
@@ -524,6 +540,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Called when request succeeds.
+     *
      * @param response the server response
      */
     @Override
@@ -537,8 +554,9 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     /**
      * Called when request fails.
+     *
      * @param response Contains detail regarding why the request failed
-     * @param t Exception that could have caused the request to fail. Null if no Exception thrown.
+     * @param t        Exception that could have caused the request to fail. Null if no Exception thrown.
      */
     @Override
     public void onFailure(FailResponse response, Throwable t) {

@@ -14,7 +14,6 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
 
-
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,14 +44,15 @@ public class Utils {
     /**
      * Obtains a parameter with specified name from from query string. The query should be in format
      * param=value&param=value ...
-     * @param query Queery in "url" format.
+     *
+     * @param query     Queery in "url" format.
      * @param paramName Parameter name.
      * @return Parameter value, or null.
      */
     public static String getParameterValueFromQuery(String query, String paramName) {
         String[] components = query.split("&");
 
-        for(String keyValuePair : components) {
+        for (String keyValuePair : components) {
             String[] pairComponents = keyValuePair.split("=");
 
             if (pairComponents.length == 2) {
@@ -62,7 +62,7 @@ public class Utils {
                         return URLDecoder.decode(pairComponents[1], "utf-8");
                     }
                 } catch (UnsupportedEncodingException e) {
-                    logger.error("getParameterValueFromQuery failed with exception: " + e.getLocalizedMessage(),  e);
+                    logger.error("getParameterValueFromQuery failed with exception: " + e.getLocalizedMessage(), e);
                 }
 
             }
@@ -99,6 +99,7 @@ public class Utils {
 
     /**
      * Extracts a JSON object from server response with secured string.
+     *
      * @param response Server response
      * @return Extracted secured JSON or null.
      */
@@ -116,15 +117,16 @@ public class Utils {
         try {
             return new JSONObject(jsonString);
         } catch (Throwable t) {
-            logger.error("extractSecureJson failed with exception: " + t.getLocalizedMessage(),  t);
+            logger.error("extractSecureJson failed with exception: " + t.getLocalizedMessage(), t);
             return null;
         }
     }
 
     /**
      * Builds rewrite domain from backend route url.
+     *
      * @param backendRoute Backend route.
-     * @param subzone Subzone
+     * @param subzone      Subzone
      * @return Rewrite domain.
      * @throws MalformedURLException if backendRoute parameter has invalid format.
      */
@@ -188,5 +190,5 @@ public class Utils {
 
         return rewriteDomain;
     }
-    
+
 }
