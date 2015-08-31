@@ -20,8 +20,11 @@ import android.net.wifi.WifiManager;
 import android.provider.Settings;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import org.json.JSONObject;
 /**
@@ -30,6 +33,10 @@ import org.json.JSONObject;
 public class Utils {
     private final static String SECURE_PATTERN_START = "/*-secure-\n";
     private final static String SECURE_PATTERN_END = "*/";
+
+    private final static String BLUEMIX_NAME = "bluemix";
+    private final static String BLUEMIX_DOMAIN = "bluemix.net";
+    private final static String STAGE1_NAME = "stage1";
 
     public static String getParameterValueFromQuery(String query, String paramName) {
         String[] components = query.split("&");
@@ -94,6 +101,66 @@ public class Utils {
         } catch (Throwable t) {
             return null;
         }
+    }
+
+    public static String buildRewriteDomain(String backendRoute, String subzone) throws MalformedURLException {
+        if (backendRoute == null || backendRoute.isEmpty()) {
+            return null;
+        }
+
+        String applicationRoute = backendRoute;
+
+        if (!applicationRoute.startsWith(BMSClient.HTTP_SCHEME)) {
+            applicationRoute = String.format("%s://%s", BMSClient.HTTPS_SCHEME, applicationRoute);
+        } else if (!applicationRoute.startsWith(BMSClient.HTTPS_SCHEME) && applicationRoute.contains(BLUEMIX_NAME)) {
+            applicationRoute = applicationRoute.replace(BMSClient.HTTP_SCHEME, BMSClient.HTTPS_SCHEME);
+        }
+
+        URL url = new URL(applicationRoute);
+
+        String host = url.getHost();
+        String rewriteDomain;
+        String regionInDomain = "ng";
+        int port = url.getPort();
+
+        String serviceUrl = String.format("%s://%s", url.getProtocol(), host);
+
+        if (port != 0) {
+            serviceUrl += ":" + String.valueOf(port);
+        }
+
+        String[] hostElements = host.split(".");
+
+        if (!serviceUrl.contains(STAGE1_NAME)) {
+            // Multi-region: myApp.eu-gb.mybluemix.net
+            // US: myApp.mybluemix.net
+            if (hostElements.length == 4) {
+                regionInDomain = hostElements[hostElements.length - 3];
+            }
+
+            // this is production, because STAGE1 is not found
+            // Multi-Region Eg: eu-gb.bluemix.net
+            // US Eg: ng.bluemix.net
+            rewriteDomain = String.format("%s.%s", regionInDomain, BLUEMIX_DOMAIN);
+        } else {
+            // Multi-region: myApp.stage1.eu-gb.mybluemix.net
+            // US: myApp.stage1.mybluemix.net
+            if (hostElements.length == 5) {
+                regionInDomain = hostElements[hostElements.length - 3];
+            }
+
+            if (subzone != null && !subzone.isEmpty()) {
+                // Multi-region Dev subzone Eg: stage1-Dev.eu-gb.bluemix.net
+                // US Dev subzone Eg: stage1-Dev.ng.bluemix.net
+                rewriteDomain = String.format("%s-%s.%s.%s", STAGE1_NAME, subzone, regionInDomain, BLUEMIX_DOMAIN);
+            } else {
+                // Multi-region Eg: stage1.eu-gb.bluemix.net
+                // US  Eg: stage1.ng.bluemix.net
+                rewriteDomain = String.format("%s.%s.%s", STAGE1_NAME, regionInDomain, BLUEMIX_DOMAIN);
+            }
+        }
+
+        return rewriteDomain;
     }
     
 }
