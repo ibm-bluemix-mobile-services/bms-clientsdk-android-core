@@ -13,11 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.provider.Settings;
+
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -26,11 +22,19 @@ import java.net.URLDecoder;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+
 import org.json.JSONObject;
+
 /**
  * Created by vitalym on 7/21/15.
  */
+
+/**
+ * Internal helper class with various utilities.
+ */
 public class Utils {
+    private static Logger logger = Logger.getInstance("Utils");
     private final static String SECURE_PATTERN_START = "/*-secure-\n";
     private final static String SECURE_PATTERN_END = "*/";
 
@@ -38,6 +42,13 @@ public class Utils {
     private final static String BLUEMIX_DOMAIN = "bluemix.net";
     private final static String STAGE1_NAME = "stage1";
 
+    /**
+     * Obtains a parameter with specified name from from query string. The query should be in format
+     * param=value&param=value ...
+     * @param query Queery in "url" format.
+     * @param paramName Parameter name.
+     * @return Parameter value, or null.
+     */
     public static String getParameterValueFromQuery(String query, String paramName) {
         String[] components = query.split("&");
 
@@ -51,7 +62,7 @@ public class Utils {
                         return URLDecoder.decode(pairComponents[1], "utf-8");
                     }
                 } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    logger.error("getParameterValueFromQuery failed with exception: " + e.getLocalizedMessage(),  e);
                 }
 
             }
@@ -85,6 +96,12 @@ public class Utils {
 
     }
     */
+
+    /**
+     * Extracts a JSON object from server response with secured string.
+     * @param response Server response
+     * @return Extracted secured JSON or null.
+     */
     public static JSONObject extractSecureJson(Response response) {
         String responseText = response.getResponseText();
 
@@ -99,12 +116,21 @@ public class Utils {
         try {
             return new JSONObject(jsonString);
         } catch (Throwable t) {
+            logger.error("extractSecureJson failed with exception: " + t.getLocalizedMessage(),  t);
             return null;
         }
     }
 
+    /**
+     * Builds rewrite domain from backend route url.
+     * @param backendRoute Backend route.
+     * @param subzone Subzone
+     * @return Rewrite domain.
+     * @throws MalformedURLException if backendRoute parameter has invalid format.
+     */
     public static String buildRewriteDomain(String backendRoute, String subzone) throws MalformedURLException {
         if (backendRoute == null || backendRoute.isEmpty()) {
+            logger.error("Backend route can't be null.");
             return null;
         }
 

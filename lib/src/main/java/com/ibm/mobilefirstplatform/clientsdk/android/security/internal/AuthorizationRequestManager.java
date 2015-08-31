@@ -39,21 +39,79 @@ import java.util.Map;
  * Created by vitalym on 7/16/15.
  */
 
+/**
+ * AuthorizationRequestManager builds and sends requests to authorization server. It also handles
+ * authorization challenges and re-sends the requests as necessary.
+ */
 public class AuthorizationRequestManager implements ResponseListener {
-    protected static Logger logger = Logger.getInstance("com.ibm.mobilefirstplatform.clientsdk.android.security.internal");
+    private static Logger logger = Logger.getInstance("AuthorizationRequestManager");
+    /**
+     * Parts of the path to authorization endpoint.
+     */
     private final static String AUTH_SERVER_NAME = "imf-authserver";
-    private final static String WL_RESULT = "wl_result";
     private final static String AUTH_PATH = "authorization/v1/apps/";
+
+    /**
+     * The name of "result" parameter returned from authorization endpoint.
+     */
+    private final static String WL_RESULT = "wl_result";
+
+    /**
+     * Name of rewrite domain header. This header is added to authorization requests.
+     */
     private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
 
+    /**
+     * Name of location header.
+     */
+    private final static String LOCATION_HEADER_NAME = "Location";
+
+    /**
+     * Name of the standard "www-authenticate" header.
+     */
+    private final static String AUTHENTICATE_HEADER_NAME = "WWW-Authenticate";
+
+    /**
+     * Name of "www-authenticate" header value.
+     */
+    private final static String AUTHENTICATE_HEADER_VALUE = "WL-Composite-Challenge";
+
+    /**
+     * Names of JSON values returned from the server.
+     */
+    private final static String AUTH_FAILURE_VALUE_NAME = "WL-Authentication-Failure";
+    private final static String AUTH_SUCCESS_VALUE_NAME = "WL-Authentication-Success";
+    private final static String CHALLENGES_VALUE_NAME = "challenges";
+
+    /**
+     * requestPath and requestOptions are cached to re-send a request after all challenges have been handled.
+     */
     private String requestPath;
     private RequestOptions requestOptions;
 
+    /**
+     * Response listener specified by request sender.
+     */
     private ResponseListener listener;
+
+    /**
+     * Contains challenge answers. Each answer is mapped to a realm.
+     */
     private JSONObject answers;
+
+    /**
+     * Context is provided by the caller during initialization and passed to challenge handlers later.
+     */
     private Context context;
 
+    /**
+     * The request options are specified by the caller and cached for subsequent requests.
+     */
     static public class RequestOptions {
+        public RequestOptions() {
+            requestMethod = MFPRequest.GET;
+        }
+
         public String requestMethod;
         public int timeout;
 
@@ -61,15 +119,26 @@ public class AuthorizationRequestManager implements ResponseListener {
         public HashMap<String, String> parameters;
     }
 
+    /**
+     * Initializes the request manager.
+     * @param context Context to be cached and passed to challenge handlers later.
+     * @param listener Response listener. Called when an authorization response has been processed.
+     */
     public void initialize(Context context, ResponseListener listener) {
-        //this.logger = Logger.getInstance(this.getClass().getPackage().getName());
         this.context = context;
         this.listener = listener;
         logger.debug("AuthorizationRequestManager is initialized.");
     }
 
+    /**
+     * Assembles the request path from root and path to authorization endpoint and sends the request.
+     * @param path Path to authorization endpoint
+     * @param options Request options
+     * @throws IOException
+     * @throws JSONException
+     */
     public void sendRequest(String path, RequestOptions options) throws IOException, JSONException {
-        String rootUrl = null;
+        String rootUrl;
 
         if (path == null) {
             logger.error("'path' parameter can't be null.");
@@ -98,12 +167,31 @@ public class AuthorizationRequestManager implements ResponseListener {
         sendRequestInternal(rootUrl, path, options);
     }
 
+    /**
+     * Re-sends an authorization request after all challenges have been handled.
+     * @throws IOException
+     * @throws JSONException
+     */
     public void resendRequest() throws IOException, JSONException {
         sendRequest(requestPath, requestOptions);
     }
 
+    /**
+     * Builds an authorization request and sends it. It also caches the request url and request options in
+     * order to be able to re-send the request when authorization challenges have been handled.
+     * @param rootUrl Root of authorization server.
+     * @param path Path to authorization endpoint.
+     * @param options Request options.
+     * @throws IOException
+     * @throws JSONException
+     */
     private void sendRequestInternal(String rootUrl, String path, RequestOptions options) throws IOException, JSONException {
         logger.debug("Sending request to root: " + requestPath + " with path: " + path);
+
+        // create default options object with GET request method.
+        if (options == null) {
+            options = new RequestOptions();
+        }
 
         HttpUrl root = HttpUrl.parse(rootUrl);
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
@@ -116,8 +204,8 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
 
         String segments[] = path.split("/");
-        for (int i = 0; i < segments.length; i++) {
-            urlBuilder.addPathSegment(segments[i]);
+        for (String segment : segments) {
+            urlBuilder.addPathSegment(segment);
         }
 
         HttpUrl url = urlBuilder.build();
@@ -128,13 +216,13 @@ public class AuthorizationRequestManager implements ResponseListener {
 
         MFPRequest request = new MFPRequest(this.requestPath, options.requestMethod);
 
-        if (options != null && options.timeout != 0) {
+        if (options.timeout != 0) {
             request.setTimeout(options.timeout);
         } else {
             request.setTimeout(BMSClient.getInstance().getDefaultTimeout());
         }
 
-        if (options != null && options.headers != null) {
+        if (options.headers != null) {
             for (Map.Entry<String, String> entry : options.headers.entrySet()) {
                 request.addHeader(entry.getKey(), entry.getValue());
             }
@@ -151,9 +239,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
         request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
 
+        // we want to handle redirects in-place
         request.setFollowRedirects(false);
 
-        if (options != null && options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
+        if (options.requestMethod.compareTo(ResourceRequest.GET) == 0) {
             request.setQueryParameters(options.parameters);
             request.send(this);
         } else {
@@ -161,7 +250,11 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
-    public void setExpectedAnswers(ArrayList<String> realms) {
+    /**
+     * Initializes the collection of expected challenge answers.
+     * @param realms List of realms
+     */
+    private void setExpectedAnswers(ArrayList<String> realms) {
         if (answers == null) {
             return;
         }
@@ -175,6 +268,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Removes an expected challenge answer from collection.
+     * @param realm Realm of the answer to remove.
+     */
     public void removeExpectedAnswer(String realm) {
         if (answers != null) {
             answers.remove(realm);
@@ -189,6 +286,11 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Adds an expected challenge answer to collection of answers.
+     * @param answer Answer to add.
+     * @param realm Authentication realm for the answer.
+     */
     public void submitAnswer(JSONObject answer, String realm) {
         if (answers == null) {
             answers = new JSONObject();
@@ -204,6 +306,11 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Verifies whether all expected challenges have been answered, or not.
+     * @return <code>true</code> if all answers have been submitted, otherwise <code>false</code>.
+     * @throws JSONException
+     */
     public boolean isAnswersFilled() throws JSONException {
         if (answers == null) {
             return true;
@@ -222,8 +329,13 @@ public class AuthorizationRequestManager implements ResponseListener {
         return true;
     }
 
+    /**
+     * Processes redirect response from authorization endpoint.
+     * @param response Response from the server.
+     */
     private void processRedirectResponse(Response response) {
-        java.util.List<String> locationHeaders = response.getResponseHeader("Location");
+        // a valid redirect response must contain the Location header.
+        java.util.List<String> locationHeaders = response.getResponseHeader(LOCATION_HEADER_NAME);
 
         if (locationHeaders == null || locationHeaders.size() == 0) {
             if (listener != null) {
@@ -235,6 +347,7 @@ public class AuthorizationRequestManager implements ResponseListener {
         String location = locationHeaders.get(0);
 
         try {
+            // the redirect location url should contain "wl_result" value in query parameters.
             URL url = new URL(location);
             String query = url.getQuery();
 
@@ -242,7 +355,8 @@ public class AuthorizationRequestManager implements ResponseListener {
                 String result = Utils.getParameterValueFromQuery(query, WL_RESULT);
                 JSONObject jsonResult = new JSONObject(result);
 
-                JSONObject jsonFailures = jsonResult.optJSONObject("WL-Authentication-Failure");
+                // process failures if any
+                JSONObject jsonFailures = jsonResult.optJSONObject(AUTH_FAILURE_VALUE_NAME);
 
                 if (jsonFailures != null) {
                     processFailures(jsonFailures);
@@ -252,7 +366,8 @@ public class AuthorizationRequestManager implements ResponseListener {
                     return;
                 }
 
-                JSONObject jsonSuccesses = jsonResult.optJSONObject("WL-Authentication-Success");
+                // process successes if any
+                JSONObject jsonSuccesses = jsonResult.optJSONObject(AUTH_SUCCESS_VALUE_NAME);
 
                 if (jsonSuccesses != null) {
                     processSuccesses(jsonSuccesses);
@@ -260,6 +375,7 @@ public class AuthorizationRequestManager implements ResponseListener {
             }
 
             if (listener != null) {
+                // the rest is handles by the caller
                 listener.onSuccess(response);
             }
 
@@ -273,9 +389,14 @@ public class AuthorizationRequestManager implements ResponseListener {
 
     }
 
+    /**
+     * Process a response from the server.
+     * @param response Server response.
+     */
     private void processResponse(Response response) {
+        // at this point a server response should contain a secure JSON with challenges
         JSONObject jsonResponse = Utils.extractSecureJson(response);
-        JSONObject jsonChallenges = jsonResponse == null ? null : jsonResponse.optJSONObject("challenges");
+        JSONObject jsonChallenges = jsonResponse == null ? null : jsonResponse.optJSONObject(CHALLENGES_VALUE_NAME);
 
         if (jsonChallenges != null) {
             startHandleChallenges(jsonChallenges, response);
@@ -284,6 +405,11 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Handles authentication challenges.
+     * @param jsonChallenges Collection of challenges.
+     * @param response Server response.
+     */
     private void startHandleChallenges(JSONObject jsonChallenges, Response response) {
         ArrayList<String> challenges = getRealmsFromJson(jsonChallenges);
 
@@ -305,11 +431,16 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Checks server response for MFP 401 error. This kond of response should contain MFP authentication challenges.
+     * @param response Server response.
+     * @return <code>true</code> if the server response contains 401 status code along with MFP challenges.
+     */
     private boolean is401(Response response) {
         if (response.getStatus() == 401) {
-            String challengesHeader = response.getFirstResponseHeader("WWW-Authenticate");
+            String challengesHeader = response.getFirstResponseHeader(AUTHENTICATE_HEADER_NAME);
 
-            if (challengesHeader != null && challengesHeader.compareTo("WL-Composite-Challenge") == 0) {
+            if (challengesHeader != null && challengesHeader.compareTo(AUTHENTICATE_HEADER_VALUE) == 0) {
                 return true;
             }
         }
@@ -317,6 +448,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         return false;
     }
 
+    /**
+     * Processes authentication failures.
+     * @param jsonFailures Collection of authentication failures.
+     */
     private void processFailures(JSONObject jsonFailures) {
         if (jsonFailures == null) {
             return;
@@ -334,6 +469,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Processes authentication successes.
+     * @param jsonSuccesses Collection of authentication successes.
+     */
     private void processSuccesses(JSONObject jsonSuccesses) {
         if (jsonSuccesses == null) {
             return;
@@ -351,8 +490,12 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Called when a request to authorization server failed.
+     * @param info Extended information about the failure.
+     */
     public void requestFailed(JSONObject info) {
-        logger.error("Request failed with info: " + info == null ? "info is null" : info.toString());
+        logger.error("Request failed with info: " + (info == null ? "info is null" : info.toString()));
 
         if (listener != null) {
             Throwable t = null;
@@ -363,9 +506,14 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Iterates a JSON object containing authorization challenges and builds a list of reals.
+     * @param jsonChallenges Collection of challenges.
+     * @return Array with realms.
+     */
     private ArrayList<String> getRealmsFromJson(JSONObject jsonChallenges) {
         Iterator<String> challengesIterator = jsonChallenges.keys();
-        ArrayList<String> challenges = new ArrayList<String>();
+        ArrayList<String> challenges = new ArrayList<>();
 
         while (challengesIterator.hasNext()) {
             challenges.add(challengesIterator.next());
@@ -374,6 +522,10 @@ public class AuthorizationRequestManager implements ResponseListener {
         return challenges;
     }
 
+    /**
+     * Called when request succeeds.
+     * @param response the server response
+     */
     @Override
     public void onSuccess(Response response) {
         if (response.isRedirect()) {
@@ -383,6 +535,11 @@ public class AuthorizationRequestManager implements ResponseListener {
         }
     }
 
+    /**
+     * Called when request fails.
+     * @param response Contains detail regarding why the request failed
+     * @param t Exception that could have caused the request to fail. Null if no Exception thrown.
+     */
     @Override
     public void onFailure(FailResponse response, Throwable t) {
         if (is401(response)) {
