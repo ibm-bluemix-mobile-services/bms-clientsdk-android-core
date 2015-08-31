@@ -31,25 +31,9 @@ import java.net.URLConnection;
 
 public class AuthorizationManager {
 
-    public enum PersistencePolicy {ALWAYS, NEVER}
-
     private static AuthorizationManager instance;
     private AuthorizationManagerPreferences preferences;
     private AuthorizationProcessManager authorizationProcessManager;
-
-    public static synchronized AuthorizationManager createInstance(Context context) {
-        if (instance == null) {
-            instance = new AuthorizationManager(context.getApplicationContext());
-        }
-        return instance;
-    }
-
-    public static AuthorizationManager getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("getInstance can't be called before createInstance");
-        }
-        return instance;
-    }
 
     private AuthorizationManager(Context context) {
         this.preferences = new AuthorizationManagerPreferences(context);
@@ -65,6 +49,20 @@ public class AuthorizationManager {
         }
     }
 
+    public static synchronized AuthorizationManager createInstance(Context context) {
+        if (instance == null) {
+            instance = new AuthorizationManager(context.getApplicationContext());
+        }
+        return instance;
+    }
+
+    public static AuthorizationManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("getInstance can't be called before createInstance");
+        }
+        return instance;
+    }
+
     public synchronized void obtainAuthorizationHeader(Context context, ResponseListener listener) {
         authorizationProcessManager.startAuthorizationProcess(context, listener);
     }
@@ -78,6 +76,15 @@ public class AuthorizationManager {
     }
 
     /**
+     * Clear the stored authorization data
+     */
+    public void clearAuthorizationData() {
+        preferences.accessToken.clear();
+        preferences.idToken.clear();
+        preferences.userIdentity.clear();
+    }
+
+    /**
      * Adds the cached authorization header to the given URL connection object.
      * int the cached authorization header is equals to null then this operation has no effect.
      *
@@ -85,6 +92,10 @@ public class AuthorizationManager {
      */
     public void addCachedAuthorizationHeader(URLConnection urlConnection) {
         AuthorizationHeaderHelper.addAuthorizationHeader(urlConnection, getCachedAuthorizationHeader());
+    }
+
+    public PersistencePolicy getAuthorizationPersistencePolicy() {
+        return preferences.persistencePolicy.get();
     }
 
     public void setAuthorizationPersistencePolicy(PersistencePolicy policy) {
@@ -98,10 +109,6 @@ public class AuthorizationManager {
             preferences.accessToken.updateStateByPolicy();
             preferences.idToken.updateStateByPolicy();
         }
-    }
-
-    public PersistencePolicy getAuthorizationPersistencePolicy() {
-        return preferences.persistencePolicy.get();
     }
 
     public String getClientId() {
@@ -129,4 +136,6 @@ public class AuthorizationManager {
     public JSONObject getAppIdentity() {
         return preferences.appIdentity.getAsJSON();
     }
+
+    public enum PersistencePolicy {ALWAYS, NEVER}
 }

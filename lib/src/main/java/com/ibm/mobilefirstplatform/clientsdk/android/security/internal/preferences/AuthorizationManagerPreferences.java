@@ -94,5 +94,10 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
                 savedValue.clear();
             }
         }
+
+        public void clear() {
+            savedValue.clear();
+            runtimeValue = null;
+        }
     }
 }
