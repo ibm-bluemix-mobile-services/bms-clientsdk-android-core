@@ -14,6 +14,7 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.util.Base64;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
@@ -49,10 +50,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AuthorizationProcessManager {
 
     private static final String HTTP_LOCALHOST = "http://localhost";
-
+    private final String defaultScope = "defaultScope";
     private AuthorizationManagerPreferences preferences;
     private ConcurrentLinkedQueue<ResponseListener> authorizationQueue;
-    private final String defaultScope = "defaultScope";
     private KeyPair registrationKeyPair;
     private DefaultJSONSigner jsonSigner;
 
@@ -64,12 +64,12 @@ public class AuthorizationProcessManager {
         this.logger = Logger.getInstance(AuthorizationProcessManager.class.getSimpleName());
 
         this.preferences = preferences;
-        //this.authorizationQueue = new AuthorizationQueue();
         this.authorizationQueue = new ConcurrentLinkedQueue<>();
         this.jsonSigner = new DefaultJSONSigner();
 
         File keyStoreFile = new File(context.getFilesDir().getAbsolutePath(), "mfp.keystore");
-        certificateStore = new CertificateStore(keyStoreFile, context.getPackageName().toCharArray());
+        String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+        certificateStore = new CertificateStore(keyStoreFile, uuid);
 
         //case where the shared preferences were deleted but the certificate is saved in the keystore
         if (preferences.clientId.get() == null && certificateStore.isCertificateStored()) {
@@ -227,7 +227,7 @@ public class AuthorizationProcessManager {
 
     /**
      * Invoke request for registration, the result of the request should contain ClientId.
-     * @param context
+     * @param context android context
      */
     private void invokeInstanceRegistrationRequest(final Context context) {
 
