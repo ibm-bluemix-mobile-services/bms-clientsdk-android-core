@@ -16,6 +16,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferen
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryption.StringEncryption;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,10 +29,15 @@ public class SharedPreferencesManager {
 
     protected SharedPreferences sharedPreferences;
     protected SharedPreferences.Editor editor;
+    protected StringEncryption stringEncryption;
 
     public SharedPreferencesManager(Context context, String name, int mode) {
         this.sharedPreferences = context.getSharedPreferences(name, mode);
         this.editor = sharedPreferences.edit();
+    }
+
+    public void setStringEncryption(StringEncryption stringEncryption) {
+        this.stringEncryption = stringEncryption;
     }
 
     public class StringPreference {
@@ -48,11 +55,11 @@ public class SharedPreferencesManager {
         }
 
         public String get() {
-            return value;
+            return value == null ? null : stringEncryption.decrypt(value);
         }
 
         public void set(String value) {
-            this.value = value;
+            this.value = value == null ? null : stringEncryption.encrypt(value);
             commit();
         }
 

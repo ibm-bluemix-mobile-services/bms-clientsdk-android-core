@@ -14,15 +14,16 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences;
 
 import android.content.Context;
+import android.provider.Settings;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryption.AESStringEncryption;
 
 /**
- * Created by cirilla on 7/16/15.
+ * Shared preferences that are used for authorization
  */
 
 public class AuthorizationManagerPreferences extends SharedPreferencesManager {
-
 
     public PolicyPreference persistencePolicy = new PolicyPreference("persistencePolicy", AuthorizationManager.PersistencePolicy.ALWAYS);
     public StringPreference clientId = new StringPreference("clientId");
@@ -35,6 +36,9 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
 
     public AuthorizationManagerPreferences(Context context) {
         super(context, "AuthorizationManagerPreferences", Context.MODE_PRIVATE);
+
+        String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+        setStringEncryption(new AESStringEncryption(uuid));
     }
 
     public class PolicyPreference {
@@ -89,6 +93,11 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
             } else {
                 savedValue.clear();
             }
+        }
+
+        public void clear() {
+            savedValue.clear();
+            runtimeValue = null;
         }
     }
 }

@@ -32,14 +32,14 @@ import java.security.cert.X509Certificate;
  */
 public class CertificateStore {
 
+    private static final String alias = "registration";
     File keyStoreFile;
     private char[] password;
-    private static final String alias = "registration";
     private KeyStore keyStore;
 
-    public CertificateStore(File keyStoreFile, char[] password) {
+    public CertificateStore(File keyStoreFile, String password) {
         this.keyStoreFile = keyStoreFile;
-        this.password = password;
+        this.password = password.toCharArray();
     }
 
     public void saveCertificate(KeyPair keyPair, X509Certificate certificate) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
