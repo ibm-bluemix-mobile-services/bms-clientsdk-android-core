@@ -28,10 +28,18 @@ public class AppIdentity extends JSONObject {
     final static String ID = "id";
     final static String VERSION = "version";
 
+    /**
+     * Init the data using map
+     * @param asMap hold the device data
+     */
     public AppIdentity(Map asMap) {
         super(asMap);
     }
 
+    /**
+     * Init the data using context
+     * @param context android application context
+     */
     public AppIdentity(Context context) {
         try {
             put(ID,context.getPackageName());
@@ -41,10 +49,16 @@ public class AppIdentity extends JSONObject {
         }
     }
 
+    /**
+     * @return get application id (package name)
+     */
     public String getId() {
         return optString(ID);
     }
 
+    /**
+     * @return get application version
+     */
     public String getVersion() {
         return optString(VERSION);
     }

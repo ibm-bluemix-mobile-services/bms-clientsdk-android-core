@@ -30,14 +30,23 @@ public class UserIdentity extends JSONObject {
         super(asMap);
     }
 
+    /**
+     * @return user id
+     */
     public String getId() {
         return optString(ID);
     }
 
+    /**
+     * @return the auth type that used to authenticate the use
+     */
     public String getAuthBy() {
         return optString(AUTH_BY);
     }
 
+    /**
+     * @return user display name
+     */
     public String getDisplayName() {
         return optString(DISPLAY_NAME);
     }

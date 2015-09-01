@@ -32,10 +32,18 @@ public class DeviceIdentity extends JSONObject {
     final static String OS = "platform";
     final static String MODEL = "model";
 
+    /**
+     * Init the data using map
+     * @param asMap hold the device data
+     */
     public DeviceIdentity(Map asMap) {
         super(asMap);
     }
 
+    /**
+     * Init the data using context
+     * @param context android application context
+     */
     public DeviceIdentity(Context context) {
         try {
             put(ID, getDeviceUUID(context));
@@ -46,18 +54,31 @@ public class DeviceIdentity extends JSONObject {
         }
     }
 
+    /**
+     * @return device unique id
+     */
     public String getId() {
         return optString(ID);
     }
 
+    /**
+     * @return device OS
+     */
     public String getOS() {
         return optString(OS);
     }
 
+    /**
+     * @return device model
+     */
     public String getModel() {
         return optString(MODEL);
     }
 
+    /**
+     * @param context android application context
+     * @return device unique id
+     */
     private String getDeviceUUID(Context context) {
         String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         return UUID.nameUUIDFromBytes(uuid.getBytes()).toString();
