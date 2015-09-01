@@ -16,7 +16,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
@@ -27,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -126,7 +126,20 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     public void initialize(Context context, ResponseListener listener) {
         this.context = context;
-        this.listener = listener;
+        this.listener = (listener != null) ? listener : new ResponseListener() {
+            final String message = "ResponseListener is not specified. Defaulting to empty listener.";
+
+            @Override
+            public void onSuccess(Response response) {
+                logger.debug(message);
+            }
+
+            @Override
+            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                logger.debug(message);
+            }
+        };
+
         logger.debug("AuthorizationRequestAgent is initialized.");
     }
 
@@ -142,12 +155,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
         String rootUrl;
 
         if (path == null) {
-            logger.error("'path' parameter can't be null.");
-            if (listener != null) {
-                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), null);
-            }
-
-            return;
+            throw new IllegalArgumentException("'path' parameter can't be null.");
         }
 
         if (path.indexOf(BMSClient.HTTP_SCHEME) == 0 && path.contains(":")) {
@@ -312,7 +320,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
             String key = it.next();
             Object value = answers.get(key);
 
-            if ((value instanceof String) && ((String) value).equals("")) {
+            if ((value instanceof String) && value.equals("")) {
                 return false;
             }
         }
@@ -325,59 +333,43 @@ public class AuthorizationRequestAgent implements ResponseListener {
      *
      * @param response Response from the server.
      */
-    private void processRedirectResponse(Response response) {
+    private void processRedirectResponse(Response response) throws RuntimeException, JSONException, MalformedURLException {
         // a valid redirect response must contain the Location header.
         List<String> locationHeaders = response.getResponseHeader(LOCATION_HEADER_NAME);
 
-        if (locationHeaders == null || locationHeaders.size() == 0) {
-            if (listener != null) {
-                logger.error("Redirect response does not contain location.");
-                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
-            }
-            return;
+        String location = (locationHeaders != null && locationHeaders.size() > 0) ? locationHeaders.get(0) : null;
+
+        if (location == null) {
+            throw new RuntimeException("Redirect response does not contain 'Location' header.");
         }
 
-        String location = locationHeaders.get(0);
+        // the redirect location url should contain "wl_result" value in query parameters.
+        URL url = new URL(location);
+        String query = url.getQuery();
 
-        try {
-            // the redirect location url should contain "wl_result" value in query parameters.
-            URL url = new URL(location);
-            String query = url.getQuery();
+        if (query.contains(WL_RESULT)) {
+            String result = Utils.getParameterValueFromQuery(query, WL_RESULT);
+            JSONObject jsonResult = new JSONObject(result);
 
-            if (query.contains(WL_RESULT)) {
-                String result = Utils.getParameterValueFromQuery(query, WL_RESULT);
-                JSONObject jsonResult = new JSONObject(result);
+            // process failures if any
+            JSONObject jsonFailures = jsonResult.optJSONObject(AUTH_FAILURE_VALUE_NAME);
 
-                // process failures if any
-                JSONObject jsonFailures = jsonResult.optJSONObject(AUTH_FAILURE_VALUE_NAME);
-
-                if (jsonFailures != null) {
-                    processFailures(jsonFailures);
-                    if (listener != null) {
-                        listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
-                    }
-                    return;
-                }
-
-                // process successes if any
-                JSONObject jsonSuccesses = jsonResult.optJSONObject(AUTH_SUCCESS_VALUE_NAME);
-
-                if (jsonSuccesses != null) {
-                    processSuccesses(jsonSuccesses);
-                }
+            if (jsonFailures != null) {
+                processFailures(jsonFailures);
+                listener.onFailure(response, null, null);
+                return;
             }
 
-            if (listener != null) {
-                // the rest is handles by the caller
-                listener.onSuccess(response);
-            }
+            // process successes if any
+            JSONObject jsonSuccesses = jsonResult.optJSONObject(AUTH_SUCCESS_VALUE_NAME);
 
-        } catch (Throwable t) {
-            logger.error("processRedirectResponse failed with exception: " + t.getLocalizedMessage(), t);
-            if (listener != null) {
-                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), t);
+            if (jsonSuccesses != null) {
+                processSuccesses(jsonSuccesses);
             }
         }
+
+        // the rest is handles by the caller
+        listener.onSuccess(response);
     }
 
     /**
@@ -392,7 +384,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
 
         if (jsonChallenges != null) {
             startHandleChallenges(jsonChallenges, response);
-        } else if (listener != null) {
+        } else {
             listener.onSuccess(response);
         }
     }
@@ -416,10 +408,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
                 JSONObject challenge = jsonChallenges.optJSONObject(realm);
                 handler.handleChallenge(this, challenge, context);
             } else {
-                logger.error("Challenge handler for realm is not found: " + realm);
-                if (listener != null) {
-                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, response), null);
-                }
+                throw new RuntimeException("Challenge handler for realm is not found: " + realm);
             }
         }
     }
@@ -431,7 +420,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * @return <code>true</code> if the server response contains 401 status code along with MFP challenges.
      */
     private boolean isAuthorizationRequired(Response response) {
-        if (response.getStatus() == 401) {
+        if (response != null && response.getStatus() == 401) {
             String challengesHeader = response.getFirstResponseHeader(AUTHENTICATE_HEADER_NAME);
 
             if (AUTHENTICATE_HEADER_VALUE.equalsIgnoreCase(challengesHeader)) {
@@ -493,14 +482,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     public void requestFailed(JSONObject info) {
         logger.error("Request failed with info: " + (info == null ? "info is null" : info.toString()));
-
-        if (listener != null) {
-            Throwable t = null;
-            if (info != null) {
-                t = new RuntimeException(info.toString());
-            }
-            listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT, null), t);
-        }
+        listener.onFailure(null, null, info);
     }
 
     /**
@@ -527,11 +509,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     @Override
     public void onSuccess(Response response) {
-        if (response.isRedirect()) {
-            processRedirectResponse(response);
-        } else {
-            processResponse(response);
-        }
+        processResponseWrapper(response, false);
     }
 
     /**
@@ -541,11 +519,24 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * @param t        Exception that could have caused the request to fail. Null if no Exception thrown.
      */
     @Override
-    public void onFailure(FailResponse response, Throwable t) {
+    public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
         if (isAuthorizationRequired(response)) {
-            processResponse(response);
-        } else if (listener != null) {
-            listener.onFailure(response, t);
+            processResponseWrapper(response, true);
+        } else {
+            listener.onFailure(response, t, extendedInfo);
+        }
+    }
+
+    private void processResponseWrapper(Response response, boolean isFailure) {
+        try {
+            if (isFailure || !response.isRedirect()) {
+                processResponse(response);
+            } else {
+                processRedirectResponse(response);
+            }
+        } catch (Throwable t) {
+            logger.error("processResponseWrapper caught exception: " + t.getLocalizedMessage());
+            listener.onFailure(response, t, null);
         }
     }
 }

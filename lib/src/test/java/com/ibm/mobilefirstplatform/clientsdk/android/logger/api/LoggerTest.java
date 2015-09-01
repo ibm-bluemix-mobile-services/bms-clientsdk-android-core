@@ -22,7 +22,6 @@ import android.os.Build;
 import android.provider.Settings;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.BuildConfig;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger.LEVEL;

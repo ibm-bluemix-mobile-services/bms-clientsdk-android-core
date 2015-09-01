@@ -17,7 +17,6 @@ import android.content.Context;
 import android.provider.Settings;
 import android.util.Base64;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
@@ -387,11 +386,11 @@ public class AuthorizationProcessManager {
     }
 
     private void handleAuthorizationFailure(Throwable t) {
-        handleAuthorizationFailure(null, t);
+        handleAuthorizationFailure(null, t, null);
     }
 
     //General failure for authorization
-    private void handleAuthorizationFailure(FailResponse request, Throwable t) {
+    private void handleAuthorizationFailure(Response response, Throwable t, JSONObject extendedInfo) {
         if (t != null) {
             t.printStackTrace();
         }
@@ -400,7 +399,7 @@ public class AuthorizationProcessManager {
 
         while(iterator.hasNext()) {
             ResponseListener next = iterator.next();
-            next.onFailure(request,t);
+            next.onFailure(response, t, extendedInfo);
             iterator.remove();
         }
     }
@@ -430,8 +429,8 @@ public class AuthorizationProcessManager {
         }
 
         @Override
-        public void onFailure(FailResponse response, Throwable t) {
-            handleAuthorizationFailure(response, t);
+        public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+            handleAuthorizationFailure(response, t, extendedInfo);
         }
     }
 }

@@ -13,6 +13,8 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import org.json.JSONObject;
+
 /**
  * ResponseListener is the interface that will be called after the ResourceRequest has completed or failed.
  */
@@ -33,6 +35,6 @@ public interface ResponseListener {
 	 * @param response Contains detail regarding why the request failed
 	 * @param t Exception that could have caused the request to fail. Null if no Exception thrown.
 	 */
-	void onFailure(FailResponse response, Throwable t);
+	void onFailure(Response response, Throwable t, JSONObject extendedInfo);
 
 }
