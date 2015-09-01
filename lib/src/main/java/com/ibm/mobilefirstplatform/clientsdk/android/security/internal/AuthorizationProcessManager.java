@@ -114,6 +114,29 @@ public class AuthorizationProcessManager {
 
 
     /**
+     * Invoke request for registration, the result of the request should contain ClientId.
+     * @param context android context
+     */
+    private void invokeInstanceRegistrationRequest(final Context context) {
+
+        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
+
+        options.parameters = createRegistrationParams();
+        options.headers = createRegistrationHeaders();
+        options.requestMethod = MFPRequest.POST;
+
+        InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
+            @Override
+            public void handleAuthorizationSuccessResponse(Response response) throws Exception {
+                saveCertificateFromResponse(response);
+                invokeAuthorizationRequest(context);
+            }
+        };
+
+        authorizationRequestSend(null, "clients/instance", options, listener);
+    }
+
+    /**
      * Generate the params that will be used during the registration phase
      * @return Map with all the parameters
      */
@@ -174,78 +197,6 @@ public class AuthorizationProcessManager {
     }
 
     /**
-     * Generate the headers that will be used during the token request phase
-     * @param grantCode from the authorization phase
-     * @return Map with all the headers
-     */
-    private HashMap<String, String> createTokenRequestHeaders(String grantCode) {
-        JSONObject payload = new JSONObject();
-        HashMap<String, String> headers;
-        try {
-            payload.put("code", grantCode);
-
-            KeyPair keyPair = certificateStore.getStoredKeyPair();
-            String jws = jsonSigner.sign(keyPair, payload);
-
-            headers = new HashMap<>(1);
-            headers.put("X-WL-Authenticate", jws);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create token request headers", e);
-        }
-
-        return headers;
-    }
-
-    /**
-     * Adding current session id value to the headers map
-     * @param headers map of headers to add the new header
-     */
-    private void addSessionIdHeader(HashMap<String, String> headers) {
-        headers.put("X-WL-Session", sessionId);
-    }
-
-
-    /**
-     * Generate the params that will be used during the authorization phase
-     * @return Map with all the params
-     */
-    private HashMap<String, String> createAuthorizationParams() {
-
-        HashMap<String, String> params = new HashMap<>(3);
-        params.put("response_type", "code");
-        params.put("client_id", preferences.clientId.get());
-        params.put("redirect_uri", HTTP_LOCALHOST);
-
-        return params;
-    }
-
-
-    /**
-     * Invoke request for registration, the result of the request should contain ClientId.
-     * @param context android context
-     */
-    private void invokeInstanceRegistrationRequest(final Context context) {
-
-        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
-
-        options.parameters = createRegistrationParams();
-        options.headers = createRegistrationHeaders();
-        options.requestMethod = MFPRequest.POST;
-
-        InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
-            @Override
-            public void handleAuthorizationSuccessResponse(Response response) throws Exception {
-                saveCertificateFromResponse(response);
-                invokeAuthorizationRequest(context);
-            }
-        };
-
-        authorizationRequestSend(null, "clients/instance", options, listener);
-    }
-
-
-    /**
      * Extract the certificate data from response and save it on local storage
      * @param response contains the certificate data
      */
@@ -269,8 +220,9 @@ public class AuthorizationProcessManager {
             throw new RuntimeException("Failed to save certificate from response", e);
         }
 
-        logger.info("certificate successfully saved");
+        logger.debug("certificate successfully saved");
     }
+
 
     /**
      * Invoke the authorization request, the result of the request should be a grant code
@@ -296,6 +248,30 @@ public class AuthorizationProcessManager {
         };
 
         authorizationRequestSend(context, "authorization", options, listener);
+    }
+
+
+    /**
+     * Adding current session id value to the headers map
+     * @param headers map of headers to add the new header
+     */
+    private void addSessionIdHeader(HashMap<String, String> headers) {
+        headers.put("X-WL-Session", sessionId);
+    }
+
+
+    /**
+     * Generate the params that will be used during the authorization phase
+     * @return Map with all the params
+     */
+    private HashMap<String, String> createAuthorizationParams() {
+
+        HashMap<String, String> params = new HashMap<>(3);
+        params.put("response_type", "code");
+        params.put("client_id", preferences.clientId.get());
+        params.put("redirect_uri", HTTP_LOCALHOST);
+
+        return params;
     }
 
     /**
@@ -332,7 +308,6 @@ public class AuthorizationProcessManager {
         return code;
     }
 
-
     /**
      * Invoke request to get token, the result of the response should be a valid token
      * @param grantCode grant code that will be used during the request
@@ -357,6 +332,31 @@ public class AuthorizationProcessManager {
         authorizationRequestSend(null, "token", options, listener);
     }
 
+
+    /**
+     * Generate the headers that will be used during the token request phase
+     * @param grantCode from the authorization phase
+     * @return Map with all the headers
+     */
+    private HashMap<String, String> createTokenRequestHeaders(String grantCode) {
+        JSONObject payload = new JSONObject();
+        HashMap<String, String> headers;
+        try {
+            payload.put("code", grantCode);
+
+            KeyPair keyPair = certificateStore.getStoredKeyPair();
+            String jws = jsonSigner.sign(keyPair, payload);
+
+            headers = new HashMap<>(1);
+            headers.put("X-WL-Authenticate", jws);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create token request headers", e);
+        }
+
+        return headers;
+    }
+
     /**
      * Extract token from response and save it locally
      * @param response response that contain the token
@@ -379,6 +379,7 @@ public class AuthorizationProcessManager {
             JSONObject idTokenJSON = new JSONObject(decodedIdTokenString);
 
             preferences.userIdentity.set(idTokenJSON.getJSONObject("imf.user"));
+            logger.debug("token successfully saved");
         } catch (Exception e) {
             throw new RuntimeException("Failed to save token from response", e);
         }
