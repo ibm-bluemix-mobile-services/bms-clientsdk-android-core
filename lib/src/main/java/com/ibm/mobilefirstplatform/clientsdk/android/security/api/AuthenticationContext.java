@@ -18,10 +18,29 @@ import org.json.JSONObject;
 /**
  * Created on 7/14/15.
  */
-public interface AuthenticationContext {
 
+/**
+ * The AuthenticationContext interface is implemented by SDK.
+ * The context is passed to a custom authentication listener and should be called back to provide
+ * the internal challenge handler with authentication challenge answer. The challenge answer may contain
+ * user credentials to be sent to the server.
+ */
+public interface AuthenticationContext {
+	/**
+	 * Submits authentication challenge response.
+	 * @param answer JSON with challenge response.
+	 */
 	void submitAuthenticationChallengeAnswer(JSONObject answer);
+
+	/**
+	 * Informs about authentication success.
+	 */
 	void submitAuthenticationSuccess ();
+
+	/**
+	 * Informs about authentication failure.
+	 * @param info Extended information about the failure.
+	 */
 	void submitAuthenticationFailure (JSONObject info);
 
 }

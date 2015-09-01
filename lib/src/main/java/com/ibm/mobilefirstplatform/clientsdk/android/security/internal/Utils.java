@@ -166,6 +166,12 @@ public class Utils {
         return rewriteDomain;
     }
 
+    /**
+     * Concatenates two URLs. The function checks for trailing and preceding slashes in rootUrl and path.
+     * @param rootUrl first part of the url
+     * @param path second part of the url
+     * @return Concatenated string containing rootUrl and path.
+     */
     public static String concatenateUrls(String rootUrl, String path) {
         if (rootUrl == null || rootUrl.isEmpty()) {
             return path;
