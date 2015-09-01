@@ -22,12 +22,12 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.AppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.DeviceIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificateStore;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.CertificatesUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.DefaultJSONSigner;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.certificate.KeyPairUtility;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
 
 import org.json.JSONObject;
@@ -68,7 +68,7 @@ public class AuthorizationProcessManager {
         this.jsonSigner = new DefaultJSONSigner();
 
         File keyStoreFile = new File(context.getFilesDir().getAbsolutePath(), "mfp.keystore");
-        String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+        String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         certificateStore = new CertificateStore(keyStoreFile, uuid);
 
         //case where the shared preferences were deleted but the certificate is saved in the keystore
@@ -126,8 +126,8 @@ public class AuthorizationProcessManager {
         HashMap<String, String> params;
 
         try {
-            DeviceData deviceData = new DeviceData(preferences.deviceIdentity.getAsJSON());
-            ApplicationData applicationData = new ApplicationData(preferences.appIdentity.getAsJSON());
+            DeviceIdentity deviceData = new DeviceIdentity(preferences.deviceIdentity.getAsMap());
+            AppIdentity applicationData = new AppIdentity(preferences.appIdentity.getAsMap());
 
             csrJSON.put("deviceId", deviceData.getId());
             csrJSON.put("deviceOs", "" + deviceData.getOS());
@@ -249,7 +249,7 @@ public class AuthorizationProcessManager {
     }
 
 
-    private void saveCertificateFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+    private void saveCertificateFromResponse(Response response) {
         try {
             String responseBody = response.getResponseText();
             JSONObject jsonResponse = new JSONObject(responseBody);
@@ -363,7 +363,7 @@ public class AuthorizationProcessManager {
         authorizationRequestSend(null, "token", options, listener);
     }
 
-    private void saveTokenFromResponse(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+    private void saveTokenFromResponse(Response response) {
         try {
             JSONObject responseJSON = response.getResponseJSON();
 
@@ -380,7 +380,7 @@ public class AuthorizationProcessManager {
             String decodedIdTokenString = new String(decodedIdTokenData);
             JSONObject idTokenJSON = new JSONObject(decodedIdTokenString);
 
-            preferences.userIdentity.set(idTokenJSON);
+            preferences.userIdentity.set(idTokenJSON.getJSONObject("imf.user"));
         } catch (Exception e) {
             throw new RuntimeException("Failed to save token from response", e);
         }

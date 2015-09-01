@@ -11,26 +11,28 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity;
 
 import android.content.Context;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /**
- * Created by cirilla on 8/18/15.
+ * Holds the application identity json
  */
-public class ApplicationData extends JSONObject {
+public class AppIdentity extends JSONObject {
 
     final static String ID = "id";
     final static String VERSION = "version";
 
-    public ApplicationData(JSONObject json) throws JSONException {
-        super(json.toString());
+    public AppIdentity(Map asMap) {
+        super(asMap);
     }
 
-    public ApplicationData(Context context) {
+    public AppIdentity(Context context) {
         try {
             put(ID,context.getPackageName());
             put(VERSION,"1.0");
@@ -39,11 +41,11 @@ public class ApplicationData extends JSONObject {
         }
     }
 
-    public String getId() throws JSONException {
-        return getString(ID);
+    public String getId() {
+        return optString(ID);
     }
 
-    public String getVersion() throws JSONException {
-        return getString(VERSION);
+    public String getVersion() {
+        return optString(VERSION);
     }
 }

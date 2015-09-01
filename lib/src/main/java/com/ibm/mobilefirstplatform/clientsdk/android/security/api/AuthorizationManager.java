@@ -16,13 +16,12 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.api;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.AppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.UserIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationHeaderHelper;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationProcessManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.ApplicationData;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.data.DeviceData;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences.AuthorizationManagerPreferences;
-
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -34,18 +33,17 @@ public class AuthorizationManager {
     private static AuthorizationManager instance;
     private AuthorizationManagerPreferences preferences;
     private AuthorizationProcessManager authorizationProcessManager;
-
     private AuthorizationManager(Context context) {
         this.preferences = new AuthorizationManagerPreferences(context);
         this.authorizationProcessManager = new AuthorizationProcessManager(context, preferences);
 
         //init generic data, like device data and application data
         if (preferences.deviceIdentity.get() == null) {
-            preferences.deviceIdentity.set(new DeviceData(context));
+            preferences.deviceIdentity.set(new DeviceIdentity(context));
         }
 
         if (preferences.appIdentity.get() == null) {
-            preferences.appIdentity.set(new ApplicationData(context));
+            preferences.appIdentity.set(new AppIdentity(context));
         }
     }
 
@@ -125,17 +123,19 @@ public class AuthorizationManager {
         return null;
     }
 
-    public JSONObject getUserIdentity() {
-        return preferences.userIdentity.getAsJSON();
+    public UserIdentity getUserIdentity() {
+        return new UserIdentity(preferences.userIdentity.getAsMap());
     }
 
-    public JSONObject getDeviceIdentity() {
-        return preferences.deviceIdentity.getAsJSON();
+    public DeviceIdentity getDeviceIdentity() {
+        return new DeviceIdentity(preferences.deviceIdentity.getAsMap());
     }
 
-    public JSONObject getAppIdentity() {
-        return preferences.appIdentity.getAsJSON();
+    public AppIdentity getAppIdentity() {
+        return new AppIdentity(preferences.appIdentity.getAsMap());
     }
 
     public enum PersistencePolicy {ALWAYS, NEVER}
+
+
 }

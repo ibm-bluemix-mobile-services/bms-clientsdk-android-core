@@ -21,6 +21,10 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryptio
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Created by cirilla on 7/16/15.
  * General Shared Preferences Manager
@@ -84,13 +88,22 @@ public class SharedPreferencesManager {
             set(json.toString());
         }
 
-        public JSONObject getAsJSON() {
+        public Map getAsMap() {
             try {
-                return new JSONObject(get());
+                JSONObject json = new JSONObject(get());
+
+                Map<String, Object> asMap = new HashMap<>();
+                Iterator<String> keys = json.keys();
+
+                while (keys.hasNext()) {
+                    String element = keys.next();
+                    asMap.put(element, json.get(element));
+                }
+                return asMap;
             } catch (JSONException e) {
                 e.printStackTrace();
-                return null;
             }
+            return null;
         }
     }
 }
