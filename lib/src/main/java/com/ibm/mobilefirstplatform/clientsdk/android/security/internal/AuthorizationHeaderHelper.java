@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Authorization help methods to handle headers
  * Created by cirilla on 7/29/15.
  */
 public class AuthorizationHeaderHelper {
@@ -32,12 +33,6 @@ public class AuthorizationHeaderHelper {
     private static final String WWW_AUTHENTICATE_HEADER = "WWW-Authenticate";
 
 
-    /**
-     * check if the params came from response that requires authorization
-     * @param statusCode of the response
-     * @param responseAuthorizationHeader 'WWW-Authenticate' header
-     * @return true if status is 401 or 403 and The value of the header contains 'Bearer' AND 'realm="imfAuthentication"'
-     */
     public static boolean isAuthorizationRequired(int statusCode, String responseAuthorizationHeader) {
         return isAuthorizationRequired(statusCode, Arrays.asList(responseAuthorizationHeader));
     }
@@ -54,15 +49,7 @@ public class AuthorizationHeaderHelper {
         return isAuthorizationRequired(response.code(), response.headers(WWW_AUTHENTICATE_HEADER));
     }
 
-    /**
-     * A response is an OAuth error response only if,
-     * 1. it's status is 401 or 403
-     * 2. The value of the "WWW-Authenticate" header contains 'Bearer' AND 'realm="imfAuthentication"'
-     *
-     * @param urlConnection connection to check the authorization conditions for.
-     * @return true if the response satisfies both conditions
-     * @throws IOException in case connection dosn't contains response code.
-     */
+
     public static boolean isAuthorizationRequired(HttpURLConnection urlConnection) throws IOException {
         return isAuthorizationRequired(urlConnection.getResponseCode(),urlConnection.getHeaderField(WWW_AUTHENTICATE_HEADER));
     }
@@ -77,6 +64,12 @@ public class AuthorizationHeaderHelper {
         }
     }
 
+    /**
+     * Check if the params came from response that requires authorization
+     * @param statusCode status code of the responce
+     * @param wwwAuthenticateHeaders list of WWW-Authenticate headers
+     * @return true if status is 401 or 403 and The value of the header contains 'Bearer' AND 'realm="imfAuthentication"'
+     */
     private static boolean isAuthorizationRequired(int statusCode, List<String> wwwAuthenticateHeaders) {
 
         if (statusCode == 401 || statusCode == 403) {

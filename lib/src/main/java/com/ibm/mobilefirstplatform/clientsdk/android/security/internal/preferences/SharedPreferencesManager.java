@@ -26,8 +26,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * General shared preferences
  * Created by cirilla on 7/16/15.
- * General Shared Preferences Manager
  */
 public class SharedPreferencesManager {
 
@@ -40,10 +40,17 @@ public class SharedPreferencesManager {
         this.editor = sharedPreferences.edit();
     }
 
+    /**
+     * Set encryption method for the using to save/load preferences
+     * @param stringEncryption the method of encryption to use
+     */
     public void setStringEncryption(StringEncryption stringEncryption) {
         this.stringEncryption = stringEncryption;
     }
 
+    /**
+     * Holds single string preference value
+     */
     public class StringPreference {
 
         String prefName;
@@ -78,6 +85,10 @@ public class SharedPreferencesManager {
         }
     }
 
+
+    /**
+     * Holds single JSON preference value
+     */
     public class JSONPreference extends StringPreference {
 
         JSONPreference(String prefName) {

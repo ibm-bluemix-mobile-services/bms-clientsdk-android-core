@@ -21,6 +21,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryptio
 
 /**
  * Shared preferences that are used for authorization
+ * Created by cirilla on 7/16/15.
  */
 
 public class AuthorizationManagerPreferences extends SharedPreferencesManager {
@@ -41,6 +42,9 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
         setStringEncryption(new AESStringEncryption(uuid));
     }
 
+    /**
+     * Holds authorization manager Policy preference
+     */
     public class PolicyPreference {
 
         private AuthorizationManager.PersistencePolicy value;
@@ -62,6 +66,9 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
         }
     }
 
+    /**
+     * Holds authorization manager Token preference
+     */
     public class TokenPreference {
 
         String runtimeValue;

@@ -154,7 +154,6 @@ public class AuthorizationProcessManager {
     private HashMap<String, String> createRegistrationHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         addSessionIdHeader(headers);
-        //headers.put("X-WL-Auth", "0"); //TODO: remove this one later
 
         return headers;
     }
@@ -219,7 +218,6 @@ public class AuthorizationProcessManager {
         params.put("response_type", "code");
         params.put("client_id", preferences.clientId.get());
         params.put("redirect_uri", HTTP_LOCALHOST);
-        //params.put("PARAM_SCOPE_KEY", defaultScope);  //TODO: remove it later after automation testing
 
         return params;
     }
@@ -308,7 +306,6 @@ public class AuthorizationProcessManager {
 
     private String extractGrantCode(String urlString) throws MalformedURLException {
 
-        //http://localhost?code=3IIXxqIKad4Zjq5VyhdlbnG0__KW5KaIIgpfub3I64qpxLPn4YMdPFysxBUp-swd3SFc8aVKsPzLKGYMpzZctv3PDonYZgf-UMalerjRLlsaCd21A2xfHMvfwJy_kY31wXWngzYQauyDp6-xI58nPu3sDsl2J_6Ce6nxyJHXUwrRk47_XmY4w3GqJVGJ3rKs&wl_result=%7B%7D
         URL url = new URL(urlString);
         String code = Utils.getParameterValueFromQuery(url.getQuery(), "code");
 
@@ -319,19 +316,6 @@ public class AuthorizationProcessManager {
         logger.debug("Grant code extracted successfully");
         return code;
     }
-
-    /*
-    private HashMap<String, String> getQueryParams(String query) {
-        String[] params = query.split("&");
-        HashMap<String, String> map = new HashMap<>();
-        for (String param : params) {
-            String name = param.split("=")[0];
-            String value = param.split("=")[1];
-            map.put(name, value);
-        }
-        return map;
-    }
-    */
 
     private void authorizationRequestSend(final Context context, String path, AuthorizationRequestAgent.RequestOptions options, ResponseListener listener) {
         try {

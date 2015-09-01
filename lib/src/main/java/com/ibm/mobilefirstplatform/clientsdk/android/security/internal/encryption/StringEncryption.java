@@ -15,9 +15,9 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encrypti
 
 /**
  * Interface for encrypting and decrypting strings
+ * Created by cirilla on 8/29/15.
  */
 public interface StringEncryption {
     String encrypt(String str);
-
     String decrypt(String str);
 }

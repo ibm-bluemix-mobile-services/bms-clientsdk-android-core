@@ -21,7 +21,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Encryption and decryption based on AES algorithm
+ * Encryption and decryption of strings based on AES algorithm
+ * Created by cirilla on 8/29/15.
  */
 public class AESStringEncryption implements StringEncryption {
 
