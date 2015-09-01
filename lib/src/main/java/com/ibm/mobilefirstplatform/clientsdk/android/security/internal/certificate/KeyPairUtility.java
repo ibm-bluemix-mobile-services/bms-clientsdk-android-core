@@ -18,6 +18,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 
 /**
+ * General help methods for handling key pairs
  * Created by cirilla on 8/3/15.
  */
 public class KeyPairUtility {
