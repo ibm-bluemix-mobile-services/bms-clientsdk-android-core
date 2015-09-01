@@ -50,7 +50,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AuthorizationProcessManager {
 
     private static final String HTTP_LOCALHOST = "http://localhost";
-    private final String defaultScope = "defaultScope";
     private AuthorizationManagerPreferences preferences;
     private ConcurrentLinkedQueue<ResponseListener> authorizationQueue;
     private KeyPair registrationKeyPair;
@@ -247,6 +246,10 @@ public class AuthorizationProcessManager {
     }
 
 
+    /**
+     * Extract the certificate data from response and save it on local storage
+     * @param response contains the certificate data
+     */
     private void saveCertificateFromResponse(Response response) {
         try {
             String responseBody = response.getResponseText();
@@ -270,6 +273,10 @@ public class AuthorizationProcessManager {
         logger.info("certificate successfully saved");
     }
 
+    /**
+     * Invoke the authorization request, the result of the request should be a grant code
+     * @param context android activity that will handle authentication (facebook, google)
+     */
     private void invokeAuthorizationRequest(Context context) {
 
         AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
@@ -292,7 +299,10 @@ public class AuthorizationProcessManager {
         authorizationRequestSend(context, "authorization", options, listener);
     }
 
-
+    /**
+     * @param response response with location header
+     * @return the extracted location header
+     */
     private String extractLocationHeader(Response response) {
         List<String> location = response.getResponseHeaders().get("Location");
 
@@ -304,6 +314,12 @@ public class AuthorizationProcessManager {
         return location.get(0);
     }
 
+    /**
+     * Extract grant code from url string
+     * @param urlString url that contain the grant code
+     * @return grant code
+     * @throws MalformedURLException in case of illegal url format
+     */
     private String extractGrantCode(String urlString) throws MalformedURLException {
 
         URL url = new URL(urlString);
@@ -317,16 +333,11 @@ public class AuthorizationProcessManager {
         return code;
     }
 
-    private void authorizationRequestSend(final Context context, String path, AuthorizationRequestAgent.RequestOptions options, ResponseListener listener) {
-        try {
-            AuthorizationRequestAgent authorizationRequestManager = new AuthorizationRequestAgent();
-            authorizationRequestManager.initialize(context, listener);
-            authorizationRequestManager.sendRequest(path, options);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send authorization request", e);
-        }
-    }
 
+    /**
+     * Invoke request to get token, the result of the response should be a valid token
+     * @param grantCode grant code that will be used during the request
+     */
     private void invokeTokenRequest(String grantCode) {
 
         AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
@@ -347,6 +358,10 @@ public class AuthorizationProcessManager {
         authorizationRequestSend(null, "token", options, listener);
     }
 
+    /**
+     * Extract token from response and save it locally
+     * @param response response that contain the token
+     */
     private void saveTokenFromResponse(Response response) {
         try {
             JSONObject responseJSON = response.getResponseJSON();
@@ -370,12 +385,39 @@ public class AuthorizationProcessManager {
         }
     }
 
+    /**
+     * Use authorization request agent for sending the request
+     * @param context android activity that will handle authentication (facebook, google)
+     * @param path path to the server
+     * @param options send options
+     * @param listener response listener
+     */
+    private void authorizationRequestSend(final Context context, String path, AuthorizationRequestAgent.RequestOptions options, ResponseListener listener) {
+        try {
+            AuthorizationRequestAgent authorizationRequestManager = new AuthorizationRequestAgent();
+            authorizationRequestManager.initialize(context, listener);
+            authorizationRequestManager.sendRequest(path, options);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send authorization request", e);
+        }
+    }
+
+    /**
+     * Handle failure in the authorization process. All the response listeners will be updated with
+     * failure
+     * @param t exception at caused to failure
+     */
     private void handleAuthorizationFailure(Throwable t) {
         handleAuthorizationFailure(null, t);
     }
 
-    //General failure for authorization
-    private void handleAuthorizationFailure(FailResponse request, Throwable t) {
+    /**
+     * Handle failure in the authorization process. All the response listeners will be updated with
+     * failure
+     * @param response response that caused to failure
+     * @param t additional failure info
+     */
+    private void handleAuthorizationFailure(FailResponse response, Throwable t) {
         if (t != null) {
             t.printStackTrace();
         }
@@ -384,11 +426,16 @@ public class AuthorizationProcessManager {
 
         while(iterator.hasNext()) {
             ResponseListener next = iterator.next();
-            next.onFailure(request,t);
+            next.onFailure(response,t);
             iterator.remove();
         }
     }
 
+    /**
+     * Handle success in the authorization process. All the response listeners will be updated with
+     * success
+     * @param response final success response from the server
+     */
     private void handleAuthorizationSuccess(Response response) {
 
         Iterator<ResponseListener> iterator = authorizationQueue.iterator();
@@ -400,6 +447,11 @@ public class AuthorizationProcessManager {
         }
     }
 
+    /**
+     * Inner response listener that is used during the authorization requests.
+     * this listener handles all types of exception and calls to handleAuthorizationFailure in that
+     * case
+     */
     private abstract class InnerAuthorizationResponseListener implements ResponseListener {
 
         abstract public void handleAuthorizationSuccessResponse(Response response) throws Exception;
