@@ -16,23 +16,41 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferen
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryption.StringEncryption;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
+ * General shared preferences
  * Created by cirilla on 7/16/15.
- * General Shared Preferences Manager
  */
 public class SharedPreferencesManager {
 
     protected SharedPreferences sharedPreferences;
     protected SharedPreferences.Editor editor;
+    protected StringEncryption stringEncryption;
 
     public SharedPreferencesManager(Context context, String name, int mode) {
         this.sharedPreferences = context.getSharedPreferences(name, mode);
         this.editor = sharedPreferences.edit();
     }
 
+    /**
+     * Set encryption method for the using to save/load preferences
+     * @param stringEncryption the method of encryption to use
+     */
+    public void setStringEncryption(StringEncryption stringEncryption) {
+        this.stringEncryption = stringEncryption;
+    }
+
+    /**
+     * Holds single string preference value
+     */
     public class StringPreference {
 
         String prefName;
@@ -48,11 +66,11 @@ public class SharedPreferencesManager {
         }
 
         public String get() {
-            return value;
+            return value == null ? null : stringEncryption.decrypt(value);
         }
 
         public void set(String value) {
-            this.value = value;
+            this.value = value == null ? null : stringEncryption.encrypt(value);
             commit();
         }
 
@@ -67,6 +85,10 @@ public class SharedPreferencesManager {
         }
     }
 
+
+    /**
+     * Holds single JSON preference value
+     */
     public class JSONPreference extends StringPreference {
 
         JSONPreference(String prefName) {
@@ -77,13 +99,22 @@ public class SharedPreferencesManager {
             set(json.toString());
         }
 
-        public JSONObject getAsJSON() {
+        public Map getAsMap() {
             try {
-                return new JSONObject(get());
+                JSONObject json = new JSONObject(get());
+
+                Map<String, Object> asMap = new HashMap<>();
+                Iterator<String> keys = json.keys();
+
+                while (keys.hasNext()) {
+                    String element = keys.next();
+                    asMap.put(element, json.get(element));
+                }
+                return asMap;
             } catch (JSONException e) {
                 e.printStackTrace();
-                return null;
             }
+            return null;
         }
     }
 }

@@ -21,6 +21,8 @@ import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 
@@ -83,7 +85,7 @@ public class ResourceRequest extends MFPRequest {
             @Override
             public void onFailure(Request request, IOException e) {
                 if (listener != null) {
-                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), e);
+                    listener.onFailure(null, e, null);
                 }
             }
 
@@ -105,19 +107,19 @@ public class ResourceRequest extends MFPRequest {
                                     }
 
                                     @Override
-                                    public void onFailure(FailResponse response, Throwable t) {
-                                        listener.onFailure(response, t);
+                                    public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                                        listener.onFailure(response, t, extendedInfo);
                                     }
                                 }
                         );
                     } else {
-                        listener.onFailure(new FailResponse(FailResponse.ErrorCode.SERVER_ERROR, response), null);
+                        listener.onFailure(new Response(response), null, null);
                     }
                 } else {
                     if (response.isSuccessful() || response.isRedirect()) {
                         listener.onSuccess(new Response(response));
                     } else if (!response.isRedirect()) {
-                        listener.onFailure(new FailResponse(FailResponse.ErrorCode.SERVER_ERROR, response), null);
+                        listener.onFailure(new Response(response), null, null);
                     }
                 }
             }

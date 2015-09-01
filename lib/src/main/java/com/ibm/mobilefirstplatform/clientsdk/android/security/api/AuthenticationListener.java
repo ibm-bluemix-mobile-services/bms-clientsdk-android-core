@@ -17,9 +17,33 @@ import android.content.Context;
 
 import org.json.JSONObject;
 
+/**
+ * The AuthenticationListener interface should be implemented by application's authentication listeners
+ * in order to receive notifications about authentication challenges.
+ */
 public interface AuthenticationListener {
+	/**
+	 * Called when authentication challenge was received. The implementor should handle the challenge and call
+	 * {@link com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationContext#submitAuthenticationChallengeAnswer(JSONObject)}
+	 * with authentication challenge answer.
+	 * @param authContext Authentication context the answer should be sent to
+	 * @param challenge Information about authentication challenge.
+	 * @param context A {@link Context} object that was passed to
+	 * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest#ResourceRequest(Context, String, String)}, which triggered the
+	 * authentication challenge.
+	 */
 	void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context);
+
+	/**
+	 * Called when authentication succeeded.
+	 * @param info Extended data describing the authentication success.
+	 */
 	void onAuthenticationSuccess(JSONObject info);
+
+	/**
+	 * Called when authentication fails.
+	 * @param info Extended data describing authentication failure.
+	 */
 	void onAuthenticationFailure(JSONObject info);
 
 }

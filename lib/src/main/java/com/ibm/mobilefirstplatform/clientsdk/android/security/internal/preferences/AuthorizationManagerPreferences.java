@@ -14,15 +14,17 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.preferences;
 
 import android.content.Context;
+import android.provider.Settings;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encryption.AESStringEncryption;
 
 /**
+ * Shared preferences that are used for authorization
  * Created by cirilla on 7/16/15.
  */
 
 public class AuthorizationManagerPreferences extends SharedPreferencesManager {
-
 
     public PolicyPreference persistencePolicy = new PolicyPreference("persistencePolicy", AuthorizationManager.PersistencePolicy.ALWAYS);
     public StringPreference clientId = new StringPreference("clientId");
@@ -35,8 +37,14 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
 
     public AuthorizationManagerPreferences(Context context) {
         super(context, "AuthorizationManagerPreferences", Context.MODE_PRIVATE);
+
+        String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+        setStringEncryption(new AESStringEncryption(uuid));
     }
 
+    /**
+     * Holds authorization manager Policy preference
+     */
     public class PolicyPreference {
 
         private AuthorizationManager.PersistencePolicy value;
@@ -58,6 +66,9 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
         }
     }
 
+    /**
+     * Holds authorization manager Token preference
+     */
     public class TokenPreference {
 
         String runtimeValue;
@@ -89,6 +100,11 @@ public class AuthorizationManagerPreferences extends SharedPreferencesManager {
             } else {
                 savedValue.clear();
             }
+        }
+
+        public void clear() {
+            savedValue.clear();
+            runtimeValue = null;
         }
     }
 }

@@ -393,8 +393,7 @@ public class MFPRequest {
 
             }
         } catch (MalformedURLException e) {
-            FailResponse response = new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT);
-            listener.onFailure(response, e);
+            listener.onFailure(null, e, null);
             return;
         }
 
@@ -415,7 +414,7 @@ public class MFPRequest {
         return new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
-                listener.onFailure(new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT), e);
+                listener.onFailure(null, e, null);
             }
 
             @Override
@@ -423,7 +422,7 @@ public class MFPRequest {
                 if (response.isSuccessful() || response.isRedirect()) {
                     listener.onSuccess(new Response(response));
                 } else if (!response.isRedirect()) {
-                    listener.onFailure(new FailResponse(FailResponse.ErrorCode.SERVER_ERROR, response), null);
+                    listener.onFailure(new Response(response), null, null);
                 }
             }
         };

@@ -17,7 +17,7 @@ import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationContext;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationRequestManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationRequestAgent;
 
 import org.json.JSONObject;
 
@@ -30,8 +30,8 @@ public class ChallengeHandler implements AuthenticationContext {
 
     private String realm;
     private volatile AuthenticationListener listener;
-    private volatile ArrayList<AuthorizationRequestManager> waitingRequests = new ArrayList<AuthorizationRequestManager>();
-    private volatile AuthorizationRequestManager activeRequest;
+    private volatile ArrayList<AuthorizationRequestAgent> waitingRequests = new ArrayList<AuthorizationRequestAgent>();
+    private volatile AuthorizationRequestAgent activeRequest;
 
     public void initialize(String realm, AuthenticationListener listener) {
         this.realm = realm;
@@ -73,7 +73,7 @@ public class ChallengeHandler implements AuthenticationContext {
         releaseWaitingList();
     }
 
-    public synchronized void handleChallenge(AuthorizationRequestManager request, JSONObject challenge, Context context) {
+    public synchronized void handleChallenge(AuthorizationRequestAgent request, JSONObject challenge, Context context) {
         if (activeRequest == null) {
             setActiveRequest(request);
             if (listener != null) {
@@ -102,12 +102,12 @@ public class ChallengeHandler implements AuthenticationContext {
         setActiveRequest(null);
     }
 
-    private synchronized void setActiveRequest(AuthorizationRequestManager request) {
+    private synchronized void setActiveRequest(AuthorizationRequestAgent request) {
         activeRequest = request;
     }
 
     private synchronized void releaseWaitingList() {
-        for (AuthorizationRequestManager request : waitingRequests) {
+        for (AuthorizationRequestAgent request : waitingRequests) {
             request.removeExpectedAnswer(realm);
         }
 

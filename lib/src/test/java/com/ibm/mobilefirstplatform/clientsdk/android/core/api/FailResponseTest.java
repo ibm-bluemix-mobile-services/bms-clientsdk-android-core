@@ -17,7 +17,7 @@ import org.junit.Test;
 import static junit.framework.Assert.assertTrue;
 
 public class FailResponseTest {
-
+/*
     @Test
     public void shouldHaveResponseInformationAsWell(){
         FailResponse response = new FailResponse(FailResponse.ErrorCode.UNABLE_TO_CONNECT);
@@ -35,5 +35,5 @@ public class FailResponseTest {
 
         assertTrue(response.getErrorCode() == FailResponse.ErrorCode.SERVER_ERROR);
     }
-
+*/
 }

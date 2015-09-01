@@ -26,9 +26,8 @@ import org.json.JSONObject;
 public class AuthorizationPreferencesTests extends InstrumentationTestCase {
 
 
-	AuthorizationManagerPreferences preferences;
-
 	final String SAVE_STRING = "Test_String_To_Save";
+	AuthorizationManagerPreferences preferences;
 	JSONObject saveJSON;//
 
 	@Override
@@ -52,7 +51,9 @@ public class AuthorizationPreferencesTests extends InstrumentationTestCase {
 		preferences.userIdentity.set(saveJSON);
 
 		AuthorizationManagerPreferences preferences3 = new AuthorizationManagerPreferences(getInstrumentation().getTargetContext());
-		Assert.assertEquals("TestValue", preferences3.userIdentity.getAsJSON().getString("TestName"));
+
+		JSONObject result = new JSONObject(preferences3.userIdentity.getAsMap());
+		Assert.assertEquals("TestValue", result.getString("TestName"));
 	}
 
 

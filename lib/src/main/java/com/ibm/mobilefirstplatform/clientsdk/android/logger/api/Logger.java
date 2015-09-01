@@ -21,7 +21,6 @@ import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.MFPAnalytics;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.FailResponse;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
@@ -700,8 +699,8 @@ public final class Logger {
 
     /**
      * Send the accumulated log data when the persistent log buffer exists and is not empty.  The data
-     * accumulates in the log buffer from the use of {@link com.ibm.bms.clientsdk.android.logger.api.Logger} with capture
-     * (see {@link com.ibm.bms.clientsdk.android.logger.api.Logger#setCapture(boolean)}) turned on.
+     * accumulates in the log buffer from the use of {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger} with capture
+     * (see {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger#setCapture(boolean)}) turned on.
      *
      */
     static public void send () {
@@ -726,8 +725,8 @@ public final class Logger {
     /**
      * @exclude
      * Send the accumulated log data when the persistent log buffer exists and is not empty.  The data
-     * accumulates in the log buffer from the use of {@link com.ibm.bms.clientsdk.android.logger.api.Logger} with capture
-     * (see {@link com.ibm.bms.clientsdk.android.logger.api.Logger#setAnalyticsCapture(boolean)}) turned on.
+     * accumulates in the log buffer from the use of {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger} with capture
+     * (see {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger#setAnalyticsCapture(boolean)}) turned on.
      *
      * @param listener ResponseListener which specifies an onSuccess callback and an onFailure callback
      */
@@ -1326,7 +1325,7 @@ public final class Logger {
                     logger.error("Failed to POST data from file " + file + " due to: HTTP response code: " + response.getStatus());
 
                     if (userDefinedListener != null) {
-                        userDefinedListener.onFailure(new FailResponse(FailResponse.ErrorCode.SERVER_ERROR, response), null);
+                        userDefinedListener.onFailure(response, null, null);
                     }
                 }
 
@@ -1350,10 +1349,10 @@ public final class Logger {
         }
 
         @Override
-        public void onFailure(FailResponse response, Throwable t) {
+        public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
 
             if (userDefinedListener != null) {
-                userDefinedListener.onFailure(response, t);
+                userDefinedListener.onFailure(response, t, extendedInfo);
             }
 
             //Turn off the send flag:
