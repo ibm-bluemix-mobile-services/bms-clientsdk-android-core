@@ -14,16 +14,16 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 
 import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 
 /**
  * Created by vitalym on 7/21/15.
@@ -71,31 +71,6 @@ public class Utils {
         return null;
     }
 
-
-
-    /*
-    //TODO: check if we can diffrent implementation
-    public static String getDeviceUUID(Context context) {
-        String deviceUuid;
-
-        String macAddr = null;
-        PackageManager packageManager = context.getPackageManager();
-        if (packageManager.hasSystemFeature (PackageManager.FEATURE_WIFI)) {
-            WifiManager wfManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiinfo = wfManager.getConnectionInfo();
-            macAddr = wifiinfo.getMacAddress();
-        }
-        String uuid = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-
-        if (macAddr != null)  uuid += macAddr;
-        // Use a hashed UUID not exposing the device ANDROID_ID/Mac Address
-        deviceUuid = UUID.nameUUIDFromBytes(uuid.getBytes()).toString () ;
-
-        return deviceUuid;
-
-
-    }
-    */
 
     /**
      * Extracts a JSON object from server response with secured string.
