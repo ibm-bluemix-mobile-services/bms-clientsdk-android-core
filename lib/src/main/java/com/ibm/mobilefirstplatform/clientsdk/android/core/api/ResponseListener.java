@@ -28,13 +28,17 @@ public interface ResponseListener {
 	void onSuccess(Response response);
 
 	/**
-	 * This method will be called either when there is no response from the server or when the status
-	 * from the server response is in the 400 or 500 ranges. The FailResponse contains an error code
-	 * distinguishing between the different cases.
-	 *
-	 * @param response Contains detail regarding why the request failed
-	 * @param t Exception that could have caused the request to fail. Null if no Exception thrown.
+	 * This method will be called in the following cases:
+	 * <ul>
+	 * <li>There is no response from the server.</li>
+	 * <li>The status from the server response is in the 400 or 500 ranges.</li>
+	 * <li>There is an operational failure such as: authentication failure, data validation failure, or custom failure.</li>
+	 * </ul>
+	 * @param response Contains detail regarding why the Http request failed. May be null if the request did not reach the server
+	 * @param t Exception that could have caused the request to fail. null if no Exception thrown.
+	 * @param extendedInfo Contains details regarding operational failure. Null if no operational failure occurred.
 	 */
+
 	void onFailure(Response response, Throwable t, JSONObject extendedInfo);
 
 }

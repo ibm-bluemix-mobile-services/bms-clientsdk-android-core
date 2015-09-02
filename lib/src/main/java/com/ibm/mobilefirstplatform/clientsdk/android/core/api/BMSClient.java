@@ -26,6 +26,9 @@ import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 
+/**
+ * The BMSClient is a singleton that serves as the entry point to MobileFirst.
+ */
 public class BMSClient {
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";
@@ -38,8 +41,12 @@ public class BMSClient {
     private String rewriteDomain;
 
     private int defaultTimeout = 20000;
-    private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<String, ChallengeHandler>();
+    private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<>();
 
+    /**
+     * Should be called to obtain the instance of BMSClient.
+     * @return the instance of BMSClient.
+     */
     public static BMSClient getInstance() {
         if (instance == null) {
             instance = new BMSClient();
@@ -83,14 +90,27 @@ public class BMSClient {
         Logger.setContext(context.getApplicationContext());
     }
 
+    /**
+     *
+     * @return backend route url
+     */
     public String getBackendRoute() {
         return backendRoute;
     }
 
+    /**
+     *
+     * @return backend GUID
+     */
     public String getBackendGUID() {
         return backendGUID;
     }
 
+    /**
+     * Registers authentication listener for specified realm.
+     * @param realm authentication realm.
+     * @param authenticationListener authentication listener.
+     */
     public void registerAuthenticationListener(String realm, AuthenticationListener authenticationListener) {
         if (realm == null || realm.isEmpty()) {
             throw new InvalidParameterException("The realm name can't be null or empty.");
@@ -105,24 +125,46 @@ public class BMSClient {
         challengeHandlers.put(realm, handler);
     }
 
+    /**
+     * Unregisters authentication listener
+     * @param realm the realm the listener was registered for
+     */
     public void unregisterAuthenticationListener(String realm) {
         if (realm != null && !realm.isEmpty()) {
             challengeHandlers.remove(realm);
         }
     }
 
+    /**
+     * @exclude
+     *
+     * @param realm authentication realm
+     * @return challenge handler for specified realm
+     */
     public ChallengeHandler getChallengeHandler(String realm) {
         return challengeHandlers.get(realm);
     }
 
+    /**
+     *
+     * @return default timeout, in milliseconds
+     */
     public int getDefaultTimeout() {
         return defaultTimeout;
     }
 
+    /**
+     * Sets the default timeout. The SDK's default value is 20000 milliseconds.
+     * @param timeout specifies the new timeout, in milliseconds
+     */
     public void setDefaultTimeout(int timeout) {
         defaultTimeout = timeout;
     }
 
+    /**
+     * @exclude
+     * @return rewrite domain generated from backend route url.
+     */
     public String getRewriteDomain() {
         return rewriteDomain;
     }

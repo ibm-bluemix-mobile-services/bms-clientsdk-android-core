@@ -527,6 +527,13 @@ public class AuthorizationRequestAgent implements ResponseListener {
         }
     }
 
+    /**
+     * Called from onSuccess and onFailure. Handles all possible exceptions and notifies the listener
+     * if an exception occurs.
+     *
+     * @param response  server response
+     * @param isFailure specifies whether this method is called from onSuccess (false) or onFailure (true).
+     */
     private void processResponseWrapper(Response response, boolean isFailure) {
         try {
             if (isFailure || !response.isRedirect()) {
