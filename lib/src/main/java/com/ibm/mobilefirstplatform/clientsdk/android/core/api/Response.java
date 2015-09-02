@@ -13,11 +13,14 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +32,14 @@ import static com.squareup.okhttp.internal.Util.UTF_8;
  * This class has methods to get more details from the Response to the ResourceRequest.
  */
 public class Response {
+    private Logger logger;
     private com.squareup.okhttp.Response okHttpResponse;
     private Headers headers;
     private MediaType contentType;
     private byte bodyBytes[];
 
     protected Response(com.squareup.okhttp.Response response) {
+        this.logger = Logger.getInstance(Response.class.getSimpleName());
         okHttpResponse = response;
 
         if (okHttpResponse != null) {
@@ -43,6 +48,7 @@ public class Response {
             try {
                 bodyBytes = okHttpResponse.body().bytes();
             } catch (Exception e) {
+                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
                 bodyBytes = null;
             }
 
@@ -66,38 +72,27 @@ public class Response {
     /**
      * This method parses the response body as a String.
      *
-     * @return The body of the response as a String. Null if there is no body or exception occurred when building the response string.
+     * @return The body of the response as a String. Empty string if there is no body.
+     * @throws UnsupportedEncodingException if the response text can not be parsed to a valid string.
      */
-    public String getResponseText() {
+    public String getResponseText() throws UnsupportedEncodingException {
         if (bodyBytes == null) {
-            return null;
+            return "";
         }
 
-        try {
-            Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
-            return new String(bodyBytes, charset.name());
-        } catch (Exception e) {
-           return null;
-        }
+        Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
+        return new String(bodyBytes, charset.name());
     }
 
     /**
      * This method parses the response body as a JSONObject.
      *
-     * @return The body of the response as a JSONObject. Null if there is no body or if it is not a valid JSONObject.
+     * @return The body of the response as a JSONObject.
+     * @throws UnsupportedEncodingException if response text can not be parsed to a valid string.
+     * @throws JSONException if response text is not a valid JSON object.
      */
-    public JSONObject getResponseJSON() {
-        String responseText = getResponseText();
-
-        if (responseText == null) {
-            return null;
-        }
-
-        try {
-            return new JSONObject(getResponseText());
-        } catch (Throwable t) {
-            return null;
-        }
+    public JSONObject getResponseJSON() throws UnsupportedEncodingException, JSONException {
+        return new JSONObject(getResponseText());
     }
 
     /**
@@ -184,7 +179,11 @@ public class Response {
 
     @Override
     public String toString() {
-        return "Response: Status=" + getStatus() + ", Response Text: " + getResponseText();
+        try {
+            return "Response: Status=" + getStatus() + ", Response Text: " + getResponseText();
+        } catch (UnsupportedEncodingException e) {
+            return "Response: Status=" + getStatus() + ", Exception occurred when constructing response text string: " + e.getLocalizedMessage();
+        }
     }
 
     protected com.squareup.okhttp.Response getInternalResponse(){
