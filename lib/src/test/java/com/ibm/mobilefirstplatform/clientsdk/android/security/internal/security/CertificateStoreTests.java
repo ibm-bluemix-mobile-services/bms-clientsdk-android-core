@@ -17,9 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-/**
- * Created by cirilla on 8/6/15.
- */
 public class CertificateStoreTests {
 
 
@@ -36,7 +33,7 @@ public class CertificateStoreTests {
     @Before
     public void setUp() throws Exception {
         tempFile = File.createTempFile("tempKeyStore", "tmp");
-        store = new CertificateStore(tempFile,PASSWORD.toCharArray());
+        store = new CertificateStore(tempFile,PASSWORD); //Password used to be PASSWORD.toCharArray(), invalid for current constructor, change if needed.
         keyPair = generateRandomKeyPair();
 
         InputStream inStream = new ByteArrayInputStream(hexStringToByteArray(certificateAsHex));
@@ -73,7 +70,7 @@ public class CertificateStoreTests {
         Assert.assertTrue(store.isCertificateStored());
         store = null;
 
-        CertificateStore store2 = new CertificateStore(tempFile,PASSWORD.toCharArray());
+        CertificateStore store2 = new CertificateStore(tempFile,PASSWORD); //Password used to be PASSWORD.toCharArray(), invalid for current constructor, change if needed.
 
         KeyPair savedKeyPair = store2.getStoredKeyPair();
 
