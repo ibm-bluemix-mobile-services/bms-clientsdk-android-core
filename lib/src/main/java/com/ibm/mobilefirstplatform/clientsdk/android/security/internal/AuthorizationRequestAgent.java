@@ -300,7 +300,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
                 resendRequest();
             }
         } catch (Throwable t) {
-            logger.error("removeExpectedAnswer failed with exception: " + t.getLocalizedMessage(), t);
+            logger.error("submitAnswer failed with exception: " + t.getLocalizedMessage(), t);
         }
     }
 

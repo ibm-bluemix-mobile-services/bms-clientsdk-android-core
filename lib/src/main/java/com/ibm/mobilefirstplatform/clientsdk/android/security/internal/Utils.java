@@ -79,17 +79,18 @@ public class Utils {
      * @return Extracted secured JSON or null.
      */
     public static JSONObject extractSecureJson(Response response) {
-        String responseText = response.getResponseText();
-
-        if (responseText == null || !responseText.startsWith(SECURE_PATTERN_START) || !responseText.endsWith(SECURE_PATTERN_END)) {
-            return null;
-        }
-
-        int startIndex = responseText.indexOf(SECURE_PATTERN_START);
-        int endIndex = responseText.indexOf(SECURE_PATTERN_END, responseText.length() - SECURE_PATTERN_END.length() - 1);
-
-        String jsonString = responseText.substring(startIndex + SECURE_PATTERN_START.length(), endIndex);
         try {
+            String responseText = response.getResponseText();
+
+            if (!responseText.startsWith(SECURE_PATTERN_START) || !responseText.endsWith(SECURE_PATTERN_END)) {
+                return null;
+            }
+
+            int startIndex = responseText.indexOf(SECURE_PATTERN_START);
+            int endIndex = responseText.indexOf(SECURE_PATTERN_END, responseText.length() - SECURE_PATTERN_END.length() - 1);
+
+            String jsonString = responseText.substring(startIndex + SECURE_PATTERN_START.length(), endIndex);
+
             return new JSONObject(jsonString);
         } catch (Throwable t) {
             logger.error("extractSecureJson failed with exception: " + t.getLocalizedMessage(), t);
