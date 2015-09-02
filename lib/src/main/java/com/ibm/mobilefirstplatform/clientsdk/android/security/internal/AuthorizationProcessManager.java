@@ -405,7 +405,7 @@ public class AuthorizationProcessManager {
     /**
      * Handle failure in the authorization process. All the response listeners will be updated with
      * failure
-     * @param t exception at caused to failure
+     * @param t the reason of failure
      */
     private void handleAuthorizationFailure(Throwable t) {
         handleAuthorizationFailure(null, t, null);
@@ -415,7 +415,7 @@ public class AuthorizationProcessManager {
      * Handle failure in the authorization process. All the response listeners will be updated with
      * failure
      * @param response response that caused to failure
-     * @param t additional failure info
+     * @param t additional info about the failure
      */
     private void handleAuthorizationFailure(Response response, Throwable t, JSONObject extendedInfo) {
         if (t != null) {
