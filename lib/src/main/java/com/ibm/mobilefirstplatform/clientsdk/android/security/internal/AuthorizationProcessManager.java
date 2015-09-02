@@ -418,6 +418,8 @@ public class AuthorizationProcessManager {
      * @param t additional info about the failure
      */
     private void handleAuthorizationFailure(Response response, Throwable t, JSONObject extendedInfo) {
+        logger.error("authorization process failed");
+
         if (t != null) {
             t.printStackTrace();
         }
