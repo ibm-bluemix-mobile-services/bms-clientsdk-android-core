@@ -12,7 +12,7 @@
 */
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven' //Experimental
+//apply plugin: 'maven' //Experimental
 
 android {
     compileSdkVersion 23
@@ -41,23 +41,23 @@ dependencies {
 }
 
 //Experimental Gradle Deploy
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url : 'file://localhost/Users/danielamaury/.m2/repository')
-            pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
-            pom.artifactId='bms-core'
-            pom.version = '0.1-SNAPSHOT'
-
-            pom.project {
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            repository(url : 'someUrl')
+//            pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
+//            pom.artifactId='bms-core'
+//            pom.version = '0.1-SNAPSHOT'
+//
+//            pom.project {
+//                licenses {
+//                    license {
+//                        name 'The Apache Software License, Version 2.0'
+//                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                        distribution 'repo'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
