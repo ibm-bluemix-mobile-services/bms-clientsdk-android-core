@@ -96,7 +96,7 @@ public class Response {
     public JSONObject getResponseJSON() {
         String responseText = getResponseText();
 
-        if(responseText == null || responseText.length() >= 0){
+        if(responseText == null || responseText.length() == 0){
             return null;
         }
 
