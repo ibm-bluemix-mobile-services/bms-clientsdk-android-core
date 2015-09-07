@@ -44,7 +44,7 @@ dependencies {
 //uploadArchives {
 //    repositories {
 //        mavenDeployer {
-//            repository(url : 'file://localhost/Users/danielamaury/.m2/repository')
+//            repository(url : 'someUrl')
 //            pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
 //            pom.artifactId='bms-core'
 //            pom.version = '0.1-SNAPSHOT'

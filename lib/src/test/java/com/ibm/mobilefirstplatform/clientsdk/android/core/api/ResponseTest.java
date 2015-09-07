@@ -13,7 +13,10 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import org.json.JSONException;
 import org.junit.Test;
+
+import java.io.UnsupportedEncodingException;
 
 import static android.test.MoreAsserts.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -22,13 +25,13 @@ import static junit.framework.Assert.assertTrue;
 public class ResponseTest {
 
     @Test
-    public void testDefaultValues(){
+    public void testDefaultValues() {
         Response response = new Response(null);
 
         assertTrue(response.getStatus() == 0);
         assertTrue(response.getResponseBytes() == null);
         assertTrue(response.getResponseJSON() == null);
-        assertTrue(response.getResponseText() == null);
+        assertTrue(response.getResponseText().equalsIgnoreCase(""));
         assertTrue(response.getResponseHeaders() == null);
         assertTrue(response.getResponseHeadersNames() == null);
         assertTrue(response.getResponseHeader("nonExistentHeader") == null);

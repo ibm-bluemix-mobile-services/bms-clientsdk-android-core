@@ -32,14 +32,13 @@ import static com.squareup.okhttp.internal.Util.UTF_8;
  * This class has methods to get more details from the Response to the ResourceRequest.
  */
 public class Response {
-    private Logger logger;
+    private static Logger logger = Logger.getInstance(Response.class.getSimpleName());;
     private com.squareup.okhttp.Response okHttpResponse;
     private Headers headers;
     private MediaType contentType;
     private byte bodyBytes[];
 
     protected Response(com.squareup.okhttp.Response response) {
-        this.logger = Logger.getInstance(Response.class.getSimpleName());
         okHttpResponse = response;
 
         if (okHttpResponse != null) {
@@ -73,26 +72,39 @@ public class Response {
      * This method parses the response body as a String.
      *
      * @return The body of the response as a String. Empty string if there is no body.
-     * @throws UnsupportedEncodingException if the response text can not be parsed to a valid string.
+     * @throws RuntimeException if the response text can not be parsed to a valid string.
      */
-    public String getResponseText() throws UnsupportedEncodingException {
+    public String getResponseText() {
         if (bodyBytes == null) {
             return "";
         }
 
         Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
-        return new String(bodyBytes, charset.name());
+        try {
+            return new String(bodyBytes, charset.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * This method parses the response body as a JSONObject.
      *
      * @return The body of the response as a JSONObject.
-     * @throws UnsupportedEncodingException if response text can not be parsed to a valid string.
-     * @throws JSONException if response text is not a valid JSON object.
+     * @throws RuntimeException if response text can not be parsed to a valid string or if response text is not a valid JSON object.
      */
-    public JSONObject getResponseJSON() throws UnsupportedEncodingException, JSONException {
-        return new JSONObject(getResponseText());
+    public JSONObject getResponseJSON() {
+        String responseText = getResponseText();
+
+        if(responseText == null || responseText.length() == 0){
+            return null;
+        }
+
+        try {
+            return new JSONObject(responseText);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -181,7 +193,7 @@ public class Response {
     public String toString() {
         try {
             return "Response: Status=" + getStatus() + ", Response Text: " + getResponseText();
-        } catch (UnsupportedEncodingException e) {
+        } catch (RuntimeException e) {
             return "Response: Status=" + getStatus() + ", Exception occurred when constructing response text string: " + e.getLocalizedMessage();
         }
     }
