@@ -30,6 +30,13 @@ import java.net.URLConnection;
 
 public class AuthorizationManager {
 
+    /**
+     * That state of the persistence policy to use during authorization.
+     * if the value set to ALWAYS the authorization data will be saved on local storage.
+     * if the value set to NEVER the authorization data will be valid only during the runtime.
+     */
+    public enum PersistencePolicy {ALWAYS, NEVER}
+
     private static AuthorizationManager instance;
     private AuthorizationManagerPreferences preferences;
     private AuthorizationProcessManager authorizationProcessManager;
@@ -186,12 +193,7 @@ public class AuthorizationManager {
         return new AppIdentity(preferences.appIdentity.getAsMap());
     }
 
-    /**
-     * That state of the persistence policy to use during authorization.
-     * if the value set to ALWAYS the authorization data will be saved on local storage.
-     * if the value set to NEVER the authorization data will be valid only during the runtime.
-     */
-    public enum PersistencePolicy {ALWAYS, NEVER}
+
 
 
 }
