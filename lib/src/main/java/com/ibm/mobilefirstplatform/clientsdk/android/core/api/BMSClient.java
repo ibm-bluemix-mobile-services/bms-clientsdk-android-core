@@ -18,8 +18,8 @@ import android.content.Context;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,10 +64,10 @@ public class BMSClient {
      * <p>
      * This method should be called before you send the first request that requires authorization.
      * </p>
-     *
+     * @param context Android application context
      * @param backendRoute Specifies the base URL for the authorization server
-     * @param backendGUID  Specifies the GUID of the application
-     * @throws MalformedURLException if {@code backendRoute} could not be parsed as a URL.
+     * @param backendGUID Specifies the GUID of the application
+     * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
      */
     public void initialize(Context context, String backendRoute, String backendGUID) throws MalformedURLException {
         this.backendGUID = backendGUID;

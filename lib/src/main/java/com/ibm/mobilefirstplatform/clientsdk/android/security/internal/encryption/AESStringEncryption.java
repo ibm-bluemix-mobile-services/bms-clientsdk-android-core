@@ -16,6 +16,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal.encrypti
 import android.util.Base64;
 
 import java.security.Key;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -27,11 +28,13 @@ import javax.crypto.spec.SecretKeySpec;
 public class AESStringEncryption implements StringEncryption {
 
     final static String Algorithm = "AES";
+    final static int minKeySize = 16;
+    final static String hashStr = "zDfb2E9yZartghdY";
 
     Key key;
 
     public AESStringEncryption(String password) {
-        key = new SecretKeySpec(password.getBytes(), Algorithm);
+        key = new SecretKeySpec(hash(password.getBytes()), Algorithm);
     }
 
     @Override
@@ -57,5 +60,15 @@ public class AESStringEncryption implements StringEncryption {
         }
 
         return new byte[0];
+    }
+
+    private byte[] hash(byte[] array){
+        byte[] result = Arrays.copyOf(array, minKeySize);
+        byte[] hash = hashStr.getBytes();
+
+        for (int i = 0 ; i < minKeySize ; ++i){
+            result[i] ^= hash[i];
+        }
+        return result;
     }
 }

@@ -34,9 +34,9 @@ public interface ResponseListener {
 	 * <li>The status from the server response is in the 400 or 500 ranges.</li>
 	 * <li>There is an operational failure such as: authentication failure, data validation failure, or custom failure.</li>
 	 * </ul>
-	 * @param response Contains detail regarding why the Http request failed. May be null if the request did not reach the server.
-	 * @param t Exception that could have caused the request to fail. Null if no Exception thrown.
-	 * @param extendedInfo Contains details regarding operational failure. Null if no operational failure occurred.
+	 * @param response Contains detail regarding why the Http request failed. May be null if the request did not reach the server
+	 * @param t Exception that could have caused the request to fail. null if no Exception thrown.
+	 * @param extendedInfo Contains details regarding operational failure. null if no operational failure occurred.
 	 */
 
 	void onFailure(Response response, Throwable t, JSONObject extendedInfo);
