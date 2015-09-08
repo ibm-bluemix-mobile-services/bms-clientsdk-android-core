@@ -197,7 +197,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * @throws JSONException
      */
     private void sendRequestInternal(String rootUrl, String path, RequestOptions options) throws IOException, JSONException {
-        logger.debug("Sending request to root: " + requestPath + " with path: " + path);
+        logger.debug("Sending request to root: " + rootUrl + " with path: " + path);
 
         // create default options object with GET request method.
         if (options == null) {
