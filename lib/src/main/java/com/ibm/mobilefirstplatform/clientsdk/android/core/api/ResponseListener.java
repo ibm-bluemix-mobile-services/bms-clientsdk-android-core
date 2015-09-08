@@ -36,7 +36,7 @@ public interface ResponseListener {
 	 * </ul>
 	 * @param response Contains detail regarding why the Http request failed. May be null if the request did not reach the server
 	 * @param t Exception that could have caused the request to fail. null if no Exception thrown.
-	 * @param extendedInfo Contains details regarding operational failure. Null if no operational failure occurred.
+	 * @param extendedInfo Contains details regarding operational failure. null if no operational failure occurred.
 	 */
 
 	void onFailure(Response response, Throwable t, JSONObject extendedInfo);
