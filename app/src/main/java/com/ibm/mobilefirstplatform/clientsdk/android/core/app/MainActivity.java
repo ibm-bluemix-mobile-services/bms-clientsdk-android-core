@@ -20,35 +20,42 @@ import java.net.MalformedURLException;
 
 public class MainActivity extends Activity implements ResponseListener{
 
+    private final static String backendURL = "http://9.148.225.187:9080"; // your BM application URL
+    private final static String backendGUID = "vit1"; // the GUID you get from the dashboard
+    private final static String customResourceURL = "http://9.148.225.187:3000/v1/apps/vit1/service"; // any protected resource
+    private final static String customRealm = "customAuthRealm_1"; // auth realm
+
+
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
 		try {
-			BMSClient.getInstance().initialize(getApplicationContext(), "http://9.148.225.110:9080", "vit1");
+			BMSClient.getInstance().initialize(getApplicationContext(), backendURL, backendGUID);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 
-        BMSClient.getInstance().registerAuthenticationListener("customAuthRealm_1", new CustomChallengeHandler());
+        BMSClient.getInstance().registerAuthenticationListener(customRealm, new CustomChallengeHandler());
 
-//		AuthorizationManager.getInstance().obtainAuthorizationHeader(this, this);
-        MFPRequest.registerInterceptor(null);
+        // to make the authorization happen next time
         AuthorizationManager.getInstance().clearAuthorizationData();
         
-        ResourceRequest r = new ResourceRequest(this, "http://9.148.225.110:3000/v1/apps/vit1/service", MFPRequest.GET);
+        ResourceRequest r = new ResourceRequest(this, customResourceURL, MFPRequest.GET);
         r.send(this);
     }
 
 	@Override
 	public void onSuccess(Response response) {
-
+        // here we handle authentication success
 	}
 
 	@Override
 	public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-
+        // handle auth failure
 	}
 }
 
@@ -57,7 +64,11 @@ class CustomChallengeHandler implements AuthenticationListener {
     @Override
     public void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context) {
         try {
+            // provide your custom credentials here
+            // you can display a dialog here to obtain user name and password
             JSONObject answer = new JSONObject("{\"userName\":\"asaf\",\"password\":\"123\"}");
+
+            // submit the credentials obtained from the user
             authContext.submitAuthenticationChallengeAnswer(answer);
         } catch (JSONException e) {
             e.printStackTrace();
