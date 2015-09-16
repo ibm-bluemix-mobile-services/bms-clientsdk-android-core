@@ -39,14 +39,20 @@ public interface AuthenticationListener {
 
 	/**
 	 * Called when authentication succeeded.
+	 * @param context A {@link Context} object that was passed to
+	 * {@link Request#send(Context, ResponseListener)}, which triggered the
+	 * authentication challenge.
 	 * @param info Extended data describing the authentication success.
 	 */
-	void onAuthenticationSuccess(JSONObject info);
+	void onAuthenticationSuccess(Context context, JSONObject info);
 
 	/**
 	 * Called when authentication fails.
+	 * @param context A {@link Context} object that was passed to
+	 * {@link Request#send(Context, ResponseListener)}, which triggered the
+	 * authentication challenge.
 	 * @param info Extended data describing authentication failure.
 	 */
-	void onAuthenticationFailure(JSONObject info);
+	void onAuthenticationFailure(Context context, JSONObject info);
 
 }

@@ -85,18 +85,18 @@ public class ChallengeHandler implements AuthenticationContext {
     }
 
     //TODO - should it accept Context like handleChallenge???
-    public synchronized void handleSuccess(JSONObject success) {
+    public synchronized void handleSuccess(Context context, JSONObject success) {
         if (listener != null) {
-            listener.onAuthenticationSuccess(success);
+            listener.onAuthenticationSuccess(context, success);
         }
         releaseWaitingList();
         setActiveRequest(null);
     }
 
     //TODO - should it accept Context like handleChallenge???
-    public synchronized void handleFailure(JSONObject failure) {
+    public synchronized void handleFailure(Context context, JSONObject failure) {
         if (listener != null) {
-            listener.onAuthenticationFailure(failure);
+            listener.onAuthenticationFailure(context, failure);
         }
         clearWaitingList();
         setActiveRequest(null);

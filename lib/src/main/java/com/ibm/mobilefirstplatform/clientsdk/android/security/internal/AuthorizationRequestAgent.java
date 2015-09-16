@@ -450,7 +450,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
             ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
             if (handler != null) {
                 JSONObject challenge = jsonFailures.optJSONObject(realm);
-                handler.handleFailure(challenge);
+                handler.handleFailure(context, challenge);
             } else {
                 logger.error("Challenge handler for realm is not found: " + realm);
             }
@@ -472,7 +472,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
             ChallengeHandler handler = BMSClient.getInstance().getChallengeHandler(realm);
             if (handler != null) {
                 JSONObject challenge = jsonSuccesses.optJSONObject(realm);
-                handler.handleSuccess(challenge);
+                handler.handleSuccess(context, challenge);
             } else {
                 logger.error("Challenge handler for realm is not found: " + realm);
             }

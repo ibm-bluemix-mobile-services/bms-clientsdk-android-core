@@ -77,12 +77,12 @@ class CustomChallengeHandler implements AuthenticationListener {
     }
 
     @Override
-    public void onAuthenticationSuccess(JSONObject info) {
+    public void onAuthenticationSuccess(Context context, JSONObject info) {
 
     }
 
     @Override
-    public void onAuthenticationFailure(JSONObject info) {
+    public void onAuthenticationFailure(Context context, JSONObject info) {
 
     }
 }
