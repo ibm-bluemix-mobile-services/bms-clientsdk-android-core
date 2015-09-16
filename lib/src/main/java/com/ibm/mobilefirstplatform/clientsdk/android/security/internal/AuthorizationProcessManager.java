@@ -17,9 +17,11 @@ import android.content.Context;
 import android.provider.Settings;
 import android.util.Base64;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.AppIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.identity.DeviceIdentity;
@@ -123,7 +125,7 @@ public class AuthorizationProcessManager {
 
         options.parameters = createRegistrationParams();
         options.headers = createRegistrationHeaders();
-        options.requestMethod = MFPRequest.POST;
+        options.requestMethod = Request.POST;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
@@ -235,7 +237,7 @@ public class AuthorizationProcessManager {
         options.parameters = createAuthorizationParams();
         options.headers = new HashMap<>(1);
         addSessionIdHeader(options.headers);
-        options.requestMethod = MFPRequest.GET;
+        options.requestMethod = Request.GET;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
@@ -279,7 +281,7 @@ public class AuthorizationProcessManager {
      * @return the extracted location header
      */
     private String extractLocationHeader(Response response) {
-        List<String> location = response.getResponseHeaders().get("Location");
+        List<String> location = response.getHeaders().get("Location");
 
         if (location == null) {
             throw new RuntimeException("Failed to find 'Location' header");
@@ -319,7 +321,7 @@ public class AuthorizationProcessManager {
         options.parameters = createTokenRequestParams(grantCode);
         options.headers = createTokenRequestHeaders(grantCode);
         addSessionIdHeader(options.headers);
-        options.requestMethod = MFPRequest.POST;
+        options.requestMethod = Request.POST;
 
         InnerAuthorizationResponseListener listener = new InnerAuthorizationResponseListener() {
             @Override
@@ -363,7 +365,7 @@ public class AuthorizationProcessManager {
      */
     private void saveTokenFromResponse(Response response) {
         try {
-            JSONObject responseJSON = response.getResponseJSON();
+            JSONObject responseJSON = ((ResponseImpl)response).getResponseJSON();
 
             String accessToken = responseJSON.getString("access_token");
             String idToken = responseJSON.getString("id_token");

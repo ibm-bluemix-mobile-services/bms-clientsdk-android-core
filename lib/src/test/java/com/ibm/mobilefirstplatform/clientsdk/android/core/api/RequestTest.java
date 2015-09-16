@@ -22,25 +22,25 @@ import java.util.Map;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
-public class ResourceRequestTest {
+public class RequestTest {
 
     @Test
     public void testDefaultValues() throws Exception{
         String testUrl = "http://test.com";
-        MFPRequest request = new MFPRequest(testUrl, ResourceRequest.POST);
+        Request request = new Request(testUrl, Request.POST);
 
         assertTrue(request.getAllHeaders() == null || request.getAllHeaders().size() == 0);
         assertTrue(request.getHeaders("invalidHeaderName").size() == 0);
-        assertTrue(request.getMethod().equalsIgnoreCase(ResourceRequest.POST));
+        assertTrue(request.getMethod().equalsIgnoreCase(Request.POST));
         assertTrue(request.getQueryParameters() == null || request.getQueryParameters().size() == 0);
-        assertTrue(request.getTimeout() == ResourceRequest.DEFAULT_TIMEOUT);
+        assertTrue(request.getTimeout() == Request.DEFAULT_TIMEOUT);
         assertTrue(request.getUrl().toString().equalsIgnoreCase(testUrl));
     }
 
     @Test
     public void timeoutShouldBeChangeable() throws Exception{
         String testUrl = "http://test.com";
-        ResourceRequest request = new ResourceRequest(testUrl, ResourceRequest.POST, 60);
+        Request request = new Request(testUrl, Request.POST, 60);
 
         assertEquals(60, request.getTimeout());
 
@@ -52,7 +52,7 @@ public class ResourceRequestTest {
     @Test
     public void shouldBeAbleToAddQueryParameter() throws Exception {
         String testUrl = "http://test.com";
-        ResourceRequest request = new ResourceRequest(testUrl, ResourceRequest.POST, 60);
+        Request request = new Request(testUrl, Request.POST, 60);
 
         String testQueryName = "test";
         String testQueryValue = "testValue";
@@ -77,7 +77,7 @@ public class ResourceRequestTest {
     @Test
     public void shouldBeAbleToAddAndRemoveHeaders() throws Exception {
         String testUrl = "http://test.com";
-        ResourceRequest request = new ResourceRequest(testUrl, ResourceRequest.POST, 60);
+        Request request = new Request(testUrl, Request.POST, 60);
 
         String testHeaderName = "testHeader";
         String testHeaderValue = "testValue";
@@ -104,7 +104,7 @@ public class ResourceRequestTest {
     @Test
     public void shouldBeAbleToSetHeaders() throws Exception {
         String testUrl = "http://test.com";
-        ResourceRequest request = new ResourceRequest(testUrl, ResourceRequest.POST, 60);
+        Request request = new Request(testUrl, Request.POST, 60);
 
         String testHeaderName = "testHeader";
         String testHeaderValue = "testValue";

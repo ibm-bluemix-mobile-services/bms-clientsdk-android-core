@@ -16,9 +16,11 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.challengehandlers.ChallengeHandler;
 
@@ -108,7 +110,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     static public class RequestOptions {
         public RequestOptions() {
-            requestMethod = MFPRequest.GET;
+            requestMethod = Request.GET;
         }
 
         public String requestMethod;
@@ -147,7 +149,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * Assembles the request path from root and path to authorization endpoint and sends the request.
      *
      * @param path    Path to authorization endpoint
-     * @param options Request options
+     * @param options BaseRequest options
      * @throws IOException
      * @throws JSONException
      */
@@ -192,7 +194,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      *
      * @param rootUrl Root of authorization server.
      * @param path    Path to authorization endpoint.
-     * @param options Request options.
+     * @param options BaseRequest options.
      * @throws IOException
      * @throws JSONException
      */
@@ -208,7 +210,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
         this.requestPath = Utils.concatenateUrls(rootUrl, path);
         this.requestOptions = options;
 
-        MFPRequest request = new MFPRequest(this.requestPath, options.requestMethod);
+        BaseRequest request = new BaseRequest(this.requestPath, options.requestMethod);
 
         if (options.timeout != 0) {
             request.setTimeout(options.timeout);
@@ -237,7 +239,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
         // we want to handle redirects in-place
         request.setFollowRedirects(false);
 
-        if (MFPRequest.GET.equalsIgnoreCase(options.requestMethod)) {
+        if (Request.GET.equalsIgnoreCase(options.requestMethod)) {
             request.setQueryParameters(options.parameters);
             request.send(this);
         } else {
@@ -335,7 +337,8 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     private void processRedirectResponse(Response response) throws RuntimeException, JSONException, MalformedURLException {
         // a valid redirect response must contain the Location header.
-        List<String> locationHeaders = response.getResponseHeader(LOCATION_HEADER_NAME);
+        ResponseImpl responseImpl = (ResponseImpl)response;
+        List<String> locationHeaders = responseImpl.getHeader(LOCATION_HEADER_NAME);
 
         String location = (locationHeaders != null && locationHeaders.size() > 0) ? locationHeaders.get(0) : null;
 
@@ -421,7 +424,8 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     private boolean isAuthorizationRequired(Response response) {
         if (response != null && response.getStatus() == 401) {
-            String challengesHeader = response.getFirstResponseHeader(AUTHENTICATE_HEADER_NAME);
+            ResponseImpl responseImpl = (ResponseImpl)response;
+            String challengesHeader = responseImpl.getFirstHeader(AUTHENTICATE_HEADER_NAME);
 
             if (AUTHENTICATE_HEADER_VALUE.equalsIgnoreCase(challengesHeader)) {
                 return true;
@@ -481,7 +485,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * @param info Extended information about the failure.
      */
     public void requestFailed(JSONObject info) {
-        logger.error("Request failed with info: " + (info == null ? "info is null" : info.toString()));
+        logger.error("BaseRequest failed with info: " + (info == null ? "info is null" : info.toString()));
         listener.onFailure(null, null, info);
     }
 
@@ -536,7 +540,8 @@ public class AuthorizationRequestAgent implements ResponseListener {
      */
     private void processResponseWrapper(Response response, boolean isFailure) {
         try {
-            if (isFailure || !response.isRedirect()) {
+            ResponseImpl responseImpl = (ResponseImpl)response;
+            if (isFailure || !responseImpl.isRedirect()) {
                 processResponse(response);
             } else {
                 processRedirectResponse(response);

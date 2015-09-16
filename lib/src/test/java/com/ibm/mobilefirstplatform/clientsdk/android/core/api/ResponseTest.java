@@ -13,6 +13,8 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.ResponseImpl;
+
 import org.json.JSONException;
 import org.junit.Test;
 
@@ -26,15 +28,15 @@ public class ResponseTest {
 
     @Test
     public void testDefaultValues() {
-        Response response = new Response(null);
+        ResponseImpl response = new ResponseImpl(null);
 
         assertTrue(response.getStatus() == 0);
         assertTrue(response.getResponseBytes() == null);
         assertTrue(response.getResponseJSON() == null);
         assertTrue(response.getResponseText().equalsIgnoreCase(""));
-        assertTrue(response.getResponseHeaders() == null);
+        assertTrue(response.getHeaders() == null);
         assertTrue(response.getResponseHeadersNames() == null);
-        assertTrue(response.getResponseHeader("nonExistentHeader") == null);
+        assertTrue(response.getHeader("nonExistentHeader") == null);
         assertFalse(response.isRedirect());
         assertFalse(response.isSuccessful());
     }

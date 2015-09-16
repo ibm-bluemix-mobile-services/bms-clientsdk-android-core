@@ -15,6 +15,9 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.api;
 
 import android.content.Context;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+
 import org.json.JSONObject;
 
 /**
@@ -29,7 +32,7 @@ public interface AuthenticationListener {
 	 * @param authContext Authentication context the answer should be sent to
 	 * @param challenge Information about authentication challenge.
 	 * @param context A {@link Context} object that was passed to
-	 * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest#ResourceRequest(Context, String, String)}, which triggered the
+	 * {@link Request#send(Context, ResponseListener)}, which triggered the
 	 * authentication challenge.
 	 */
 	void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context);

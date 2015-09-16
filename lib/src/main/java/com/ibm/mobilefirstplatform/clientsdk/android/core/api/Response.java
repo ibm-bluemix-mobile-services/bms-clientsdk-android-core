@@ -29,44 +29,16 @@ import java.util.Set;
 import static com.squareup.okhttp.internal.Util.UTF_8;
 
 /**
- * This class has methods to get more details from the Response to the ResourceRequest.
+ * This class has methods to get more details from the Response to the BaseRequest.
  */
-public class Response {
-    private static Logger logger = Logger.getInstance(Response.class.getSimpleName());;
-    private com.squareup.okhttp.Response okHttpResponse;
-    private Headers headers;
-    private MediaType contentType;
-    private byte bodyBytes[];
-
-    protected Response(com.squareup.okhttp.Response response) {
-        okHttpResponse = response;
-
-        if (okHttpResponse != null) {
-            headers = okHttpResponse.headers();
-
-            try {
-                bodyBytes = okHttpResponse.body().bytes();
-            } catch (Exception e) {
-                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
-                bodyBytes = null;
-            }
-
-            contentType = okHttpResponse.body().contentType();
-        }
-    }
+public interface  Response {
 
     /**
      * This method gets the HTTP status of the response.
      *
      * @return The HTTP status of the response. Will be 0 when there was no response.
      */
-    public int getStatus() {
-        if (okHttpResponse == null) {
-            return 0;
-        }
-
-        return okHttpResponse.code();
-    }
+    int getStatus();
 
     /**
      * This method parses the response body as a String.
@@ -74,131 +46,20 @@ public class Response {
      * @return The body of the response as a String. Empty string if there is no body.
      * @throws RuntimeException if the response text can not be parsed to a valid string.
      */
-    public String getResponseText() {
-        if (bodyBytes == null) {
-            return "";
-        }
-
-        Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
-        try {
-            return new String(bodyBytes, charset.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * This method parses the response body as a JSONObject.
-     *
-     * @return The body of the response as a JSONObject.
-     * @throws RuntimeException if response text can not be parsed to a valid string or if response text is not a valid JSON object.
-     */
-    public JSONObject getResponseJSON() {
-        String responseText = getResponseText();
-
-        if(responseText == null || responseText.length() == 0){
-            return null;
-        }
-
-        try {
-            return new JSONObject(responseText);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    String getResponseText();
 
     /**
      * This method gets the bytes of the response body.
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
-    public byte[] getResponseBytes() {
-        return bodyBytes;
-    }
-
-    /** Returns true if this response redirects to another resource. */
-    public boolean isRedirect() {
-        if (okHttpResponse == null) {
-            return false;
-        }
-        return okHttpResponse.isRedirect();
-    }
-
-    /**
-     * Returns true if the code is in [200..300), which means the request was
-     * successfully received, understood, and accepted.
-     */
-    public boolean isSuccessful() {
-        if (okHttpResponse == null) {
-            return false;
-        }
-        return okHttpResponse.isSuccessful();
-    }
+    byte[] getResponseBytes();
 
     /**
      * Get the HTTP headers from the response.
      *
      * @return A map with all the headers, and the corresponding values for each one.
      */
-    public Map<String, List<String>> getResponseHeaders() {
-        if (headers == null) {
-            return null;
-        }
-        return headers.toMultimap();
-    }
+    Map<String, List<String>> getHeaders();
 
-    /**
-     * Get the header values for the given header name, if it exists. There can be more than one value
-     * for a given header name.
-     *
-     * @param name the name of the header to get
-     * @return the values of the given header name
-     */
-    public List<String> getResponseHeader(String name) {
-        if (headers == null) {
-            return null;
-        }
-        return headers.values(name);
-    }
-
-    /**
-     * Get the first header value for the given header name, if it exists.
-     *
-     * @param name the name of the header to get
-     * @return the first value of the given header name
-     */
-    public String getFirstResponseHeader(String name) {
-        List<String> headerValues = getResponseHeader(name);
-
-        if (headerValues == null || headerValues.size() == 0) {
-            return null;
-        }
-
-        return headerValues.get(0);
-    }
-
-    /**
-     * Get the names of all the HTTP headers in the response.
-     *
-     * @return The names of all the headers in the response
-     */
-    public Set<String> getResponseHeadersNames() {
-        if (headers == null) {
-            return null;
-        }
-        return headers.names();
-    }
-
-    @Override
-    public String toString() {
-        try {
-            return "Response: Status=" + getStatus() + ", Response Text: " + getResponseText();
-        } catch (RuntimeException e) {
-            return "Response: Status=" + getStatus() + ", Exception occurred when constructing response text string: " + e.getLocalizedMessage();
-        }
-    }
-
-    protected com.squareup.okhttp.Response getInternalResponse(){
-        return okHttpResponse;
-    }
 }

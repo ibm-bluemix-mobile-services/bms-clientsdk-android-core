@@ -5,10 +5,10 @@ import android.content.Context;
 import android.os.Bundle;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationContext;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
@@ -20,9 +20,9 @@ import java.net.MalformedURLException;
 
 public class MainActivity extends Activity implements ResponseListener{
 
-    private final static String backendURL = "http://9.148.225.187:9080"; // your BM application URL
+    private final static String backendURL = "http://9.148.225.153:9080"; // your BM application URL
     private final static String backendGUID = "vit1"; // the GUID you get from the dashboard
-    private final static String customResourceURL = "http://9.148.225.187:3000/v1/apps/vit1/service"; // any protected resource
+    private final static String customResourceURL = "http://9.148.225.153:3000/v1/apps/vit1/service"; // any protected resource
     private final static String customRealm = "customAuthRealm_1"; // auth realm
 
 
@@ -44,8 +44,8 @@ public class MainActivity extends Activity implements ResponseListener{
         // to make the authorization happen next time
         AuthorizationManager.getInstance().clearAuthorizationData();
         
-        ResourceRequest r = new ResourceRequest(this, customResourceURL, MFPRequest.GET);
-        r.send(this);
+        Request r = new Request(customResourceURL, Request.GET);
+        r.send(this, this);
     }
 
 	@Override

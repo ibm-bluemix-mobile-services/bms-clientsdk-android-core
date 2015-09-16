@@ -11,8 +11,9 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
+package com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
@@ -39,9 +40,9 @@ import java.util.concurrent.TimeUnit;
  * This class is used to create and send a request. It allows to add all the parameters to the request
  * before sending it.
  */
-public class MFPRequest {
+public class BaseRequest {
 
-    protected static final int DEFAULT_TIMEOUT = 60000;
+    public static final int DEFAULT_TIMEOUT = 60000;
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String TEXT_PLAIN = "text/plain";
@@ -56,33 +57,9 @@ public class MFPRequest {
     private static final OkHttpClient httpClient = new OkHttpClient();
 
     /**
-     * The string constant for the GET HTTP method verb.
+     * The TEST string
      */
-    public final static String GET = "GET";
-    /**
-     * The string constant for the POST HTTP method verb.
-     */
-    public final static String POST = "POST";
-    /**
-     * The string constant for the PUT HTTP method verb.
-     */
-    public final static String PUT = "PUT";
-    /**
-     * The string constant for the DELETE HTTP method verb.
-     */
-    public final static String DELETE = "DELETE";
-    /**
-     * The string constant for the TRACE HTTP method verb.
-     */
-    public final static String TRACE = "TRACE";
-    /**
-     * The string constant for the HEAD HTTP method verb.
-     */
-    public final static String HEAD = "HEAD";
-    /**
-     * The string constant for the OPTIONS HTTP method verb.
-     */
-    public final static String OPTIONS = "OPTIONS";
+    public final static String TEST = "TEST";
 
     /**
      * Constructs a new request with the specified URL, using the specified HTTP method.
@@ -92,7 +69,7 @@ public class MFPRequest {
      * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
      * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public MFPRequest(String url, String method) throws MalformedURLException {
+    public BaseRequest(String url, String method) throws MalformedURLException {
         this(url, method, DEFAULT_TIMEOUT);
     }
 
@@ -106,7 +83,7 @@ public class MFPRequest {
      * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
      * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public MFPRequest(String url, String method, int timeout) {
+    public BaseRequest(String url, String method, int timeout) {
         this.url = url;
         this.method = method;
 
@@ -398,7 +375,7 @@ public class MFPRequest {
         }
 
         //A GET request cannot have a body in OKHTTP
-        if (!method.equalsIgnoreCase(GET)) {
+        if (!method.equalsIgnoreCase("GET")) {
             requestBuilder.method(method, requestBody);
         } else {
             requestBuilder.get();
@@ -420,9 +397,9 @@ public class MFPRequest {
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
                 if (response.isSuccessful() || response.isRedirect()) {
-                    listener.onSuccess(new Response(response));
+                    listener.onSuccess(new ResponseImpl(response));
                 } else if (!response.isRedirect()) {
-                    listener.onFailure(new Response(response), null, null);
+                    listener.onFailure(new ResponseImpl(response), null, null);
                 }
             }
         };
@@ -459,7 +436,7 @@ public class MFPRequest {
 
             Logger logger = Logger.getInstance("imf.analytics");
 
-            logger.analytics("MFPRequest outbound", null);
+            logger.analytics("BaseRequest outbound", null);
 
             long t1 = System.currentTimeMillis();
 
@@ -486,7 +463,7 @@ public class MFPRequest {
                     metadata.put("$bytesReceived", response.body().contentLength());
                 }
 
-                logger.analytics("MFPRequest inbound", metadata);
+                logger.analytics("BaseRequest inbound", metadata);
             } catch (JSONException e) {
                 //Do nothing, since it is just for analytics.
             }

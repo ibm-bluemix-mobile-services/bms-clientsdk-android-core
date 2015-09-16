@@ -15,6 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import android.content.Context;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
@@ -43,7 +44,7 @@ public class BMSClient extends MFPClient {
         if (instance == null) {
             instance = new BMSClient();
 
-            MFPRequest.setup(); //Set up network interceptor to log network event times analytics.
+            BaseRequest.setup(); //Set up network interceptor to log network event times analytics.
         }
 
         return (BMSClient)instance;

@@ -21,10 +21,10 @@ import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.MFPAnalytics;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.MFPRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResourceRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLogger;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLoggerInterface;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.JULHandler;
@@ -1269,7 +1269,7 @@ public final class Logger {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    MFPRequest sendLogsRequest = new MFPRequest(logUploaderURL, ResourceRequest.POST);
+                    BaseRequest sendLogsRequest = new BaseRequest(logUploaderURL, Request.POST);
 
                     sendLogsRequest.addHeader("Content-Type","application/json");
 
