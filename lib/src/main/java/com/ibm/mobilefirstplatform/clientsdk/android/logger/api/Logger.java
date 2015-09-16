@@ -1259,7 +1259,7 @@ public final class Logger {
                 boolean isAnalyticsRequest = fileName.equalsIgnoreCase(Logger.ANALYTICS_FILENAME);
 
                 String logUploadPath = "/imfmobileanalytics/v1/receiver/apps/";
-                String logUploaderURL = BMSClient.getInstance().getBackendRoute() + logUploadPath + BMSClient.getInstance().getBackendGUID();
+                String logUploaderURL = BMSClient.getInstance().getBluemixAppRoute() + logUploadPath + BMSClient.getInstance().getBluemixAppGUID();
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 

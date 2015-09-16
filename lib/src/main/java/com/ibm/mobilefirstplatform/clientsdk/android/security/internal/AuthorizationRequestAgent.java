@@ -165,11 +165,11 @@ public class AuthorizationRequestAgent implements ResponseListener {
             rootUrl = url.toString().replace(path, "");
         } else {
             // "path" is a relative
-            String backendRoute = BMSClient.getInstance().getBackendRoute();
+            String backendRoute = BMSClient.getInstance().getBluemixAppRoute();
             rootUrl = backendRoute.charAt(backendRoute.length() - 1) == '/' ? backendRoute.concat(AUTH_SERVER_NAME) :
                     backendRoute.concat("/" + AUTH_SERVER_NAME);
 
-            String pathWithTenantId = AUTH_PATH + BMSClient.getInstance().getBackendGUID();
+            String pathWithTenantId = AUTH_PATH + BMSClient.getInstance().getBluemixAppGUID();
             rootUrl = rootUrl.concat("/" + pathWithTenantId);
         }
 
