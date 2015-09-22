@@ -100,7 +100,7 @@ uploadArchives {
 
             pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
             pom.artifactId='core'
-            pom.version = 'Dev-SNAPSHOT'
+            pom.version = '1.0.0-SNAPSHOT'
 
             pom.project {
                 name 'IBM Bluemix Mobile Services - Client SDK Android Core'
