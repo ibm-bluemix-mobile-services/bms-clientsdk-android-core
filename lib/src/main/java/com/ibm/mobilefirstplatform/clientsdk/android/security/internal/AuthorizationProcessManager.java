@@ -380,7 +380,10 @@ public class AuthorizationProcessManager {
             String decodedIdTokenString = new String(decodedIdTokenData);
             JSONObject idTokenJSON = new JSONObject(decodedIdTokenString);
 
-            preferences.userIdentity.set(idTokenJSON.getJSONObject("imf.user"));
+            if (idTokenJSON.has("imf.user")) {
+                preferences.userIdentity.set(idTokenJSON.getJSONObject("imf.user"));
+            }
+            
             logger.debug("token successfully saved");
         } catch (Exception e) {
             throw new RuntimeException("Failed to save token from response", e);
