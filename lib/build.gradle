@@ -51,6 +51,8 @@ task generateJavadoc(type: Javadoc) {
 
     options.encoding 'UTF-8'
 
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+
     setTitle 'Bluemix Mobile Services Core Android API'
 }
 
