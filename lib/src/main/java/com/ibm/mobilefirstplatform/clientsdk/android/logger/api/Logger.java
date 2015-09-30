@@ -130,6 +130,7 @@ public final class Logger {
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_PACKAGE_NAME = Logger.class.getName ();
     private static final String CONTEXT_NULL_MSG = Logger.class.getName() + ".setContext(Context) must be called to fully enable debug log capture.  Currently, the 'capture' flag is set but the 'context' field is not.  This warning will only be printed once.";
+    private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
     private static boolean context_null_msg_already_printed = false;
     /**
      * @exclude
@@ -1258,8 +1259,15 @@ public final class Logger {
 
                 boolean isAnalyticsRequest = fileName.equalsIgnoreCase(Logger.ANALYTICS_FILENAME);
 
+                BMSClient client = BMSClient.getInstance();
+
+                String appRoute = client.getBluemixAppRoute();
+                if(appRoute.trim().substring(appRoute.length()-1).equalsIgnoreCase("/")){
+                    appRoute = appRoute.trim().substring(0, appRoute.length()-1);
+                }
+
                 String logUploadPath = "/imfmobileanalytics/v1/receiver/apps/";
-                String logUploaderURL = BMSClient.getInstance().getBluemixAppRoute() + logUploadPath + BMSClient.getInstance().getBluemixAppGUID();
+                String logUploaderURL = appRoute + logUploadPath + client.getBluemixAppGUID();
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
@@ -1269,9 +1277,19 @@ public final class Logger {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    BaseRequest sendLogsRequest = new BaseRequest(logUploaderURL, Request.POST);
+                    String payloadStr = new String(payload).trim();
+
+                    if (payloadStr.endsWith(",")) {
+                        payloadStr = payloadStr.substring(0, payloadStr.length() - 1);
+                    }
+
+                    payload = ("["+ payloadStr + "]").getBytes();
+
+                    BaseRequest sendLogsRequest = new Request(logUploaderURL, Request.POST);
 
                     sendLogsRequest.addHeader("Content-Type","application/json");
+
+                    sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
 
                     sendLogsRequest.send(payload, requestListener);
                 } catch (IOException e) {
