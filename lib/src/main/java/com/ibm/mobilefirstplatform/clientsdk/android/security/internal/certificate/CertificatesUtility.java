@@ -52,9 +52,10 @@ public class CertificatesUtility {
 
         Date now = new Date();
         long nowTime = now.getTime();
-        Date afterAddingOneMinute = new Date(nowTime + 60000);
+        final int oneMinute = 60000;
+        Date afterAddingOneMinute = new Date(nowTime + (5 * oneMinute));
 
-        //we are checking the certificate against current time plus one minute to prevent false failure because of sync problems
+        //we are checking the certificate against current time plus five minutes to prevent false failure because of sync problems
         certificate.checkValidity(afterAddingOneMinute);
         if (!certificate.getPublicKey().equals(publicKey)) {
             throw new RuntimeException("Failed to validate public key");
