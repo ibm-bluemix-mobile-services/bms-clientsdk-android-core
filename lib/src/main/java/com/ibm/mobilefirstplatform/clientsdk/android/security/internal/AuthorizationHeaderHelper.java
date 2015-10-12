@@ -76,7 +76,7 @@ public class AuthorizationHeaderHelper {
             
             //It is possible that there will be more then one header for this header-name. This is why we need the loop here.
             for (String header : wwwAuthenticateHeaders) {
-                if (header.contains(BEARER) && header.contains(REALM_IMF_AUTHENTICATION)) {
+                if (header.contains(BEARER)) {
                     return true;
                 }
             }
