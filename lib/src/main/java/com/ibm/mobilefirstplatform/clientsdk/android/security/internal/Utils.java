@@ -133,7 +133,7 @@ public class Utils {
             serviceUrl += ":" + String.valueOf(port);
         }
 
-        String[] hostElements = host.split(".");
+        String[] hostElements = host.split("\\.");
 
         if (!serviceUrl.contains(STAGE1_NAME)) {
             // Multi-region: myApp.eu-gb.mybluemix.net
