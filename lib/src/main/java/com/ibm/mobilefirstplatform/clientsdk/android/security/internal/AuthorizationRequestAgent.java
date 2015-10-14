@@ -210,7 +210,7 @@ public class AuthorizationRequestAgent implements ResponseListener {
         this.requestPath = Utils.concatenateUrls(rootUrl, path);
         this.requestOptions = options;
 
-        BaseRequest request = new BaseRequest(this.requestPath, options.requestMethod);
+        AuthorizationRequest request = new AuthorizationRequest(this.requestPath, options.requestMethod);
 
         if (options.timeout != 0) {
             request.setTimeout(options.timeout);
@@ -235,9 +235,6 @@ public class AuthorizationRequestAgent implements ResponseListener {
 
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
         request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
-
-        // we want to handle redirects in-place
-        request.setFollowRedirects(false);
 
         if (Request.GET.equalsIgnoreCase(options.requestMethod)) {
             request.setQueryParameters(options.parameters);

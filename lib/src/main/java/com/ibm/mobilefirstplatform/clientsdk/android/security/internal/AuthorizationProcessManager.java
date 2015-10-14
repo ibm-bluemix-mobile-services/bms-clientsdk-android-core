@@ -383,7 +383,7 @@ public class AuthorizationProcessManager {
             if (idTokenJSON.has("imf.user")) {
                 preferences.userIdentity.set(idTokenJSON.getJSONObject("imf.user"));
             }
-            
+
             logger.debug("token successfully saved");
         } catch (Exception e) {
             throw new RuntimeException("Failed to save token from response", e);

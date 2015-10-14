@@ -18,6 +18,7 @@ import android.content.Context;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
 
 import java.net.MalformedURLException;
@@ -44,7 +45,8 @@ public class BMSClient extends MFPClient {
         if (instance == null) {
             instance = new BMSClient();
 
-            BaseRequest.setup(); //Set up network interceptor to log network event times analytics.
+            BaseRequest.setup(); //Set up network interceptor to log network event times analytics for requests.
+            AuthorizationRequest.setup(); //Set up network interceptor to log network event times analytics for authorization requests.
         }
 
         return (BMSClient)instance;

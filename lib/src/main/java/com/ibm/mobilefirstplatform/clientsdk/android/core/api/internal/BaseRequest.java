@@ -218,9 +218,11 @@ public class BaseRequest {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
 
-        httpClient.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
-        httpClient.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
-        httpClient.setWriteTimeout(timeout, TimeUnit.MILLISECONDS);
+        OkHttpClient client = getHttpClient();
+
+        client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+        client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
+        client.setWriteTimeout(timeout, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -306,7 +308,7 @@ public class BaseRequest {
      * If unset, redirects be followed.
      */
     public void setFollowRedirects(boolean followRedirects) {
-        httpClient.setFollowRedirects(followRedirects);
+        getHttpClient().setFollowRedirects(followRedirects);
     }
 
     protected URL getURLWithQueryParameters(String url, Map<String, String> queryParameters) throws MalformedURLException {
@@ -382,8 +384,9 @@ public class BaseRequest {
         }
 
         Request request = requestBuilder.build();
-        httpClient.newCall(request).enqueue(getCallback(listener));
-        httpClient.newCall(request);
+        OkHttpClient client = getHttpClient();
+        client.newCall(request).enqueue(getCallback(listener));
+        client.newCall(request);
 
     }
 
@@ -403,6 +406,14 @@ public class BaseRequest {
                 }
             }
         };
+    }
+
+    /**
+     * @exclude
+     */
+
+    protected OkHttpClient getHttpClient() {
+        return httpClient;
     }
 
     /**
@@ -430,7 +441,7 @@ public class BaseRequest {
         }
     }
 
-    private static class NetworkLoggingInterceptor implements Interceptor {
+    public static class NetworkLoggingInterceptor implements Interceptor {
         @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
 
