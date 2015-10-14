@@ -23,12 +23,18 @@ import java.net.MalformedURLException;
  */
 
 /**
- * AuthorizationRequest is used internally to send authorization requests
+ * AuthorizationRequest is used internally to send authorization requests.
  */
 public class AuthorizationRequest extends BaseRequest {
 
     private static OkHttpClient httpClient = new OkHttpClient();
 
+    /**
+     * Constructs the authorization request
+     * @param url request url
+     * @param method request method
+     * @throws MalformedURLException if url is not valid
+     */
     public AuthorizationRequest(String url, String method) throws MalformedURLException {
         super(url, method);
 
@@ -36,10 +42,17 @@ public class AuthorizationRequest extends BaseRequest {
         httpClient.setFollowRedirects(false);
     }
 
+    /**
+     * Override the base getter to return authrization http client
+     * @return internal http client
+     */
     protected OkHttpClient getHttpClient() {
         return httpClient;
     }
 
+    /**
+     * Setup network interceptor.
+     */
     public static void setup(){
         httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
     }
