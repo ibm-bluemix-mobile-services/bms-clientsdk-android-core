@@ -13,6 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Callback;
@@ -87,7 +88,22 @@ public class BaseRequest {
         this.url = url;
         this.method = method;
 
+        if(url != null && url.startsWith("/")) {
+            this.url = convertRelativeURLToBluemixAbsolute(url);
+        }
+
         setTimeout(timeout);
+    }
+
+    private String convertRelativeURLToBluemixAbsolute(String url) {
+        String appRoute = BMSClient.getInstance().getBluemixAppRoute();
+
+        //Remove trailing slashes
+        if(appRoute.trim().substring(appRoute.length()-1).equalsIgnoreCase("/")){
+            appRoute = appRoute.trim().substring(0, appRoute.length()-1);
+        }
+
+        return appRoute + url;
     }
 
     private Map<String, String> getQueryParamsMap() {
