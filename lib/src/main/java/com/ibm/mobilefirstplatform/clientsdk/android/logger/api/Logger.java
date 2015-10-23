@@ -709,9 +709,9 @@ public final class Logger {
     }
 
     /**
-     * See {@link import Logger#send()}
+     * See {@link #send()}
      *
-     * @param listener ResponseListener which specifies an onSuccess callback and an onFailure callback (see {@link ResponseListener})
+     * @param listener {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener} which specifies a success and failure callback
      */
     static public void send (ResponseListener listener) {
         if(sendingLogs){
@@ -729,7 +729,7 @@ public final class Logger {
      * accumulates in the log buffer from the use of {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger} with capture
      * (see {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger#setAnalyticsCapture(boolean)}) turned on.
      *
-     * @param listener ResponseListener which specifies an onSuccess callback and an onFailure callback
+     * @param listener {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener} which specifies a success and failure callback
      */
     static public void sendAnalytics (ResponseListener listener) {
         if(sendingAnalyticsLogs){
@@ -744,7 +744,7 @@ public final class Logger {
 
     /**
      * Ask the Logger if an uncaught exception, which often appears to the user as a crashed app, is present in the persistent capture buffer.
-     * This method should not be called before {@link #setContext(Context)}.  If it is called too early, an error message is issued and false is returned.
+     * This method should not be called after calling {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String)}.  If it is called too early, an error message is issued and false is returned.
      *
      * @return boolean if an uncaught exception log entry is currently in the persistent log buffer
      */
@@ -780,7 +780,7 @@ public final class Logger {
      * @param message the message to log
      */
     public void analytics(final String message, JSONObject additionalMetadata) {
-        doLog(LEVEL.ANALYTICS, message, (new Date()).getTime(), null);
+        doLog(LEVEL.ANALYTICS, message, (new Date()).getTime(), null, additionalMetadata);
     }
 
     /**
@@ -890,8 +890,13 @@ public final class Logger {
      * @param t (optional) an Exception or Throwable, may be null
      */
     public void doLog(final LEVEL calledLevel, String message, final long timestamp, final Throwable t) {
+        doLog(calledLevel, message,timestamp, t, null);
+    }
+
+    public void doLog(final LEVEL calledLevel, String message, final long timestamp, final Throwable t, JSONObject additionalMetadata) {
         // we do this outside of the thread, otherwise we can't find the caller to attach the call stack metadata
-        JSONObject metadata = generateStackMetadata();
+        JSONObject metadata = appendStackMetadata(additionalMetadata);
+
         ThreadPoolWorkQueue.execute(new DoLogRunnable(calledLevel, message, timestamp, metadata, t, this));
     }
 
@@ -938,9 +943,15 @@ public final class Logger {
      *
      * @return Returns the JSONObject with stack metadata
      */
-    private JSONObject generateStackMetadata() {
+    private JSONObject appendStackMetadata(JSONObject additionalMetadata) {
+        JSONObject jsonMetadata;
 
-        JSONObject jsonMetadata = new JSONObject();
+        if(additionalMetadata != null){
+            jsonMetadata = additionalMetadata;
+        }
+        else{
+            jsonMetadata = new JSONObject();
+        }
 
         try {
             // try/catch Exception wraps all because I don't know yet if I can trust getStackTrace... needs more testing
