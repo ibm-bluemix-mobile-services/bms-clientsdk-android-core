@@ -49,7 +49,7 @@ import java.util.UUID;
  * <p>
  * Log data is accumulated persistently to a log file until the file size is greater than FILE_SIZE_LOG_THRESHOLD.
  * At this point the log file is rolled over. Log data will only be captured once
- * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#setApplicationContext(Context) } is called.  Once both files are full, the oldest log data
+ * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String)} is called.  Once both files are full, the oldest log data
  * is pushed out to make room for new log data.
  * </p>
  * <p>
@@ -65,6 +65,7 @@ public class MFPAnalytics {
     public static final String KEY_METADATA_TYPE = "$type";
     public static final String TAG_SESSION = "$session";
     public static final String KEY_METADATA_START_TIME = "$startTime";
+    public static final String TAG_APP_STARTUP = "$startup";
 
     protected static Logger logger = Logger.getInstance("imf.analytics");
 
@@ -103,48 +104,58 @@ public class MFPAnalytics {
         Logger.sendAnalytics(listener);
     }
 
-    public static void logApplicationEntry(){
+    /**
+     * Start logging when your Application starts up. This should be called in the application's main activity's onCreate.
+     */
+    public static void startLoggingApplicationStartup(){
         JSONObject metadata = new JSONObject();
 
         long startTime = System.currentTimeMillis();
 
         try {
             metadata.put(KEY_METADATA_CATEGORY, TAG_CATEGORY_EVENT);
-            metadata.put(KEY_METADATA_TYPE, TAG_SESSION);
+            metadata.put(KEY_METADATA_TYPE, TAG_APP_STARTUP);
             metadata.put(KEY_METADATA_START_TIME, startTime);
 
             logger.analytics("", metadata);
 
             metadata.put("$sessionId", UUID.randomUUID());
 
-            lifecycleEvents.put(TAG_SESSION, metadata);
+            lifecycleEvents.put(TAG_APP_STARTUP, metadata);
         } catch (JSONException e) {
             //Do nothing.
         }
     }
 
-    public static void logApplicationExit(){
+    /**
+     * Record the duration of the application's startup. This should be called in the application's main activity's onStart.
+     * {@link #startLoggingApplicationStartup()} has to be called first, otherwise nothing is recorded.
+     */
+    public static void logApplicationStartup(){
         JSONObject metadata = new JSONObject();
 
-        JSONObject startMetadata = lifecycleEvents.get(TAG_SESSION);
+        JSONObject startMetadata = lifecycleEvents.get(TAG_APP_STARTUP);
 
-        long startTime = startMetadata.optInt("KEY_METADATA_START_TIME");
+        long startTime = startMetadata.optInt(KEY_METADATA_START_TIME);
         long endTime = System.currentTimeMillis();
         long eventDuration = endTime - startTime;
 
         try {
             metadata.put(KEY_METADATA_CATEGORY, TAG_CATEGORY_EVENT);
             metadata.put(KEY_METADATA_DURATION, eventDuration);
-            metadata.put(KEY_METADATA_TYPE, TAG_SESSION);
+            metadata.put(KEY_METADATA_TYPE, TAG_APP_STARTUP);
 
             logger.analytics("", metadata);
 
-            lifecycleEvents.remove(TAG_SESSION);
+            lifecycleEvents.remove(TAG_APP_STARTUP);
         } catch (JSONException e) {
             //Do nothing.
         }
     }
 
+    /**
+     * Start recording the time when an application enters the foreground.
+     */
     public static void logSessionStart(){
         JSONObject metadata = new JSONObject();
 
@@ -165,12 +176,15 @@ public class MFPAnalytics {
         }
     }
 
+    /**
+     * Record the time the application spent on the foreground, based on the start time recorded in {@link #logSessionStart()}.
+     */
     public static void logSessionEnd(){
         JSONObject metadata = new JSONObject();
 
         JSONObject startMetadata = lifecycleEvents.get(TAG_SESSION);
 
-        long startTime = startMetadata.optInt("KEY_METADATA_START_TIME");
+        long startTime = startMetadata.optInt(KEY_METADATA_START_TIME);
         long endTime = System.currentTimeMillis();
         long eventDuration = endTime - startTime;
 
@@ -178,6 +192,8 @@ public class MFPAnalytics {
             metadata.put(KEY_METADATA_CATEGORY, TAG_CATEGORY_EVENT);
             metadata.put(KEY_METADATA_DURATION, eventDuration);
             metadata.put(KEY_METADATA_TYPE, TAG_SESSION);
+
+            metadata.remove(KEY_METADATA_START_TIME);
 
             logger.analytics("", metadata);
 

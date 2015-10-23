@@ -475,15 +475,15 @@ public class BaseRequest {
             long t2 = System.currentTimeMillis();
 
             try {
-                metadata.put("$path", request.urlString());
+                metadata.put("$url", request.urlString());
                 metadata.put("$category", "network");
                 metadata.put("$trackingid", trackingid);
                 metadata.put("$outboundTimestamp", t1);
                 metadata.put("$inboundTimestamp", t2);
-                metadata.put("roundTripTime", t2- t1);
+                metadata.put("$duration", t2- t1);
 
                 if(response != null){
-                    metadata.put("$responseCode", response.code());
+                    metadata.put("$statusCode", response.code());
                 }
 
                 if(response != null && response.body() != null && response.body().contentLength() >= 0){
