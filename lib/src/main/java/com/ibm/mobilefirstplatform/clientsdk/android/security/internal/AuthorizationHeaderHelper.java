@@ -29,7 +29,6 @@ public class AuthorizationHeaderHelper {
 
     public static final String BEARER = "Bearer";
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String REALM_IMF_AUTHENTICATION = "realm=\"imfAuthentication\"";
     private static final String WWW_AUTHENTICATE_HEADER = "WWW-Authenticate";
 
 
@@ -40,7 +39,7 @@ public class AuthorizationHeaderHelper {
     /**
      * A response is an OAuth error response only if,
      * 1. it's status is 401 or 403
-     * 2. The value of the "WWW-Authenticate" header contains 'Bearer' AND 'realm="imfAuthentication"'
+     * 2. The value of the "WWW-Authenticate" header contains 'Bearer'
      *
      * @param response to check the conditions for.
      * @return true if the response satisfies both conditions
@@ -68,7 +67,7 @@ public class AuthorizationHeaderHelper {
      * Check if the params came from response that requires authorization
      * @param statusCode status code of the responce
      * @param wwwAuthenticateHeaders list of WWW-Authenticate headers
-     * @return true if status is 401 or 403 and The value of the header contains 'Bearer' AND 'realm="imfAuthentication"'
+     * @return true if status is 401 or 403 and The value of the header contains 'Bearer'
      */
     private static boolean isAuthorizationRequired(int statusCode, List<String> wwwAuthenticateHeaders) {
 
