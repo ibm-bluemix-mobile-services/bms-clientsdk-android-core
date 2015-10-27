@@ -16,6 +16,20 @@ This package contains the core components of Android SDK
 
 ###Supported Levels
 The package is supported on Android API level 14 and up (Android 4.0 and up).
+
+###Change log
+####1.0.3
+* Support relative paths when creating Requests.
+* Fixed Analytics reporting.
+
+####1.0.2
+* Fixed issue with MCA.
+
+####1.0.1
+* Bug fixes.
+
+####1.0.0
+* Initial release
  
 
 Copyright 2015 IBM Corp.
