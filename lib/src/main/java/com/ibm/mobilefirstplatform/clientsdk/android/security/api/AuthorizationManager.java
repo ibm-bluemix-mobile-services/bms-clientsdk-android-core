@@ -89,7 +89,7 @@ public class AuthorizationManager {
      * Check if the params came from response that requires authorization
      * @param statusCode of the response
      * @param responseAuthorizationHeader 'WWW-Authenticate' header
-     * @return true if status is 401 or 403 and The value of the header contains 'Bearer' AND 'realm="imfAuthentication"'
+     * @return true if status is 401 or 403 and The value of the header contains 'Bearer'
      */
     public boolean isAuthorizationRequired(int statusCode, String responseAuthorizationHeader) {
         return AuthorizationHeaderHelper.isAuthorizationRequired(statusCode, responseAuthorizationHeader);
@@ -98,11 +98,11 @@ public class AuthorizationManager {
     /**
      * A response is an OAuth error response only if,
      * 1. it's status is 401 or 403
-     * 2. The value of the "WWW-Authenticate" header contains 'Bearer' AND 'realm="imfAuthentication"'
+     * 2. The value of the "WWW-Authenticate" header contains 'Bearer'
      *
      * @param urlConnection connection to check the authorization conditions for.
      * @return true if the response satisfies both conditions
-     * @throws IOException in case connection dosn't contains response code.
+     * @throws IOException in case connection doesn't contains response code.
      */
     public boolean isAuthorizationRequired(HttpURLConnection urlConnection) throws IOException {
         return AuthorizationHeaderHelper.isAuthorizationRequired(urlConnection);
