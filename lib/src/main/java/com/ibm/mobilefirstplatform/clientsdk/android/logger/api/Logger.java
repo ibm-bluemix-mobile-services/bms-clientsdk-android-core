@@ -1220,9 +1220,9 @@ public final class Logger {
     }
 
     /**
-     * Enable the logging of any debug and INFO-level messages coming from the Bluemix Mobile Services SDKs.
-     * By default, only errors, warnings, and fatal messages will be logged for these SDKs.
-     * @param enabled whether to log internal debug and info messages
+     * Enable displaying all Bluemix Mobile Services SDK debug and info logs in Logcat.
+     * By default, only errors, warnings, and fatal messages are displayed in Logcat.
+     * @param enabled Determines whether to display Bluemix Mobile Services SDK debug and info logs in Logcat.
      */
     public static void setSDKInternalLoggingEnabled(boolean enabled){
         internalLoggingEnabled = enabled;
