@@ -67,7 +67,7 @@ public class MFPAnalytics {
     public static final String KEY_METADATA_START_TIME = "$startTime";
     public static final String TAG_APP_STARTUP = "$startup";
 
-    protected static Logger logger = Logger.getInstance("imf.analytics");
+    protected static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + ".analytics");
 
     private static final Map<String, JSONObject> lifecycleEvents = new HashMap<>();
 

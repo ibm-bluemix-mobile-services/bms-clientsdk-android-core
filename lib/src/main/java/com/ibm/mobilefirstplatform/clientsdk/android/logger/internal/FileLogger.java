@@ -112,7 +112,7 @@ public class FileLogger extends FileLoggerInterface {
                 copyStream (fin, baos);
                 return baos.toByteArray ();
             } catch (IOException e) {
-                Log.e(Logger.LOG_PACKAGE_NAME, "problem reading file " + fl.toString(), e);
+                Log.e(Logger.LOG_TAG_NAME, "problem reading file " + fl.toString(), e);
             }
         }
         return ret.getBytes ("UTF-8");

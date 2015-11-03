@@ -461,7 +461,7 @@ public class BaseRequest {
         @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
 
-            Logger logger = Logger.getInstance("imf.analytics");
+            Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + ".analytics");
 
             logger.analytics("BaseRequest outbound", null);
 

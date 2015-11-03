@@ -33,7 +33,7 @@ import java.net.URLDecoder;
  * Internal helper class with various utilities.
  */
 public class Utils {
-    private static Logger logger = Logger.getInstance("Utils");
+    private static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "Utils");
     private final static String SECURE_PATTERN_START = "/*-secure-\n";
     private final static String SECURE_PATTERN_END = "*/";
 
