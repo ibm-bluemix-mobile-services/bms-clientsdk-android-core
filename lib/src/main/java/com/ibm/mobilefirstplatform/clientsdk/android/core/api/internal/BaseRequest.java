@@ -246,7 +246,7 @@ public class BaseRequest {
      *
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
-    public void send(ResponseListener listener) {
+    protected void send(ResponseListener listener) {
         send("", listener);
     }
 
@@ -257,7 +257,7 @@ public class BaseRequest {
      * @param requestBody The request body text
      * @param listener    The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
-    public void send(final String requestBody, final ResponseListener listener) {
+    protected void send(final String requestBody, final ResponseListener listener) {
         String contentType = headers.get(CONTENT_TYPE);
 
         if (contentType == null) {
@@ -276,7 +276,7 @@ public class BaseRequest {
      * @param formParameters The parameters to put in the request body
      * @param listener       The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
-    public void send(Map<String, String> formParameters, ResponseListener listener) {
+    protected void send(Map<String, String> formParameters, ResponseListener listener) {
         FormEncodingBuilder formBuilder = new FormEncodingBuilder();
 
         for (Map.Entry<String, String> param : formParameters.entrySet()) {
@@ -295,7 +295,7 @@ public class BaseRequest {
      * @param json     The JSON object to put in the request body
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
-    public void send(JSONObject json, ResponseListener listener) {
+    protected void send(JSONObject json, ResponseListener listener) {
         String contentType = headers.get(CONTENT_TYPE);
 
         if (contentType == null) {
@@ -314,7 +314,7 @@ public class BaseRequest {
      * @param data     The byte array containing the request body
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
-    public void send(byte[] data, ResponseListener listener) {
+    protected void send(byte[] data, ResponseListener listener) {
         RequestBody body = RequestBody.create(MediaType.parse(headers.get(CONTENT_TYPE)), data);
 
         sendRequest(listener, body);

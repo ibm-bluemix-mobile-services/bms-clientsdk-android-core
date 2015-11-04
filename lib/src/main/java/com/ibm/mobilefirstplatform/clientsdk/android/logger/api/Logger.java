@@ -24,7 +24,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.LoggerRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLogger;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLoggerInterface;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.JULHandler;
@@ -1296,7 +1296,7 @@ public final class Logger {
 
                     payload = ("["+ payloadStr + "]").getBytes();
 
-                    BaseRequest sendLogsRequest = new Request(logUploaderURL, Request.POST);
+                    LoggerRequest sendLogsRequest = new LoggerRequest(logUploaderURL, Request.POST);
 
                     sendLogsRequest.addHeader("Content-Type","application/json");
 
