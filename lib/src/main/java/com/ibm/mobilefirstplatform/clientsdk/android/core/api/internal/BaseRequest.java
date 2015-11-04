@@ -85,7 +85,6 @@ public class BaseRequest {
      * @throws MalformedURLException    if the URL is not a valid URL
      */
     public BaseRequest(String url, String method, int timeout) {
-        this.url = url;
         this.method = method;
 
         if(url != null && url.startsWith("/")) {
