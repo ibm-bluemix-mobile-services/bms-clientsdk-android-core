@@ -24,7 +24,6 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.LoggerRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLogger;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLoggerInterface;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.JULHandler;
@@ -1296,13 +1295,13 @@ public final class Logger {
 
                     payload = ("["+ payloadStr + "]").getBytes();
 
-                    LoggerRequest sendLogsRequest = new LoggerRequest(logUploaderURL, Request.POST);
+                    Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
 
                     sendLogsRequest.addHeader("Content-Type","application/json");
 
                     sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
 
-                    sendLogsRequest.send(payload, requestListener);
+                    sendLogsRequest.send(null, payload, requestListener);
                 } catch (IOException e) {
                     Logger.getInstance(LOG_PACKAGE_NAME).error("Failed to send logs due to exception.", e);
                 }
