@@ -168,11 +168,25 @@ public class Request extends BaseRequest {
         super.send(listener);
     }
 
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param context The context that will be passed to authentication listener.
+     * @param text The request body text
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     */
     public void send(Context context, String text, ResponseListener listener) {
         this.context = context;
         super.send(text, listener);
     }
 
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param context The context that will be passed to authentication listener.
+     * @param bytes     The byte array containing the request body
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     */
     public void send(Context context, byte[] bytes, ResponseListener listener) {
         this.context = context;
         super.send(bytes, listener);

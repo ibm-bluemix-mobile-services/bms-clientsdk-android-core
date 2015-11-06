@@ -13,10 +13,12 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.net.MalformedURLException;
+import java.util.Map;
 
 /**
  * Created by vitalym on 10/14/15.
@@ -56,4 +58,16 @@ public class AuthorizationRequest extends BaseRequest {
     public static void setup(){
         httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
     }
+
+    @Override
+    public void send(final ResponseListener listener) {
+        super.send(listener);
+    }
+
+    @Override
+    public void send(Map<String, String> formParameters, ResponseListener listener) {
+        super.send(formParameters, listener);
+    }
+
+
 }
