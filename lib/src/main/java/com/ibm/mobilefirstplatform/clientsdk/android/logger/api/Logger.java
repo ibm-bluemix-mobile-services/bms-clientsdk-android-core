@@ -776,6 +776,17 @@ public final class Logger {
     }
 
     /**
+     * @deprecated As of 1.1.0, replaced by {@link #getName()}.
+     * Get the name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
+     *
+     * @return The name for this instance of Logger
+     */
+    @Deprecated
+    public String getPackageName() {
+        return getName();
+    }
+
+    /**
      * @exclude
      *
      * Log at ANALYTICS level.
