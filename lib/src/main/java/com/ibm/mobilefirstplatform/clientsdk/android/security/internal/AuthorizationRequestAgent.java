@@ -175,6 +175,21 @@ public class AuthorizationRequestAgent implements ResponseListener {
             rootUrl = rootUrl.concat("/" + pathWithTenantId);
         }
 
+        // TODO: make this the only option once old BMSClient.init is removed
+        // URL Structure
+        // https://imf-authserver.{bluemixdomain}/imf-authserver/authorization/v1/apps/{appGUID}/{path}
+        if (null != BMSClient.getInstance().getBluemixRegionSuffix()){
+            rootUrl = "https://"
+                    + AUTH_SERVER_NAME
+                    + "."
+                    + BMSClient.getInstance().getBluemixRegionSuffix()
+                    + "/"
+                    + AUTH_SERVER_NAME
+                    + "/"
+                    + AUTH_PATH
+                    + BMSClient.getInstance().getBluemixAppGUID();
+        }
+
         sendRequestInternal(rootUrl, path, options);
     }
 
