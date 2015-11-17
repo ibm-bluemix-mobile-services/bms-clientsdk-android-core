@@ -13,6 +13,13 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.provider.Settings;
+
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
@@ -468,13 +475,51 @@ public class BaseRequest {
             long t1 = System.currentTimeMillis();
 
             String trackingid = UUID.randomUUID().toString();
-            JSONObject metadata = new JSONObject();
 
-            com.squareup.okhttp.Response response = chain.proceed(request);
+            // add required analytics headers:
+            JSONObject metadataHeader = new JSONObject();
+            try {
+
+                Context context = BMSClient.getAppContext();  // we assume the developer has called BMSClient.getInstance at least once by this point, so context is not
+
+                // we try to keep the keys short to conserve bandwidth
+                metadataHeader.put("deviceID", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));  // we require a unique deviceID
+                metadataHeader.put("os", "android");  // MFP
+                metadataHeader.put("osVersion", Build.VERSION.RELEASE);  // human-readable o/s version; like "5.0.1"
+                metadataHeader.put("brand", Build.BRAND);  // human-readable brand; like "Samsung"
+                metadataHeader.put("model", Build.MODEL);  // human-readable model; like "Galaxy Nexus 5"
+
+                // TODO: something like this:
+                // if (Analytics.getRuntimeContextValueFor("appName") != null) { use it here } else { fall back to appLabel }
+                // metadataHeader.put("mfpAppName", WLConfig.WL_APP_ID);  // MFP app name; like "MyApp"
+                // TODO: something like this:
+                // if (Analytics.getRuntimeContextValueFor("appVersion") != null) { use it here } else { fall back to appVersionDisplay }
+                // metadataHeader.put("mfpAppVersion", WLConfig.WL_APP_VERSION);  // MFP app version; like "1.0" -- may be aligned with PackageInfo.versionName, but no guarantee
+                PackageInfo pInfo;
+                try {
+                    pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                    metadataHeader.put("appVersionDisplay", pInfo.versionName);  // human readable display version
+                    metadataHeader.put("appVersionCode", pInfo.versionCode);  // version as known to the app store
+                    metadataHeader.put("firstInstall", pInfo.firstInstallTime);  // useful!
+                    metadataHeader.put("lastUpdate", pInfo.lastUpdateTime);  // also useful!
+                } catch (PackageManager.NameNotFoundException e) {
+                    Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get PackageInfo.", e);
+                }
+                metadataHeader.put("appLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
+
+            } catch (JSONException e) {
+                // there is no way this exception gets thrown when adding simple strings to a JSONObject
+            }
+
+            Request requestWithHeaders = request.newBuilder().header("x-wl-analytics-tracking-id", trackingid)
+                    .header("x-mfp-analytics-metadata", metadataHeader.toString()).build();
+
+            com.squareup.okhttp.Response response = chain.proceed(requestWithHeaders);
 
             long t2 = System.currentTimeMillis();
 
             try {
+                JSONObject metadata = new JSONObject();
                 metadata.put("$url", request.urlString());
                 metadata.put("$category", "network");
                 metadata.put("$trackingid", trackingid);
@@ -496,6 +541,17 @@ public class BaseRequest {
             }
 
             return response;
+        }
+
+        public String getAppLabel(Context context) {
+            PackageManager lPackageManager = context.getPackageManager();
+            ApplicationInfo lApplicationInfo = null;
+            try {
+                lApplicationInfo = lPackageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
+            } catch (final PackageManager.NameNotFoundException e) {
+                Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get ApplicationInfo.", e);
+            }
+            return (String) (lApplicationInfo != null ? lPackageManager.getApplicationLabel(lApplicationInfo) : Build.UNKNOWN);
         }
     }
 }

@@ -37,6 +37,8 @@ public class BMSClient extends MFPClient {
     private String backendGUID;
     private String rewriteDomain;
 
+    private static Context appContext = null;  // set this to Application context and use it throughout
+
     /**
      * Should be called to obtain the instance of BMSClient.
      * @return the instance of BMSClient.
@@ -66,6 +68,7 @@ public class BMSClient extends MFPClient {
      * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
      */
     public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID) throws MalformedURLException {
+        appContext = context.getApplicationContext();
         this.backendGUID = bluemixAppGUID;
         this.backendRoute = bluemixAppRoute;
         this.rewriteDomain = null;
@@ -82,8 +85,8 @@ public class BMSClient extends MFPClient {
         }
 
         this.rewriteDomain = Utils.buildRewriteDomain(this.backendRoute, subzone);
-        AuthorizationManager.createInstance(context.getApplicationContext());
-        Logger.setContext(context.getApplicationContext());
+        AuthorizationManager.createInstance(appContext);
+        Logger.setContext(appContext);
     }
 
     /**
@@ -108,5 +111,13 @@ public class BMSClient extends MFPClient {
      */
     public String getRewriteDomain() {
         return rewriteDomain;
+    }
+
+    /**
+     *
+     * @return the Android Application Context object
+     */
+    public static Context getAppContext() {
+        return appContext;
     }
 }
