@@ -1314,7 +1314,8 @@ public final class Logger {
 				// URL Structure
 				// https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
 				if (null != client.getBluemixRegionSuffix()){
-					logUploaderURL = "https://imfmobileanalytics."
+					logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
+                                    + "://imfmobileanalytics."
 									+ client.getBluemixRegionSuffix()
 									+ "/imfmobileanalytics"
 									+ LOG_UPLOADER_PATH

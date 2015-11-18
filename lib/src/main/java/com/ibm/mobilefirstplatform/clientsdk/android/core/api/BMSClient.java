@@ -42,6 +42,7 @@ public class BMSClient extends MFPClient {
     private String backendGUID;
     private String rewriteDomain;
 	private String bluemixRegionSuffix;
+    private String defaultProtocol = HTTPS_SCHEME;
 
     /**
      * Should be called to obtain the instance of BMSClient.
@@ -105,7 +106,7 @@ public class BMSClient extends MFPClient {
 	 * @param bluemixRegion Specifies the Bluemix deployment to use. Use values in BMSClient.REGION* static props
 	 * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
 	 */
-	public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion){
+	public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) throws MalformedURLException{
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
@@ -143,4 +144,17 @@ public class BMSClient extends MFPClient {
 	 * @return Bluemix region suffix for SDK components to build URLs
 	 */
 	public String getBluemixRegionSuffix(){ return bluemixRegionSuffix;}
+
+    /**
+     * @exclude
+     * @return Bluemix region suffix for SDK components to build URLs
+     */
+    public String getDefaultProtocol(){ return defaultProtocol;}
+
+    /**
+     * @exclude
+     * @return Bluemix region suffix for SDK components to build URLs
+     */
+    public void setDefaultProtocol(String protocol){ defaultProtocol = protocol;}
+
 }
