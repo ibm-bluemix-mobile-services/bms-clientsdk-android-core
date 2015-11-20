@@ -19,11 +19,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
-import android.provider.Settings;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.BuildConfig;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger.LEVEL;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.internal.FileLoggerInterface;
 
@@ -32,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -49,9 +47,7 @@ import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @Config(sdk = Build.VERSION_CODES.JELLY_BEAN_MR2, constants = BuildConfig.class)
 @RunWith(RobolectricTestRunner.class)
@@ -339,8 +335,6 @@ public class LoggerTest {
         assertEquals(Logger.getLevelDefault(), Logger.LEVEL.fromString(prefs.getString(Logger.SHARED_PREF_KEY_level, null)));
         assertEquals(Logger.DEFAULT_logFileMaxSize, prefs.getInt(Logger.SHARED_PREF_KEY_logFileMaxSize, 0));
         assertEquals(Logger.DEFAULT_capture, prefs.getBoolean(Logger.SHARED_PREF_KEY_logPersistence, !Logger.DEFAULT_capture));
-        // empty JSONArray object
-        assertEquals("{}", prefs.getString(Logger.SHARED_PREF_KEY_filters, null));
     }
 
     @Test
@@ -356,10 +350,6 @@ public class LoggerTest {
 
         Logger.setMaxStoreSize(90000);
 
-        HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
-        filters.put("jsonstore", Logger.LEVEL.WARN);
-        Logger.setFilters(filters);
-
         waitForNotify(Logger.WAIT_LOCK);
 
         Logger.setContext(activity);
@@ -370,8 +360,6 @@ public class LoggerTest {
         assertEquals(LEVEL.WARN, Logger.LEVEL.fromString(prefs.getString(Logger.SHARED_PREF_KEY_level, null)));
         assertEquals(90000, prefs.getInt(Logger.SHARED_PREF_KEY_logFileMaxSize, 0));
         assertEquals(!Logger.DEFAULT_capture, prefs.getBoolean(Logger.SHARED_PREF_KEY_logPersistence, Logger.DEFAULT_capture));
-        assertEquals("{\"jsonstore\":\"WARN\"}", prefs.getString(Logger.SHARED_PREF_KEY_filters, ""));
-        assertEquals("{\"jsonstore\":\"WARN\"}", prefs.getString(Logger.SHARED_PREF_KEY_filters, ""));
     }
 
 
@@ -821,6 +809,7 @@ public class LoggerTest {
 
     }
 
+    @Ignore //filters have been removed
     @Test
     public void testAStringWithFilters() throws Exception {
         // Filters should not prevent analytics captures
@@ -850,19 +839,9 @@ public class LoggerTest {
         assertEquals("message", jsonObject.get(MESSAGE_KEY));
         // ensure no exception is thrown by parsing the threadid value:
         assertFalse(jsonObject.getLong(THREADID_KEY) == 0);
-
     }
 
-    @Test
-    public void testJSONArrayHashMapConversions() {
-        HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
-        filters.put("joe", Logger.LEVEL.WARN);
-        filters.put("bob", Logger.LEVEL.INFO);
-        JSONObject filtersObject = Logger.HashMapToJSONObject(filters);  // convert
-        HashMap<String, LEVEL> filters2 = Logger.JSONObjectToHashMap(filtersObject);  // convert it back
-        assertEquals(filters, filters2);
-    }
-
+    @Ignore //filters have been removed
     @Test
     public void testFilters() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
@@ -915,54 +894,6 @@ public class LoggerTest {
         assertEquals("jsonstore warn", jsonArray.getJSONObject(0).get(MESSAGE_KEY));
         assertEquals("jsonstore info", jsonArray.getJSONObject(1).get(MESSAGE_KEY));
         assertEquals("package debug 2", jsonArray.getJSONObject(2).get(MESSAGE_KEY));
-    }
-
-    @Test
-    public void testSetFiltersServerOverride() throws Exception {
-        Logger.setContext(activity);
-
-        RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().putString(Logger.SHARED_PREF_KEY_filters_from_server, "{'otherPkg':'WARN'}").commit();
-
-        // even when setCapture API call is made, the presence and setting of SHARED_PREF_KEY_filters_from_server wins
-        HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
-        filters.put("jsonstore", Logger.LEVEL.INFO);
-        Logger.setFilters(filters);
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        // when SHARED_PREF_KEY_filters_from_server is set, it takes precedence over whatever was set programmatically by Logger.setCapture API call
-        assertEquals(LEVEL.WARN, Logger.getFilters().get("otherPkg"));
-
-        // also should pick up the server override SHARED_PREF_KEY_filters_from_server value when Logger.setContext is called:
-        Logger.unsetContext();
-        Logger.setContext(activity);
-
-        assertEquals(LEVEL.WARN, Logger.getFilters().get("otherPkg"));
-
-        // try setting the server override shared pref value to null and empty:
-        RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().putString(Logger.SHARED_PREF_KEY_filters_from_server, "{}").commit();
-        // even when setCapture API call is made, the presence and setting of SHARED_PREF_KEY_filters_from_server wins
-        Logger.setFilters(filters);
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        assertEquals(0, Logger.getFilters().size());
-
-        // when the SHARED_PREF_KEY_filters_from_server is removed, and setCapture is called, it should now take effect again:
-        RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().remove(Logger.SHARED_PREF_KEY_filters_from_server).commit();
-        // even when setCapture API call is made, the presence and setting of SHARED_PREF_KEY_filters_from_server wins
-        Logger.setFilters(filters);
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        assertNull(Logger.getFilters().get("otherPkg"));
-        assertEquals(LEVEL.INFO, Logger.getFilters().get("jsonstore"));
-
-        // and when Logger.setContext is called:
-        Logger.unsetContext();
-        Logger.setContext(activity);
-
-        assertEquals(LEVEL.INFO, Logger.getFilters().get("jsonstore"));
     }
 
     @Test
