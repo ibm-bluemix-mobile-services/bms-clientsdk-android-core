@@ -13,6 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.squareup.okhttp.OkHttpClient;
