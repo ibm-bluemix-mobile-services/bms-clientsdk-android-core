@@ -25,7 +25,6 @@ import com.squareup.okhttp.RequestBody;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
@@ -40,41 +39,10 @@ public class Request extends BaseRequest {
     private Context context;
 
     /**
-     * The string constant for the GET HTTP method verb.
-     */
-    public final static String GET = "GET";
-    /**
-     * The string constant for the POST HTTP method verb.
-     */
-    public final static String POST = "POST";
-    /**
-     * The string constant for the PUT HTTP method verb.
-     */
-    public final static String PUT = "PUT";
-    /**
-     * The string constant for the DELETE HTTP method verb.
-     */
-    public final static String DELETE = "DELETE";
-    /**
-     * The string constant for the TRACE HTTP method verb.
-     */
-    public final static String TRACE = "TRACE";
-    /**
-     * The string constant for the HEAD HTTP method verb.
-     */
-    public final static String HEAD = "HEAD";
-    /**
-     * The string constant for the OPTIONS HTTP method verb.
-     */
-    public final static String OPTIONS = "OPTIONS";
-
-    /**
      * Constructs a new resource request with the specified URL, using the specified HTTP method.
      *
      * @param url    The resource URL, may be either relative or absolute.
      * @param method The HTTP method to use
-     * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
-     * @throws MalformedURLException    if the URL is not a valid URL
      */
     public Request(String url, String method) {
         super(url, method, DEFAULT_TIMEOUT);
@@ -87,8 +55,6 @@ public class Request extends BaseRequest {
      * @param url     The resource URL
      * @param method  The HTTP method to use.
      * @param timeout The timeout in milliseconds for this request.
-     * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
-     * @throws MalformedURLException    if the URL is not a valid URL
      */
     public Request(String url, String method, int timeout) {
         super(url, method, timeout);
@@ -99,7 +65,7 @@ public class Request extends BaseRequest {
      *
      * @return String The URL representing the path for this resource request.
      */
-    public String getUrl() throws MalformedURLException{
+    public String getUrl(){
         return super.getUrl();
     }
 
@@ -247,7 +213,7 @@ public class Request extends BaseRequest {
                 } else {
                     if (response.isSuccessful() || response.isRedirect()) {
                         listener.onSuccess(new ResponseImpl(response));
-                    } else if (!response.isRedirect()) {
+                    } else {
                         listener.onFailure(new ResponseImpl(response), null, null);
                     }
                 }
