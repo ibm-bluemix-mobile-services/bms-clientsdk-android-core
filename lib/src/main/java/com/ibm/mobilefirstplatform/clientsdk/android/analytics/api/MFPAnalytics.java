@@ -65,7 +65,7 @@ public class MFPAnalytics {
     public static final String KEY_METADATA_TYPE = "$type";
     public static final String TAG_SESSION = "$session";
     public static final String KEY_METADATA_START_TIME = "$startTime";
-    protected static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
+    protected static final Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
 
     private static final Map<String, JSONObject> lifecycleEvents = new HashMap<>();
 
