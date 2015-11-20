@@ -84,6 +84,14 @@ public class MFPAnalytics {
     }
 
     /**
+     * Determine if the capture of analytics events is enabled.
+     * @return true if capture of analytics is enabled
+     */
+    public static boolean isEnabled() {
+        return Logger.getAnalyticsCapture();
+    }
+
+    /**
      * Send the accumulated log data when the persistent log buffer exists and is not empty.  The data
      * accumulates in the log buffer from the use of {@link MFPAnalytics} with capture
      * (see {@link MFPAnalytics#enable()}) turned on.
@@ -102,6 +110,14 @@ public class MFPAnalytics {
         Logger.sendAnalytics(listener);
     }
 
+    /**
+     * Log an analytics event.
+     *
+     * @param eventDescription An object that contains the description for the event
+     */
+    public static void log (final JSONObject eventDescription) {
+        logger.analytics("", eventDescription);
+    }
 
     /**
      * Start recording the time when an application enters the foreground.
@@ -116,7 +132,7 @@ public class MFPAnalytics {
             metadata.put(KEY_METADATA_TYPE, TAG_SESSION);
             metadata.put(KEY_METADATA_START_TIME, startTime);
 
-            logger.analytics("", metadata);
+            log(metadata);
 
             metadata.put("$sessionId", UUID.randomUUID());
 
@@ -145,7 +161,7 @@ public class MFPAnalytics {
 
             metadata.remove(KEY_METADATA_START_TIME);
 
-            logger.analytics("", metadata);
+            log(metadata);Get rid of
 
             lifecycleEvents.remove(TAG_SESSION);
         } catch (JSONException e) {
