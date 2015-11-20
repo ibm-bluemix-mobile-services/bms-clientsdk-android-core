@@ -17,6 +17,8 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
 
@@ -35,7 +37,7 @@ public class NetworkLoggingInterceptor implements Interceptor{
     @Override public com.squareup.okhttp.Response intercept(Interceptor.Chain chain) throws IOException {
         Request request = chain.request();
 
-        Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
+        Logger logger = MFPAnalytics.logger;
 
         logger.analytics("BaseRequest outbound", null);
 
@@ -110,17 +112,39 @@ public class NetworkLoggingInterceptor implements Interceptor{
     }
 
     private String getDeviceID(Context context) {
-        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String macAddress = getMacAddress(context);
+
+        String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        if (macAddress != null){
+            uuid += macAddress;
+        }
+
+        // Use a hashed UUID not exposing the device ANDROID_ID/Mac Address
+        return UUID.nameUUIDFromBytes(uuid.getBytes()).toString();
+    }
+
+    private String getMacAddress(Context context) {
+        String macAddress = null;
+
+        PackageManager packageManager = context.getPackageManager();
+        if (packageManager.hasSystemFeature (PackageManager.FEATURE_WIFI)) {
+            WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wifiinfo = wifiManager.getConnectionInfo();
+            macAddress = wifiinfo.getMacAddress();
+        }
+
+        return macAddress;
     }
 
     public String getAppLabel(Context context) {
-        PackageManager lPackageManager = context.getPackageManager();
-        ApplicationInfo lApplicationInfo = null;
+        PackageManager packageManager = context.getPackageManager();
+        ApplicationInfo applicationInfo = null;
         try {
-            lApplicationInfo = lPackageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
+            applicationInfo = packageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
         } catch (final PackageManager.NameNotFoundException e) {
             Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get ApplicationInfo.", e);
         }
-        return (String) (lApplicationInfo != null ? lPackageManager.getApplicationLabel(lApplicationInfo) : Build.UNKNOWN);
+        return (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : Build.UNKNOWN);
     }
 }
