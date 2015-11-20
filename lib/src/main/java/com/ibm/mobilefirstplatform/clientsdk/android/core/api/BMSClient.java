@@ -47,7 +47,7 @@ public class BMSClient extends MFPClient {
         if (instance == null) {
             instance = new BMSClient();
 
-            BaseRequest.setup(); //Set up network interceptor to log network event times analytics for requests.
+            BaseRequest.setupInterceptors(); //Set up network interceptor to log network event times analytics for requests.
             AuthorizationRequest.setup(); //Set up network interceptor to log network event times analytics for authorization requests.
         }
 
@@ -75,6 +75,8 @@ public class BMSClient extends MFPClient {
         String subzone = null;
 
         if (backendRoute != null) {
+            backendRoute = removeTrailingSlashesFromURL(backendRoute);
+
             URL url = new URL(backendRoute);
 
             String query = url.getQuery();
@@ -87,6 +89,14 @@ public class BMSClient extends MFPClient {
         this.rewriteDomain = Utils.buildRewriteDomain(this.backendRoute, subzone);
         AuthorizationManager.createInstance(appContext);
         Logger.setContext(appContext);
+    }
+
+    private String removeTrailingSlashesFromURL(String url) {
+        if(url.trim().substring(url.length()-1).equalsIgnoreCase("/")){
+            return url.trim().substring(0, url.length()-1);
+        }
+
+        return url;
     }
 
     /**

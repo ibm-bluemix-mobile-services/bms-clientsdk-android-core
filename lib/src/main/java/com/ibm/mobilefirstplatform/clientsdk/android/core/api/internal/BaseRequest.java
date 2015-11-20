@@ -13,16 +13,9 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.provider.Settings;
-
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.Headers;
@@ -32,7 +25,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -41,7 +33,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -55,6 +46,35 @@ public class BaseRequest {
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String TEXT_PLAIN = "text/plain";
 
+    /**
+     * The string constant for the GET HTTP method verb.
+     */
+    public final static String GET = "GET";
+    /**
+     * The string constant for the POST HTTP method verb.
+     */
+    public final static String POST = "POST";
+    /**
+     * The string constant for the PUT HTTP method verb.
+     */
+    public final static String PUT = "PUT";
+    /**
+     * The string constant for the DELETE HTTP method verb.
+     */
+    public final static String DELETE = "DELETE";
+    /**
+     * The string constant for the TRACE HTTP method verb.
+     */
+    public final static String TRACE = "TRACE";
+    /**
+     * The string constant for the HEAD HTTP method verb.
+     */
+    public final static String HEAD = "HEAD";
+    /**
+     * The string constant for the OPTIONS HTTP method verb.
+     */
+    public final static String OPTIONS = "OPTIONS";
+
     private String url = null;
     private String method = null;
     private int timeout;
@@ -65,19 +85,12 @@ public class BaseRequest {
     private static final OkHttpClient httpClient = new OkHttpClient();
 
     /**
-     * The TEST string
-     */
-    public final static String TEST = "TEST";
-
-    /**
      * Constructs a new request with the specified URL, using the specified HTTP method.
      *
      * @param url    The resource URL, may be either relative or absolute.
      * @param method The HTTP method to use
-     * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
-     * @throws MalformedURLException    if the URL is not a valid URL
      */
-    public BaseRequest(String url, String method) throws MalformedURLException {
+    public BaseRequest(String url, String method) {
         this(url, method, DEFAULT_TIMEOUT);
     }
 
@@ -88,8 +101,6 @@ public class BaseRequest {
      * @param url     The resource URL
      * @param method  The HTTP method to use.
      * @param timeout The timeout in milliseconds for this request.
-     * @throws IllegalArgumentException if the method name is not one of the valid HTTP method names.
-     * @throws MalformedURLException    if the URL is not a valid URL
      */
     public BaseRequest(String url, String method, int timeout) {
         this.url = url;
@@ -105,11 +116,6 @@ public class BaseRequest {
     private String convertRelativeURLToBluemixAbsolute(String url) {
         String appRoute = BMSClient.getInstance().getBluemixAppRoute();
 
-        //Remove trailing slashes
-        if(appRoute.trim().substring(appRoute.length()-1).equalsIgnoreCase("/")){
-            appRoute = appRoute.trim().substring(0, appRoute.length()-1);
-        }
-
         return appRoute + url;
     }
 
@@ -121,16 +127,12 @@ public class BaseRequest {
         return queryParameters;
     }
 
-    protected URL getUrlFromString(String url) throws MalformedURLException {
-        return new URL(url);
-    }
-
     /**
      * Returns the URL for this resource request.
      *
      * @return String The URL representing the path for this resource request.
      */
-    public String getUrl() throws MalformedURLException {
+    public String getUrl() {
         return url;
     }
 
@@ -382,7 +384,22 @@ public class BaseRequest {
         return slashCount >= 3;
     }
 
+    private boolean isValidMethod(String method) {
+        return method.equalsIgnoreCase(PUT) ||
+                method.equalsIgnoreCase(POST) ||
+                method.equalsIgnoreCase(GET) ||
+                method.equalsIgnoreCase(DELETE) ||
+                method.equalsIgnoreCase(TRACE) ||
+                method.equalsIgnoreCase(HEAD) ||
+                method.equalsIgnoreCase(OPTIONS);
+    }
+
     protected void sendRequest(final ResponseListener listener, final RequestBody requestBody) {
+        if(method == null || !isValidMethod(method)){
+            listener.onFailure(null, new IllegalArgumentException("Method is not valid: " + method), null);
+            return;
+        }
+
         Request.Builder requestBuilder = new Request.Builder();
 
         requestBuilder.headers(headers.build());
@@ -424,16 +441,12 @@ public class BaseRequest {
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
                 if (response.isSuccessful() || response.isRedirect()) {
                     listener.onSuccess(new ResponseImpl(response));
-                } else if (!response.isRedirect()) {
+                } else {
                     listener.onFailure(new ResponseImpl(response), null, null);
                 }
             }
         };
     }
-
-    /**
-     * @exclude
-     */
 
     protected OkHttpClient getHttpClient() {
         return httpClient;
@@ -442,7 +455,7 @@ public class BaseRequest {
     /**
      * @exclude
      */
-    public static void setup(){
+    public static void setupInterceptors(){
         httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
     }
 
@@ -461,97 +474,6 @@ public class BaseRequest {
     public static void unregisterInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
             httpClient.networkInterceptors().remove(interceptor);
-        }
-    }
-
-    public static class NetworkLoggingInterceptor implements Interceptor {
-        @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
-            Request request = chain.request();
-
-            Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
-
-            logger.analytics("BaseRequest outbound", null);
-
-            long t1 = System.currentTimeMillis();
-
-            String trackingid = UUID.randomUUID().toString();
-
-            // add required analytics headers:
-            JSONObject metadataHeader = new JSONObject();
-            try {
-
-                Context context = BMSClient.getAppContext();  // we assume the developer has called BMSClient.getInstance at least once by this point, so context is not
-
-                // we try to keep the keys short to conserve bandwidth
-                metadataHeader.put("deviceID", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));  // we require a unique deviceID
-                metadataHeader.put("os", "android");  // MFP
-                metadataHeader.put("osVersion", Build.VERSION.RELEASE);  // human-readable o/s version; like "5.0.1"
-                metadataHeader.put("brand", Build.BRAND);  // human-readable brand; like "Samsung"
-                metadataHeader.put("model", Build.MODEL);  // human-readable model; like "Galaxy Nexus 5"
-
-                // TODO: something like this:
-                // if (Analytics.getRuntimeContextValueFor("appName") != null) { use it here } else { fall back to appLabel }
-                // metadataHeader.put("mfpAppName", WLConfig.WL_APP_ID);  // MFP app name; like "MyApp"
-                // TODO: something like this:
-                // if (Analytics.getRuntimeContextValueFor("appVersion") != null) { use it here } else { fall back to appVersionDisplay }
-                // metadataHeader.put("mfpAppVersion", WLConfig.WL_APP_VERSION);  // MFP app version; like "1.0" -- may be aligned with PackageInfo.versionName, but no guarantee
-                PackageInfo pInfo;
-                try {
-                    pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-                    metadataHeader.put("appVersionDisplay", pInfo.versionName);  // human readable display version
-                    metadataHeader.put("appVersionCode", pInfo.versionCode);  // version as known to the app store
-                    metadataHeader.put("firstInstall", pInfo.firstInstallTime);  // useful!
-                    metadataHeader.put("lastUpdate", pInfo.lastUpdateTime);  // also useful!
-                } catch (PackageManager.NameNotFoundException e) {
-                    Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get PackageInfo.", e);
-                }
-                metadataHeader.put("appLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
-
-            } catch (JSONException e) {
-                // there is no way this exception gets thrown when adding simple strings to a JSONObject
-            }
-
-            Request requestWithHeaders = request.newBuilder().header("x-wl-analytics-tracking-id", trackingid)
-                    .header("x-mfp-analytics-metadata", metadataHeader.toString()).build();
-
-            com.squareup.okhttp.Response response = chain.proceed(requestWithHeaders);
-
-            long t2 = System.currentTimeMillis();
-
-            try {
-                JSONObject metadata = new JSONObject();
-                metadata.put("$url", request.urlString());
-                metadata.put("$category", "network");
-                metadata.put("$trackingid", trackingid);
-                metadata.put("$outboundTimestamp", t1);
-                metadata.put("$inboundTimestamp", t2);
-                metadata.put("$duration", t2- t1);
-
-                if(response != null){
-                    metadata.put("$statusCode", response.code());
-                }
-
-                if(response != null && response.body() != null && response.body().contentLength() >= 0){
-                    metadata.put("$bytesReceived", response.body().contentLength());
-                }
-
-                logger.analytics("BaseRequest inbound", metadata);
-            } catch (JSONException e) {
-                //Do nothing, since it is just for analytics.
-            }
-
-            return response;
-        }
-
-        public String getAppLabel(Context context) {
-            PackageManager lPackageManager = context.getPackageManager();
-            ApplicationInfo lApplicationInfo = null;
-            try {
-                lApplicationInfo = lPackageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
-            } catch (final PackageManager.NameNotFoundException e) {
-                Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get ApplicationInfo.", e);
-            }
-            return (String) (lApplicationInfo != null ? lPackageManager.getApplicationLabel(lApplicationInfo) : Build.UNKNOWN);
         }
     }
 }
