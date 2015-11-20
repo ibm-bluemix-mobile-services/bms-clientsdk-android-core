@@ -161,7 +161,7 @@ public class MFPAnalytics {
 
             metadata.remove(KEY_METADATA_START_TIME);
 
-            log(metadata);Get rid of
+            log(metadata);R
 
             lifecycleEvents.remove(TAG_SESSION);
         } catch (JSONException e) {
