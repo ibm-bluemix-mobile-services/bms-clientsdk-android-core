@@ -65,8 +65,6 @@ public class MFPAnalytics {
     public static final String KEY_METADATA_TYPE = "$type";
     public static final String TAG_SESSION = "$session";
     public static final String KEY_METADATA_START_TIME = "$startTime";
-    public static final String TAG_APP_STARTUP = "$startup";
-
     protected static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
 
     private static final Map<String, JSONObject> lifecycleEvents = new HashMap<>();
@@ -104,54 +102,6 @@ public class MFPAnalytics {
         Logger.sendAnalytics(listener);
     }
 
-    /**
-     * Start logging when your Application starts up. This should be called in the application's main activity's onCreate.
-     */
-    public static void startLoggingApplicationStartup(){
-        JSONObject metadata = new JSONObject();
-
-        long startTime = System.currentTimeMillis();
-
-        try {
-            metadata.put(KEY_METADATA_CATEGORY, TAG_CATEGORY_EVENT);
-            metadata.put(KEY_METADATA_TYPE, TAG_APP_STARTUP);
-            metadata.put(KEY_METADATA_START_TIME, startTime);
-
-            logger.analytics("", metadata);
-
-            metadata.put("$sessionId", UUID.randomUUID());
-
-            lifecycleEvents.put(TAG_APP_STARTUP, metadata);
-        } catch (JSONException e) {
-            //Do nothing.
-        }
-    }
-
-    /**
-     * Record the duration of the application's startup. This should be called in the application's main activity's onStart.
-     * {@link #startLoggingApplicationStartup()} has to be called first, otherwise nothing is recorded.
-     */
-    public static void logApplicationStartup(){
-        JSONObject metadata = new JSONObject();
-
-        JSONObject startMetadata = lifecycleEvents.get(TAG_APP_STARTUP);
-
-        long startTime = startMetadata.optInt(KEY_METADATA_START_TIME);
-        long endTime = System.currentTimeMillis();
-        long eventDuration = endTime - startTime;
-
-        try {
-            metadata.put(KEY_METADATA_CATEGORY, TAG_CATEGORY_EVENT);
-            metadata.put(KEY_METADATA_DURATION, eventDuration);
-            metadata.put(KEY_METADATA_TYPE, TAG_APP_STARTUP);
-
-            logger.analytics("", metadata);
-
-            lifecycleEvents.remove(TAG_APP_STARTUP);
-        } catch (JSONException e) {
-            //Do nothing.
-        }
-    }
 
     /**
      * Start recording the time when an application enters the foreground.
