@@ -158,10 +158,6 @@ public final class Logger {
      * @exclude
      */
     public static final String SHARED_PREF_KEY_level = "level";
-    /**
-     * @exclude
-     */
-    public static final String SHARED_PREF_KEY_filters = "filters";
 
     // when configuration is set from the server in production, these keys take precedence:
     /**
@@ -172,10 +168,6 @@ public final class Logger {
      * @exclude
      */
     public static final String SHARED_PREF_KEY_level_from_server = "levelFromServer";
-    /**
-     * @exclude
-     */
-    public static final String SHARED_PREF_KEY_filters_from_server = "filtersFromServer";
 
     // some defaults, protected for unit testing
     /**
@@ -203,7 +195,6 @@ public final class Logger {
     private static LEVEL level = null;
     // we keep a global java.util.logging.Handler to capture third-party stuff:
     private static JULHandler julHandler = new JULHandler();
-    private static HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
     // don't set up the static UncaughtExceptionHandler until after we have a context
     private static UncaughtExceptionHandler uncaughtExceptionHandler = null;
     // Track instances so we give back the same one for the same logger name passed to getInstance method.
@@ -339,14 +330,14 @@ public final class Logger {
         analyticsCapture = null;
         logFileMaxSize = null;
         level = null;
-        filters = null;
         uncaughtExceptionHandler = null;
         fileLoggerInstance = null;
         LogManager.getLogManager().getLogger("").removeHandler(julHandler);
     }
 
-
     /**
+     * @deprecated As of 2.0.0, replaced by {@link #getLogger(String)}.
+     *
      * Get or create an instance of this logger.  If an instance already exists for
      * 'name' parameter, that instance will be returned.
      *
@@ -355,6 +346,17 @@ public final class Logger {
      * @return an instance of this class
      */
     static synchronized public Logger getInstance(final String name) {
+        return getLogger(name);
+    }
+
+    /**
+     * Get the Logger for the given name.
+     *
+     * @param name the tag that should be printed with log messages.  The value is passed
+     *        through to android.util.Log and persistently recorded when log capture is enabled.
+     * @return the Logger for the given name
+     */
+    static synchronized public Logger getLogger(final String name) {
         Logger logger = instances.get (name); {
             if (null == logger) {
                 logger = new Logger(name);
@@ -410,22 +412,23 @@ public final class Logger {
                 setCaptureSync(prefs.getBoolean (SHARED_PREF_KEY_logPersistence, DEFAULT_capture));
             }
 
-            // filters
-            if (null != filters) {  // someone called setFilters method before setContext
-                setFiltersSync(filters);  // seems redundant, but we do this to save to SharedPrefs now that we have Context
-            } else {  // set it to the SharedPrefs value, or DEFAULT if no value in SharedPrefs yet
-                try {
-                    setFiltersSync(JSONObjectToHashMap(new JSONObject(prefs.getString (SHARED_PREF_KEY_filters, "{}"))));
-                } catch (JSONException e) {
-                    // not possible
-                }
-            }
-
             uncaughtExceptionHandler = new UncaughtExceptionHandler ();
             Thread.setDefaultUncaughtExceptionHandler (uncaughtExceptionHandler);
         }
     }
 
+    /**
+     * @deprecated As of 2.0.0, replaced by {@link #setLogLevel(LEVEL)}.
+     *
+     * Set the level and above at which log messages should be saved/printed.
+     * For example, passing LEVEL.INFO will log INFO, WARN, ERROR, and FATAL.  A
+     * null parameter value is ignored and has no effect.
+     *
+     * @param desiredLevel @see LEVEL
+     */
+    static public void setLevel(final LEVEL desiredLevel) {
+        setLogLevel(desiredLevel);
+    }
 
     /**
      * Set the level and above at which log messages should be saved/printed.
@@ -434,14 +437,15 @@ public final class Logger {
      *
      * @param desiredLevel @see LEVEL
      */
-    static public void setLevel(final LEVEL desiredLevel) {
+    static public void setLogLevel(final LEVEL desiredLevel) {
         ThreadPoolWorkQueue.execute(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 setLevelSync(desiredLevel);
                 // we do this mostly to enable unit tests to logger.wait(100) instead of
                 // Thread.sleep(100) -- it's faster, more stable, and more deterministic that way
                 synchronized (WAIT_LOCK) {
-                    WAIT_LOCK.notifyAll ();
+                    WAIT_LOCK.notifyAll();
                 }
             }
         });
@@ -462,11 +466,21 @@ public final class Logger {
     }
 
     /**
+     * @deprecated As of 2.0.0, replaced by {@link #getLogLevel()}.
      * Get the current Logger.LEVEL.
      *
      * @return Logger.LEVEL
      */
     static public LEVEL getLevel() {
+        return getLogLevel();
+    }
+
+    /**
+     * Get the current Logger.LEVEL.
+     *
+     * @return Logger.LEVEL
+     */
+    static public LEVEL getLogLevel() {
         final Future<LEVEL> task = ThreadPoolWorkQueue.submit(new Callable<LEVEL>() {
             @Override public LEVEL call() {
                 return getLevelSync();
@@ -493,14 +507,25 @@ public final class Logger {
     }
 
     /**
+     * @deprecated As of 2.0.0, replaced by {@link #storeLogs(boolean)}.
+     *
      * Global setting: turn persisting of log data passed to this class's log methods on or off.
      *
      * @param capture flag to indicate if log data should be saved persistently
      */
     static public void setCapture(final boolean capture) {
+        storeLogs(capture);
+    }
+
+    /**
+     * Global setting: turn persisting of log data passed to this class's log methods on or off.
+     *
+     * @param shouldStoreLogs flag to indicate if log data should be saved persistently
+     */
+    static public void storeLogs(final boolean shouldStoreLogs) {
         ThreadPoolWorkQueue.execute(new Runnable() {
             @Override public void run() {
-                setCaptureSync(capture);
+                setCaptureSync(shouldStoreLogs);
                 // we do this mostly to enable unit tests to logger.wait(100) instead of
                 // Thread.sleep(100) -- it's faster, more stable, and more deterministic that way
                 synchronized (WAIT_LOCK) {
@@ -604,75 +629,31 @@ public final class Logger {
     }
 
     /**
-     * Filter on loggers at and above designated LEVEL.  This is a white list.  Any loggers not listed in the filters will not be logged.
-     * Pass null or an empty HashMap parameter to remove filters and resume logging at the default LEVEL. This also includes anything
-     * logged through java.util.log.
-     *
-     * @param filters set of filters and associated level (and above) to allow for logging
+     * @deprecated As of 2.0.0, filters are no longer used. This method will do nothing.
      */
     static public void setFilters(final HashMap<String, LEVEL> filters) {
-        ThreadPoolWorkQueue.execute(new Runnable() {
-            @Override public void run() {
-                setFiltersSync(filters);
-                // we do this mostly to enable unit tests to logger.wait(100) instead of
-                // Thread.sleep(100) -- it's faster, more stable, and more deterministic that way
-                synchronized (WAIT_LOCK) {
-                    WAIT_LOCK.notifyAll ();
-                }
-            }
-        });
-    }
-
-    private static void setFiltersSync(final HashMap<String, LEVEL> filters) {
-        // to avoid thread deadlocks, we have this method that can be called within a thread that is already on the work queue
-        Logger.filters = filters;
-        if (null != context) {
-            SharedPreferences prefs = context.getSharedPreferences (SHARED_PREF_KEY, Context.MODE_PRIVATE);
-            prefs.edit ().putString (SHARED_PREF_KEY_filters, HashMapToJSONObject(Logger.filters).toString ()).commit();
-            // we still processed the setFilters call, but when SHARED_PREF_KEY_filters_from_server is present, it is used for the filters field value (it's an override)
-            try {
-                Logger.filters = JSONObjectToHashMap(new JSONObject(prefs.getString (SHARED_PREF_KEY_filters_from_server, HashMapToJSONObject(Logger.filters).toString ())));
-            } catch (JSONException e) {
-                // not possible
-            }
-        }
+        return; //setFilters will now do nothing. Filters have been removed.
     }
 
     /**
-     * Get the current list of filters.
-     *
-     * @return map of white list logger filters and the designated LEVEL
+     * @deprecated As of 2.0.0, filters are no longer used. This method will do nothing.
      */
     static public HashMap<String, LEVEL> getFilters() {
-        final Future<HashMap<String, LEVEL>> task = ThreadPoolWorkQueue.submit(new Callable<HashMap<String, LEVEL>>() {
-            @Override public HashMap<String, LEVEL> call() {
-                return getFiltersSync();
-            }
-        });
-
-        try {
-            return task.get();
-        }
-        catch (Exception e) {
-            return getFiltersSync();
-        }
+        return null; //Get filters will now do nothing.
     }
 
-    static synchronized private HashMap<String, LEVEL> getFiltersSync() {
-        // to avoid thread deadlocks, we have this method that can be called within a thread that is already on the work queue
-        HashMap<String, LEVEL> returnValue = filters;
-        if (null != context) {
-            SharedPreferences prefs = context.getSharedPreferences (SHARED_PREF_KEY, Context.MODE_PRIVATE);
-            // use the override
-            try {
-                returnValue = JSONObjectToHashMap(new JSONObject(prefs.getString (SHARED_PREF_KEY_filters_from_server, HashMapToJSONObject(returnValue).toString ())));
-            } catch (JSONException e) {
-                // not possible
-            }
-        }
-        return returnValue;
+    /**
+     *
+     * @deprecated As of 2.0.0, replaced by {@link #setMaxLogStoreSize(int)}.
+     *
+     * Set the maximum size of the local log file.  Once the maximum file size is reached,
+     * no more data will be appended.  Consider that this file is sent to a server.
+     *
+     * @param bytes maximum size of the file in bytes, minimum 10000
+     */
+    static public void setMaxStoreSize(final int bytes) {
+        setMaxLogStoreSize(bytes);
     }
-
 
     /**
      * Set the maximum size of the local log file.  Once the maximum file size is reached,
@@ -680,7 +661,7 @@ public final class Logger {
      *
      * @param bytes maximum size of the file in bytes, minimum 10000
      */
-    static public void setMaxStoreSize(final int bytes) {
+    static public void setMaxLogStoreSize(final int bytes) {
         // TODO: also check if bytes is bigger than remaining disk space?
         if (bytes >= 10000) {
             logFileMaxSize = bytes;
@@ -692,11 +673,22 @@ public final class Logger {
     }
 
     /**
+     * @deprecated As of 2.0.0, replaced by {@link #getMaxLogStoreSize()}.
+     *
      * Get the current setting for the max file size threshold.
      *
      * @return current max file size threshold
      */
     static public int getMaxStoreSize() {
+        return getMaxLogStoreSize();
+    }
+
+    /**
+     * Get the current setting for the max file size threshold.
+     *
+     * @return current max file size threshold
+     */
+    static public int getMaxLogStoreSize() {
         return (null == logFileMaxSize) ? DEFAULT_logFileMaxSize : logFileMaxSize;
     }
 
@@ -999,51 +991,6 @@ public final class Logger {
 
     /**
      * @exclude
-     *
-     * for filters, public.
-     */
-    public static HashMap<String, LEVEL> JSONObjectToHashMap(JSONObject object) {
-        HashMap<String, LEVEL> pairs = new HashMap<String, LEVEL>();
-        @SuppressWarnings("rawtypes")
-        Iterator it = object.keys();
-        while (it.hasNext()) {
-            String n = (String) it.next();
-            try {
-                pairs.put(n, LEVEL.valueOf(object.getString(n).toUpperCase()));
-            } catch (JSONException e) {
-                // not possible
-            }
-        }
-        return pairs;
-    }
-
-    /**
-     * @exclude
-     *
-     * for filters, public.
-     */
-    public static JSONObject HashMapToJSONObject(HashMap<String, LEVEL> pairs) {
-        if(pairs == null){
-            return new JSONObject();
-        }
-
-        Set<String> set = pairs.keySet();
-        JSONObject jsonObj = new JSONObject();
-        @SuppressWarnings("rawtypes")
-        Iterator it = set.iterator();
-        while (it.hasNext()) {
-            String n = (String) it.next();
-            try {
-                jsonObj.put(n, pairs.get(n).toString());
-            } catch (JSONException e) {
-                // not possible
-            }
-        }
-        return jsonObj;
-    }
-
-    /**
-     * @exclude
      */
     static public LEVEL getLevelDefault() {
         if (context == null) {
@@ -1180,20 +1127,7 @@ public final class Logger {
         @Override
         public void run() {
 
-            boolean canLog = true;
-
-            HashMap<String, LEVEL> currentFilters = getFiltersSync();
-
-            // honor the filters as a whitelist, if present
-            if (currentFilters != null && currentFilters.size() > 0) {
-                if (currentFilters.containsKey(logger.name)) {
-                    canLog = calledLevel.getLevelValue() <= currentFilters.get(logger.name).getLevelValue();
-                } else {
-                    canLog = false;
-                }
-            } else {
-                canLog = (calledLevel != null) && calledLevel.isLoggable();
-            }
+            boolean canLog = (calledLevel != null) && calledLevel.isLoggable();
 
             if (canLog || (calledLevel == LEVEL.ANALYTICS)) {
                 Logger.captureToFile(Logger.createJSONObject(calledLevel, logger.name, message, timestamp, metadata, t), calledLevel);
