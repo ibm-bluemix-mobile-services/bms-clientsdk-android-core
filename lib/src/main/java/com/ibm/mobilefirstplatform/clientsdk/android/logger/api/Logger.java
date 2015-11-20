@@ -1302,9 +1302,6 @@ public final class Logger {
                 BMSClient client = BMSClient.getInstance();
 
                 String appRoute = client.getBluemixAppRoute();
-                if(appRoute.trim().substring(appRoute.length()-1).equalsIgnoreCase("/")){
-                    appRoute = appRoute.trim().substring(0, appRoute.length()-1);
-                }
 
                 String logUploadPath = "/imfmobileanalytics/v1/receiver/apps/";
                 String logUploaderURL = appRoute + logUploadPath + client.getBluemixAppGUID();
