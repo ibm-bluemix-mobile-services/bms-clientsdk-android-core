@@ -1242,31 +1242,24 @@ public final class Logger {
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
+                Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
+
+                sendLogsRequest.addHeader("Content-Type","application/json");
+
+                sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
+
                 try {
                     byte[] payload = Logger.getByteArrayFromFile(fileToSend);
-                    if (payload.length == 0) {  // I doubt this would ever happen, but just in case...
+                    if (payload.length == 0) {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    String payloadStr = new String(payload).trim();
+                    sendLogsRequest.setQueryParameter("__logdata", new String(payload, "UTF-8"));
 
-                    if (payloadStr.endsWith(",")) {
-                        payloadStr = payloadStr.substring(0, payloadStr.length() - 1);
-                    }
-
-                    payload = ("["+ payloadStr + "]").getBytes();
-
-                    Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
-
-                    sendLogsRequest.addHeader("Content-Type","application/json");
-
-                    sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
-
-                    sendLogsRequest.send(null, payload, requestListener);
+                    sendLogsRequest.send(null, requestListener);
                 } catch (IOException e) {
                     Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 }
-
             }
         }
     }
