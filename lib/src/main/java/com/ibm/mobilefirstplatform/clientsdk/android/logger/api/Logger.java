@@ -1317,7 +1317,6 @@ public final class Logger {
 					logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
                                     + "://imfmobileanalytics."
 									+ client.getBluemixRegionSuffix()
-									+ "/imfmobileanalytics"
 									+ LOG_UPLOADER_PATH
 									+ client.getBluemixAppGUID();
 				}
@@ -1325,24 +1324,27 @@ public final class Logger {
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
                 try {
-                    byte[] payload = Logger.getByteArrayFromFile(fileToSend);
-                    if (payload.length == 0) {  // I doubt this would ever happen, but just in case...
-                        return;  // don't bother sending empty string; return now
-                    }
+					byte[] payload = Logger.getByteArrayFromFile(fileToSend);
+					if (payload.length == 0) {  // I doubt this would ever happen, but just in case...
+						return;  // don't bother sending empty string; return now
+					}
 
-                    String payloadStr = new String(payload).trim();
+					String payloadStr = new String(payload).trim();
 
-                    if (payloadStr.endsWith(",")) {
-                        payloadStr = payloadStr.substring(0, payloadStr.length() - 1);
-                    }
+					if (payloadStr.endsWith(",")) {
+						payloadStr = payloadStr.substring(0, payloadStr.length() - 1);
+					}
 
-                    payload = ("["+ payloadStr + "]").getBytes();
+					payload = ("[" + payloadStr + "]").getBytes();
 
-                    Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
+					Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
+					sendLogsRequest.addHeader("Content-Type", "application/json");
 
-                    sendLogsRequest.addHeader("Content-Type","application/json");
-
-                    sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
+					// TODO: remove
+					String rewriteDomainHeader = client.getRewriteDomain();
+					if (null != rewriteDomainHeader){
+						sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeader);
+					}
 
                     sendLogsRequest.send(null, payload, requestListener);
                 } catch (IOException e) {

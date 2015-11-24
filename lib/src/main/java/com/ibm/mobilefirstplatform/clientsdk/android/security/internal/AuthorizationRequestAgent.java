@@ -250,7 +250,9 @@ public class AuthorizationRequestAgent implements ResponseListener {
         }
 
         String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
-        request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
+        if (null != rewriteDomainHeaderValue) {
+            request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
+        }
 
         if (Request.GET.equalsIgnoreCase(options.requestMethod)) {
             request.setQueryParameters(options.parameters);
