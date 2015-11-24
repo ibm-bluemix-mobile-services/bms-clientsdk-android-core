@@ -82,10 +82,10 @@ public class NetworkLoggingInterceptor implements Interceptor{
     private String generateAnalyticsMetadataHeader() {
         // add required analytics headers:
         JSONObject metadataHeader = new JSONObject();
+
+        Context context = BMSClient.getAppContext();  // we assume the developer has called BMSClient.getInstance at least once by this point, so context is not
+
         try {
-
-            Context context = BMSClient.getAppContext();  // we assume the developer has called BMSClient.getInstance at least once by this point, so context is not
-
             // we try to keep the keys short to conserve bandwidth
             metadataHeader.put("deviceID", getDeviceID(context));  // we require a unique deviceID
             metadataHeader.put("os", "android");
@@ -93,18 +93,18 @@ public class NetworkLoggingInterceptor implements Interceptor{
             metadataHeader.put("brand", Build.BRAND);  // human-readable brand; like "Samsung"
             metadataHeader.put("model", Build.MODEL);  // human-readable model; like "Galaxy Nexus 5"
 
+            String applicationPackageName = context.getPackageName();
+            metadataHeader.put("appStoreId", applicationPackageName);
+            metadataHeader.put("appStoreLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
+
             PackageInfo pInfo;
             try {
-                pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                pInfo = context.getPackageManager().getPackageInfo(applicationPackageName, 0);
                 metadataHeader.put("appVersionDisplay", pInfo.versionName);  // human readable display version
                 metadataHeader.put("appVersionCode", pInfo.versionCode);  // version as known to the app store
-                metadataHeader.put("firstInstall", pInfo.firstInstallTime);  // useful!
-                metadataHeader.put("lastUpdate", pInfo.lastUpdateTime);  // also useful!
             } catch (PackageManager.NameNotFoundException e) {
                 Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get PackageInfo.", e);
             }
-            metadataHeader.put("appLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
-
         } catch (JSONException e) {
             // there is no way this exception gets thrown when adding simple strings to a JSONObject
         }
