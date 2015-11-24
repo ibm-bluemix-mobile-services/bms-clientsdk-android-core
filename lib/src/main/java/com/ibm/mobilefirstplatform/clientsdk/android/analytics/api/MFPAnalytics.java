@@ -122,7 +122,7 @@ public class MFPAnalytics {
     /**
      * Start recording the time when an application enters the foreground.
      */
-    public static void logSessionStart(){
+    protected static void logSessionStart(){
         JSONObject metadata = new JSONObject();
 
         long startTime = System.currentTimeMillis();
@@ -145,7 +145,7 @@ public class MFPAnalytics {
     /**
      * Record the time the application spent on the foreground, based on the start time recorded in {@link #logSessionStart()}.
      */
-    public static void logSessionEnd(){
+    protected static void logSessionEnd(){
         JSONObject metadata = new JSONObject();
 
         JSONObject startMetadata = lifecycleEvents.get(TAG_SESSION);
