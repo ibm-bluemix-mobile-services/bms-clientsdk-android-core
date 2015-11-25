@@ -37,10 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by vitalym on 7/16/15.
- */
-
-/**
  * AuthorizationRequestAgent builds and sends requests to authorization server. It also handles
  * authorization challenges and re-sends the requests as necessary.
  */
@@ -49,18 +45,14 @@ public class AuthorizationRequestAgent implements ResponseListener {
     /**
      * Parts of the path to authorization endpoint.
      */
-    private final static String AUTH_SERVER_NAME = "imf-authserver";
+    private final static String HOST_NAME = "imf-authserver";
+    private final static String CONTEXT_PATH = "imf-authserver";
     private final static String AUTH_PATH = "authorization/v1/apps/";
 
     /**
      * The name of "result" parameter returned from authorization endpoint.
      */
     private final static String WL_RESULT = "wl_result";
-
-    /**
-     * Name of rewrite domain header. This header is added to authorization requests.
-     */
-    private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
 
     /**
      * Name of location header.
@@ -154,42 +146,18 @@ public class AuthorizationRequestAgent implements ResponseListener {
      * @throws JSONException
      */
     public void sendRequest(String path, RequestOptions options) throws IOException, JSONException {
-        String rootUrl;
-
         if (path == null) {
             throw new IllegalArgumentException("'path' parameter can't be null.");
         }
 
-        if (path.indexOf(BMSClient.HTTP_SCHEME) == 0 && path.contains(":")) {
-            // request using full path, split the URL to root and path
-            URL url = new URL(path);
-            path = url.getPath();
-            rootUrl = url.toString().replace(path, "");
-        } else {
-            // "path" is a relative
-            String backendRoute = BMSClient.getInstance().getBluemixAppRoute();
-            rootUrl = backendRoute.charAt(backendRoute.length() - 1) == '/' ? backendRoute.concat(AUTH_SERVER_NAME) :
-                    backendRoute.concat("/" + AUTH_SERVER_NAME);
-
-            String pathWithTenantId = AUTH_PATH + BMSClient.getInstance().getBluemixAppGUID();
-            rootUrl = rootUrl.concat("/" + pathWithTenantId);
-        }
-
-        // TODO: make this the only option once old BMSClient.init is removed
         // URL Structure
         // https://imf-authserver.{bluemixdomain}/imf-authserver/authorization/v1/apps/{appGUID}/{path}
-        if (null != BMSClient.getInstance().getBluemixRegionSuffix()){
-            rootUrl = BMSClient.getInstance().getDefaultProtocol()
-                    + "://"
-                    + AUTH_SERVER_NAME
-                    + "."
+
+        String rootUrl = BMSClient.getInstance().getDefaultProtocol()
+                    + "://" + HOST_NAME
                     + BMSClient.getInstance().getBluemixRegionSuffix()
-                    + "/"
-                    + AUTH_SERVER_NAME
-                    + "/"
-                    + AUTH_PATH
+                    + "/" + CONTEXT_PATH + "/" + AUTH_PATH
                     + BMSClient.getInstance().getBluemixAppGUID();
-        }
 
         sendRequestInternal(rootUrl, path, options);
     }
@@ -247,11 +215,6 @@ public class AuthorizationRequestAgent implements ResponseListener {
             String authorizationHeaderValue = String.format("Bearer %s", answer.replace("\n", ""));
             request.addHeader("Authorization", authorizationHeaderValue);
             logger.debug("Added authorization header to request: " + authorizationHeaderValue);
-        }
-
-        String rewriteDomainHeaderValue = BMSClient.getInstance().getRewriteDomain();
-        if (null != rewriteDomainHeaderValue) {
-            request.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeaderValue);
         }
 
         if (Request.GET.equalsIgnoreCase(options.requestMethod)) {

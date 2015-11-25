@@ -29,20 +29,19 @@ import java.net.URL;
  */
 public class BMSClient extends MFPClient {
 
-	public final static String REGION_US_SOUTH = "ng.bluemix.net";
-	public final static String REGION_UK = "eu-gb.bluemix.net";
-	public final static String REGION_SYDNEY = "au-syd.bluemix.net";
+	public final static String REGION_US_SOUTH = ".ng.bluemix.net";
+	public final static String REGION_UK = ".eu-gb.bluemix.net";
+	public final static String REGION_SYDNEY = ".au-syd.bluemix.net";
 
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";
 
-    private final static String QUERY_PARAM_SUBZONE = "subzone";
-
     private String backendRoute;
     private String backendGUID;
-    private String rewriteDomain;
 	private String bluemixRegionSuffix;
     private String defaultProtocol = HTTPS_SCHEME;
+
+	private final static Logger logger = Logger.getInstance("mfpsdk.BMSClient");
 
     /**
      * Should be called to obtain the instance of BMSClient.
@@ -62,39 +61,6 @@ public class BMSClient extends MFPClient {
     private BMSClient() {
     }
 
-    /**
-     * Initializes the SDK with supplied parameters
-     * <p>
-     * This method should be called before you send the first request
-     * </p>
-     * @param context Android application context
-     * @param bluemixAppRoute Specifies the base URL for the authorization server
-     * @param bluemixAppGUID Specifies the GUID of the application
-     * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
-	 * @deprecated in 1.2.0. Use initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) instead
-     */
-    public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID) throws MalformedURLException {
-        this.backendGUID = bluemixAppGUID;
-        this.backendRoute = bluemixAppRoute;
-		this.bluemixRegionSuffix = null;
-        this.rewriteDomain = null;
-        String subzone = null;
-
-        if (backendRoute != null) {
-            URL url = new URL(backendRoute);
-
-            String query = url.getQuery();
-            if (query != null) {
-                subzone = Utils.getParameterValueFromQuery(query, QUERY_PARAM_SUBZONE);
-                this.backendRoute = backendRoute.substring(0, backendRoute.length() - query.length() - 1);
-            }
-        }
-
-        this.rewriteDomain = Utils.buildRewriteDomain(this.backendRoute, subzone);
-        AuthorizationManager.createInstance(context.getApplicationContext());
-        Logger.setContext(context.getApplicationContext());
-    }
-
 	/**
 	 * Initializes the SDK with supplied parameters
 	 * <p>
@@ -110,9 +76,11 @@ public class BMSClient extends MFPClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
-		this.rewriteDomain = null;
 		AuthorizationManager.createInstance(context.getApplicationContext());
 		Logger.setContext(context.getApplicationContext());
+
+		String initLogInfoFormat = "Initialized with backendRoute :: %s, backendAppGUID :: %s, bluemixRegionSuffix :: %s";
+		logger.info(String.format(initLogInfoFormat, this.backendRoute, this.backendGUID, this.bluemixRegionSuffix));
 	}
 
     /**
@@ -129,14 +97,6 @@ public class BMSClient extends MFPClient {
      */
     public String getBluemixAppGUID() {
         return backendGUID;
-    }
-
-    /**
-     * @exclude
-     * @return rewrite domain generated from backend route url.
-     */
-    public String getRewriteDomain() {
-        return rewriteDomain;
     }
 
 	/**

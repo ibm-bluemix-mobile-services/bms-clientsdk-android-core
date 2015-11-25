@@ -131,7 +131,7 @@ public final class Logger {
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
     private static final String CONTEXT_NULL_MSG = Logger.class.getName() + ".setContext(Context) must be called to fully enable debug log capture.  Currently, the 'capture' flag is set but the 'context' field is not.  This warning will only be printed once.";
-    private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
+    private final static String HOST_NAME = "imfmobileanalytics";
     private static boolean context_null_msg_already_printed = false;
     /**
      * @exclude
@@ -328,7 +328,7 @@ public final class Logger {
             fileLoggerInstance = FileLogger.getInstance();
         }
         this.name = (name == null || name.trim().equals ("")) ? "NONE" : name.trim();
-    };
+    }
 
     /*
      * @exclude
@@ -457,7 +457,7 @@ public final class Logger {
         level = desiredLevel;
         if (null != context) {
             SharedPreferences prefs = context.getSharedPreferences (SHARED_PREF_KEY, Context.MODE_PRIVATE);
-            prefs.edit ().putString (SHARED_PREF_KEY_level, level.toString ()).commit();
+            prefs.edit().putString (SHARED_PREF_KEY_level, level.toString ()).commit();
             // we still processed the setCapture call, but when SHARED_PREF_KEY_level_from_server is present, it is used for the level field value (it's an override)
             level = LEVEL.fromString(prefs.getString(SHARED_PREF_KEY_level_from_server, level.toString()));
         }
@@ -748,7 +748,7 @@ public final class Logger {
 
     /**
      * Ask the Logger if an uncaught exception, which often appears to the user as a crashed app, is present in the persistent capture buffer.
-     * This method should not be called after calling {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String)}.  If it is called too early, an error message is issued and false is returned.
+     * This method should not be called after calling {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String, String)}.  If it is called too early, an error message is issued and false is returned.
      *
      * @return boolean if an uncaught exception log entry is currently in the persistent log buffer
      */
@@ -1296,30 +1296,18 @@ public final class Logger {
                 File fileToSend = new File(file + ".send");
                 if (!fileToSend.exists()) {
                     Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
-                    file.renameTo (fileToSend);
+                    file.renameTo(fileToSend);
                 }
 
                 boolean isAnalyticsRequest = fileName.equalsIgnoreCase(Logger.ANALYTICS_FILENAME);
 
-                BMSClient client = BMSClient.getInstance();
-
-                String appRoute = client.getBluemixAppRoute();
-                if(appRoute.trim().substring(appRoute.length()-1).equalsIgnoreCase("/")){
-                    appRoute = appRoute.trim().substring(0, appRoute.length()-1);
-                }
-
-                String logUploaderURL = appRoute + LOG_UPLOADER_PATH + client.getBluemixAppGUID();
-
-				// TODO: make this the only option once old BMSClient.init is removed
 				// URL Structure
 				// https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
-				if (null != client.getBluemixRegionSuffix()){
-					logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
-                                    + "://imfmobileanalytics."
-									+ client.getBluemixRegionSuffix()
+                String logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
+                                    + "://" + HOST_NAME
+									+ BMSClient.getInstance().getBluemixRegionSuffix()
 									+ LOG_UPLOADER_PATH
-									+ client.getBluemixAppGUID();
-				}
+									+ BMSClient.getInstance().getBluemixAppGUID();
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
@@ -1339,12 +1327,6 @@ public final class Logger {
 
 					Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
 					sendLogsRequest.addHeader("Content-Type", "application/json");
-
-					// TODO: remove
-					String rewriteDomainHeader = client.getRewriteDomain();
-					if (null != rewriteDomainHeader){
-						sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, rewriteDomainHeader);
-					}
 
                     sendLogsRequest.send(null, payload, requestListener);
                 } catch (IOException e) {
@@ -1385,7 +1367,7 @@ public final class Logger {
 
                 // regardless of success or failure, reaching this code indicates we successfully communicated with the WL server (we got a reply).
                 // Thus, we should delete:
-                file.delete ();
+                file.delete();
 
                 if(response.getStatus() == 201){
                     logger.debug("Successfully POSTed log data from file " + file + " to URL " + url + ".  HTTP response code: " + response.getStatus());
