@@ -1254,11 +1254,11 @@ public final class Logger {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    sendLogsRequest.setQueryParameter("__logdata", new String(payload, "UTF-8"));
+                    String payloadString = "__logdata=" + new String(payload, "UTF-8");
 
-                    sendLogsRequest.send(null, requestListener);
+                    sendLogsRequest.send(null, payloadString, requestListener);
                 } catch (IOException e) {
-                    Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
+                    Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 }
             }
         }
