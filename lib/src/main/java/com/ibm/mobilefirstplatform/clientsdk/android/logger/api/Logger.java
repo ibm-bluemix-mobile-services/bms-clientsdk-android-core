@@ -126,6 +126,8 @@ public final class Logger {
      */
     static public final Object WAIT_LOCK = new Object();
 
+	private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/";
+
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
     private static final String CONTEXT_NULL_MSG = Logger.class.getName() + ".setContext(Context) must be called to fully enable debug log capture.  Currently, the 'capture' flag is set but the 'context' field is not.  This warning will only be printed once.";
@@ -1237,8 +1239,19 @@ public final class Logger {
 
                 String appRoute = client.getBluemixAppRoute();
 
-                String logUploadPath = "/imfmobileanalytics/v1/receiver/apps/";
-                String logUploaderURL = appRoute + logUploadPath + client.getBluemixAppGUID();
+                String logUploaderURL = appRoute + LOG_UPLOADER_PATH + client.getBluemixAppGUID();
+
+				// TODO: make this the only option once old BMSClient.init is removed
+				// URL Structure
+				// https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
+				if (null != client.getBluemixRegionSuffix()){
+					logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
+                                    + "://imfmobileanalytics."
+									+ client.getBluemixRegionSuffix()
+									+ "/imfmobileanalytics"
+									+ LOG_UPLOADER_PATH
+									+ client.getBluemixAppGUID();
+				}
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 

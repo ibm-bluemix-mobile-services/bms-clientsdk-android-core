@@ -28,6 +28,11 @@ import java.net.URL;
  * The BMSClient is a singleton that serves as the entry point to MobileFirst.
  */
 public class BMSClient extends MFPClient {
+
+	public final static String REGION_US_SOUTH = "ng.bluemix.net";
+	public final static String REGION_UK = "eu-gb.bluemix.net";
+	public final static String REGION_SYDNEY = "au-syd.bluemix.net";
+
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";
 
@@ -36,6 +41,8 @@ public class BMSClient extends MFPClient {
     private String backendRoute;
     private String backendGUID;
     private String rewriteDomain;
+	private String bluemixRegionSuffix;
+    private String defaultProtocol = HTTPS_SCHEME;
 
     private static Context appContext = null;  // set this to Application context and use it throughout
 
@@ -58,19 +65,21 @@ public class BMSClient extends MFPClient {
     }
 
     /**
-     * Sets the base URL for the authorization server.
+     * Initializes the SDK with supplied parameters
      * <p>
-     * This method should be called before you send the first request that requires authorization.
+     * This method should be called before you send the first request
      * </p>
      * @param context Android application context
      * @param bluemixAppRoute Specifies the base URL for the authorization server
      * @param bluemixAppGUID Specifies the GUID of the application
      * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
+	 * @deprecated in 1.2.0. Use initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) instead
      */
     public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID) throws MalformedURLException {
         appContext = context.getApplicationContext();
         this.backendGUID = bluemixAppGUID;
         this.backendRoute = bluemixAppRoute;
+		this.bluemixRegionSuffix = null;
         this.rewriteDomain = null;
         String subzone = null;
 
@@ -98,6 +107,26 @@ public class BMSClient extends MFPClient {
 
         return url;
     }
+
+	/**
+	 * Initializes the SDK with supplied parameters
+	 * <p>
+	 * This method should be called before you send the first request
+	 * </p>
+	 * @param context Android application context
+	 * @param bluemixAppRoute Specifies the base URL for the authorization server
+	 * @param bluemixAppGUID Specifies the GUID of the application
+	 * @param bluemixRegion Specifies the Bluemix deployment to use. Use values in BMSClient.REGION* static props
+	 * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
+	 */
+	public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) throws MalformedURLException{
+		this.backendGUID = bluemixAppGUID;
+		this.backendRoute = bluemixAppRoute;
+		this.bluemixRegionSuffix = bluemixRegion;
+		this.rewriteDomain = null;
+		AuthorizationManager.createInstance(context.getApplicationContext());
+		Logger.setContext(context.getApplicationContext());
+	}
 
     /**
      *
@@ -130,4 +159,23 @@ public class BMSClient extends MFPClient {
     public static Context getAppContext() {
         return appContext;
     }
+
+	/**
+	 * @exclude
+	 * @return Bluemix region suffix for SDK components to build URLs
+	 */
+	public String getBluemixRegionSuffix(){ return bluemixRegionSuffix;}
+
+    /**
+     * @exclude
+     * @return Bluemix region suffix for SDK components to build URLs
+     */
+    public String getDefaultProtocol(){ return defaultProtocol;}
+
+    /**
+     * @exclude
+     * @return Bluemix region suffix for SDK components to build URLs
+     */
+    public void setDefaultProtocol(String protocol){ defaultProtocol = protocol;}
+
 }
