@@ -41,8 +41,6 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -243,7 +241,7 @@ public final class Logger {
     private static boolean sendingAnalyticsLogs = false;
 
     //Use this flag to determine if internal debug and info logs should be output to Logcat or not:
-    protected static boolean internalLoggingEnabled = false;
+    protected static boolean internalDebugLoggingEnabled = false;
 
     /**
      * Levels supported in this Logger class.
@@ -1144,12 +1142,10 @@ public final class Logger {
                         if (null == t) { Log.w(logger.name, message); } else { Log.w(logger.name, message, t); }
                         break;
                     case INFO:
-                        if(!isInternalLogger(logger) || internalLoggingEnabled){
-                            if (null == t) { Log.i(logger.name, message); } else { Log.i(logger.name, message, t); }
-                        }
+                        if (null == t) { Log.i(logger.name, message); } else { Log.i(logger.name, message, t); }
                         break;
                     case DEBUG:
-                        if(!isInternalLogger(logger) || internalLoggingEnabled){
+                        if(!isInternalLogger(logger) || internalDebugLoggingEnabled){
                             if (null == t) { Log.d(logger.name, message); } else { Log.d(logger.name, message, t); }
                         }
                         break;
@@ -1166,12 +1162,11 @@ public final class Logger {
     }
 
     /**
-     * Enable displaying all Bluemix Mobile Services SDK debug and info logs in Logcat.
-     * By default, only errors, warnings, and fatal messages are displayed in Logcat.
-     * @param enabled Determines whether to display Bluemix Mobile Services SDK debug and info logs in Logcat.
+     * Enable displaying all Bluemix Mobile Services SDK debug logs in Logcat. By default, no debug messages are displayed.
+     * @param enabled Determines whether to display Bluemix Mobile Services SDK debug logs in Logcat.
      */
-    public static void setSDKInternalLoggingEnabled(boolean enabled){
-        internalLoggingEnabled = enabled;
+    public static void setSDKDebugLoggingEnabled(boolean enabled){
+        internalDebugLoggingEnabled = enabled;
     }
 
     protected static boolean isInternalLogger(Logger logger){
