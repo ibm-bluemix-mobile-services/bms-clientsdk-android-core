@@ -102,9 +102,8 @@ public class BMSClient extends MFPClient {
         //Intercept requests to add metadata header
         BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(appContext));
 
-        //NOTE: Disabled for the moment. To be reenabled later.
         //Set up network interceptor to log network event times analytics for requests.
-        //BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
+        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
     }
 
     private String removeTrailingSlashesFromURL(String url) {
@@ -137,9 +136,8 @@ public class BMSClient extends MFPClient {
         //Intercept requests to add metadata header
         BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(context.getApplicationContext()));
 
-        //NOTE: Disabled for the moment. To be reenabled later.
         //Set up network interceptor to log network event times analytics for requests.
-        //BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
+        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
 	}
 
     /**
