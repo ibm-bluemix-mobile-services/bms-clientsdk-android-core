@@ -13,16 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.analytics.api;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.provider.Settings;
-
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
@@ -47,7 +37,6 @@ public class NetworkLoggingInterceptor implements Interceptor{
 
         Request requestWithHeaders = request.newBuilder()
                 .header("x-wl-analytics-tracking-id", trackingid)
-                .header("x-mfp-analytics-metadata", generateAnalyticsMetadataHeader())
                 .build();
 
         com.squareup.okhttp.Response response = chain.proceed(requestWithHeaders);
@@ -77,74 +66,5 @@ public class NetworkLoggingInterceptor implements Interceptor{
         }
 
         return response;
-    }
-
-    private String generateAnalyticsMetadataHeader() {
-        // add required analytics headers:
-        JSONObject metadataHeader = new JSONObject();
-
-        Context context = BMSClient.getAppContext();  // we assume the developer has called BMSClient.getInstance at least once by this point, so context is not
-
-        try {
-            // we try to keep the keys short to conserve bandwidth
-            metadataHeader.put("deviceID", getDeviceID(context));  // we require a unique deviceID
-            metadataHeader.put("os", "android");
-            metadataHeader.put("osVersion", Build.VERSION.RELEASE);  // human-readable o/s version; like "5.0.1"
-            metadataHeader.put("brand", Build.BRAND);  // human-readable brand; like "Samsung"
-            metadataHeader.put("model", Build.MODEL);  // human-readable model; like "Galaxy Nexus 5"
-
-            String applicationPackageName = context.getPackageName();
-            metadataHeader.put("appStoreId", applicationPackageName);
-            metadataHeader.put("appStoreLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
-
-            PackageInfo pInfo;
-            try {
-                pInfo = context.getPackageManager().getPackageInfo(applicationPackageName, 0);
-                metadataHeader.put("appVersionDisplay", pInfo.versionName);  // human readable display version
-                metadataHeader.put("appVersionCode", pInfo.versionCode);  // version as known to the app store
-            } catch (PackageManager.NameNotFoundException e) {
-                Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get PackageInfo.", e);
-            }
-        } catch (JSONException e) {
-            // there is no way this exception gets thrown when adding simple strings to a JSONObject
-        }
-        return metadataHeader.toString();
-    }
-
-    private String getDeviceID(Context context) {
-        String macAddress = getMacAddress(context);
-
-        String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-
-        if (macAddress != null){
-            uuid += macAddress;
-        }
-
-        // Use a hashed UUID not exposing the device ANDROID_ID/Mac Address
-        return UUID.nameUUIDFromBytes(uuid.getBytes()).toString();
-    }
-
-    private String getMacAddress(Context context) {
-        String macAddress = null;
-
-        PackageManager packageManager = context.getPackageManager();
-        if (packageManager.hasSystemFeature (PackageManager.FEATURE_WIFI)) {
-            WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiinfo = wifiManager.getConnectionInfo();
-            macAddress = wifiinfo.getMacAddress();
-        }
-
-        return macAddress;
-    }
-
-    public String getAppLabel(Context context) {
-        PackageManager packageManager = context.getPackageManager();
-        ApplicationInfo applicationInfo = null;
-        try {
-            applicationInfo = packageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
-        } catch (final PackageManager.NameNotFoundException e) {
-            Logger.getInstance(Logger.LOG_TAG_NAME).error("Could not get ApplicationInfo.", e);
-        }
-        return (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : Build.UNKNOWN);
     }
 }

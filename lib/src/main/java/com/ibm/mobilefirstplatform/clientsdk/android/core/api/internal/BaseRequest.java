@@ -13,7 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.squareup.okhttp.Callback;
@@ -450,13 +449,6 @@ public class BaseRequest {
 
     protected OkHttpClient getHttpClient() {
         return httpClient;
-    }
-
-    /**
-     * @exclude
-     */
-    public static void setupInterceptors(){
-        httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
     }
 
     /**

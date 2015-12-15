@@ -15,6 +15,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import android.content.Context;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.internal.MetadataHeaderInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
@@ -44,8 +46,6 @@ public class BMSClient extends MFPClient {
 	private String bluemixRegionSuffix;
     private String defaultProtocol = HTTPS_SCHEME;
 
-    private static Context appContext = null;  // set this to Application context and use it throughout
-
     /**
      * Should be called to obtain the instance of BMSClient.
      * @return the instance of BMSClient.
@@ -54,8 +54,8 @@ public class BMSClient extends MFPClient {
         if (instance == null) {
             instance = new BMSClient();
 
-            BaseRequest.setupInterceptors(); //Set up network interceptor to log network event times analytics for requests.
-            AuthorizationRequest.setup(); //Set up network interceptor to log network event times analytics for authorization requests.
+            //Set up network interceptor to log network event times analytics for authorization requests.
+            AuthorizationRequest.setup();
         }
 
         return (BMSClient)instance;
@@ -76,7 +76,7 @@ public class BMSClient extends MFPClient {
 	 * @deprecated in 1.2.0. Use initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) instead
      */
     public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID) throws MalformedURLException {
-        appContext = context.getApplicationContext();
+        Context appContext = context.getApplicationContext();
         this.backendGUID = bluemixAppGUID;
         this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = null;
@@ -98,6 +98,12 @@ public class BMSClient extends MFPClient {
         this.rewriteDomain = Utils.buildRewriteDomain(this.backendRoute, subzone);
         AuthorizationManager.createInstance(appContext);
         Logger.setContext(appContext);
+
+        //Intercept requests to add metadata header
+        BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(appContext));
+
+        //Set up network interceptor to log network event times analytics for requests.
+        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
     }
 
     private String removeTrailingSlashesFromURL(String url) {
@@ -126,6 +132,12 @@ public class BMSClient extends MFPClient {
 		this.rewriteDomain = null;
 		AuthorizationManager.createInstance(context.getApplicationContext());
 		Logger.setContext(context.getApplicationContext());
+
+        //Intercept requests to add metadata header
+        BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(context.getApplicationContext()));
+
+        //Set up network interceptor to log network event times analytics for requests.
+        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
 	}
 
     /**
@@ -150,14 +162,6 @@ public class BMSClient extends MFPClient {
      */
     public String getRewriteDomain() {
         return rewriteDomain;
-    }
-
-    /**
-     *
-     * @return the Android Application Context object
-     */
-    public static Context getAppContext() {
-        return appContext;
     }
 
 	/**
