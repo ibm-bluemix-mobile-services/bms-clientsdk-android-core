@@ -61,10 +61,10 @@ import java.util.UUID;
  * </p>
  */
 public class MFPAnalytics {
-    protected static final Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "analytics");
+    protected static final Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + "analytics");
 
-    public static String clientApiKey = null;
-    public static String appName = null;
+    protected static String clientApiKey = null;
+    protected static String appName = null;
     public static boolean isRecordingNetworkEvents = false;
 
     protected static String HASHED_DEFAULT_USER_ID;
@@ -175,7 +175,7 @@ public class MFPAnalytics {
      *
      * @param user User User id for current app user.
      */
-    public synchronized static void setUserContext(final String user) {
+    public static void setUserIdentity(final String user) {
 
         // Create metadata object to log
         JSONObject metadata = new JSONObject();
@@ -199,21 +199,16 @@ public class MFPAnalytics {
      * Reset user id to default value.
      * Use this when user explicitly logs out or is no longer active.
      */
-    public synchronized static void unsetUserContext() {
-        // Create metadata object to log
-        JSONObject metadata = new JSONObject();
+    public static void clearUserIdentity() {
+        setUserIdentity(HASHED_DEFAULT_USER_ID);
+    }
 
-        try {
-            metadata.put(CATEGORY, USER_SWITCH_CATEGORY);
-            metadata.put(TIMESTAMP_KEY, (new Date()).getTime());
-            metadata.put(APP_SESSION_ID_KEY, MFPAnalyticsActivityLifecycleListener.getAppSessionID());
-            metadata.put(USER_ID_KEY, HASHED_DEFAULT_USER_ID);
-        }
-        catch (JSONException e) {
-            logger.debug("JSONException encountered logging change in user context: " + e.getMessage());
-        }
+    public static String getClientApiKey(){
+        return clientApiKey;
+    }
 
-        log(metadata);
+    public static String getAppName(){
+        return appName;
     }
 
     /**

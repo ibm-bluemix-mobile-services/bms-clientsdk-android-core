@@ -33,12 +33,12 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class MetadataHeaderInterceptor implements Interceptor {
-    protected final String analyticsMetadataHeader;
+    protected final JSONObject analyticsMetadataHeaderObject;
 
     public MetadataHeaderInterceptor(Context appContext){
         super();
 
-        analyticsMetadataHeader = generateAnalyticsMetadataHeader(appContext);
+        analyticsMetadataHeaderObject = generateAnalyticsMetadataHeader(appContext);
     }
 
     @Override
@@ -46,8 +46,16 @@ public class MetadataHeaderInterceptor implements Interceptor {
 
         Request request = chain.request();
 
+        if(MFPAnalytics.getAppName() != null){
+            try {
+                analyticsMetadataHeaderObject.put("mfpAppName", MFPAnalytics.getAppName());
+            } catch (JSONException e) {
+                //App name not recorded.
+            }
+        }
+
         Request requestWithHeaders = request.newBuilder()
-                .header("x-mfp-analytics-metadata", analyticsMetadataHeader)
+                .header("x-mfp-analytics-metadata", analyticsMetadataHeaderObject.toString())
                 .build();
 
         com.squareup.okhttp.Response response = chain.proceed(requestWithHeaders);
@@ -55,7 +63,7 @@ public class MetadataHeaderInterceptor implements Interceptor {
         return response;
     }
 
-    private String generateAnalyticsMetadataHeader(Context context) {
+    private JSONObject generateAnalyticsMetadataHeader(Context context) {
         // add required analytics headers:
         JSONObject metadataHeader = new JSONObject();
 
@@ -71,10 +79,6 @@ public class MetadataHeaderInterceptor implements Interceptor {
             metadataHeader.put("appStoreId", applicationPackageName);
             metadataHeader.put("appStoreLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
 
-            if(MFPAnalytics.appName != null){
-                metadataHeader.put("mfpAppName", MFPAnalytics.appName);
-            }
-
             PackageInfo pInfo;
             try {
                 pInfo = context.getPackageManager().getPackageInfo(applicationPackageName, 0);
@@ -86,7 +90,7 @@ public class MetadataHeaderInterceptor implements Interceptor {
         } catch (JSONException e) {
             // there is no way this exception gets thrown when adding simple strings to a JSONObject
         }
-        return metadataHeader.toString();
+        return metadataHeader;
     }
 
 

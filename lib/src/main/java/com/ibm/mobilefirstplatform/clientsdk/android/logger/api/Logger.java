@@ -1257,8 +1257,8 @@ public final class Logger {
 
                 sendLogsRequest.addHeader("Content-Type","application/json");
 
-                if(MFPAnalytics.clientApiKey != null && !MFPAnalytics.clientApiKey.equalsIgnoreCase("")){
-                    sendLogsRequest.addHeader("x-mfp-analytics-api-key", MFPAnalytics.clientApiKey);
+                if(MFPAnalytics.getClientApiKey() != null && !MFPAnalytics.getClientApiKey().equalsIgnoreCase("")){
+                    sendLogsRequest.addHeader("x-mfp-analytics-api-key", MFPAnalytics.getClientApiKey());
                 }
                 else{
                     requestListener.onFailure(null, new IllegalArgumentException("Client API key has not been set."), null);
