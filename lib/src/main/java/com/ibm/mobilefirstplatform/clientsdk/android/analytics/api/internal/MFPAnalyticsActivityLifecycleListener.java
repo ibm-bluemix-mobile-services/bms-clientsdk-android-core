@@ -13,48 +13,151 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.internal;
 
-import android.app.Activity;
-import android.app.Application;
-import android.os.Bundle;
+import android.os.Handler;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.MFPAnalytics;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Date;
+import java.util.UUID;
 
 /**
- * Implements the android life cycle callbacks to be registered with the application.
- *
- * Implemented as a singleton so that application callbacks can only be registered once.
+ * MFPAnalyticsActivityLifecycleListener is a singleton used to help manage instrumentation of the android activity lifecycle.
  */
-public class MFPAnalyticsActivityLifecycleListener implements Application.ActivityLifecycleCallbacks{
-    private static MFPAnalyticsActivityLifecycleListener instance;
+public class MFPAnalyticsActivityLifecycleListener {
+    protected static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + MFPAnalyticsActivityLifecycleListener.class.getSimpleName());
 
-    public static void init(Application app) {
+    /**
+     * The duration of the postDelayed call back when an activity is paused
+     */
+    protected static final long ACTIVITY_DELAY = 500;
+
+    protected static MFPAnalyticsActivityLifecycleListener instance;
+    protected static boolean isPaused;
+    protected static Handler handler;
+    protected static Runnable delayedCheck;
+    protected static Long appUseStartTimestamp;
+    protected static String appSessionID;
+
+    protected static final String SESSION_DURATION_KEY = "$duration";
+    protected static final String APP_SESSION_CATEGORY = "appSession";
+    protected static final String CLOSED_BY_KEY = "$closedBy";
+
+    /**
+     * Represents how an application was close - by the user or a crash
+     */
+    public enum AppClosedBy {
+        USER,
+        CRASH
+    }
+
+    public static MFPAnalyticsActivityLifecycleListener getInstance() {
         if (instance == null) {
             instance = new MFPAnalyticsActivityLifecycleListener();
-            app.registerActivityLifecycleCallbacks(instance);
+        }
+        return instance;
+    }
+
+    private MFPAnalyticsActivityLifecycleListener() {
+        isPaused = true;
+        handler = new Handler();
+        appUseStartTimestamp = null;
+        appSessionID = null;
+    }
+
+    public void onResume() {
+        isPaused = false;
+
+        // remove the callbacks from an onPause if they are there
+        if (delayedCheck != null) {
+            handler.removeCallbacks(delayedCheck);
+        }
+
+        logAppForeground();
+    }
+
+    public void onPause() {
+        isPaused = true;
+
+        if (delayedCheck != null) {
+            handler.removeCallbacks(delayedCheck);
+        }
+
+        // create a new runnable which runs with a small delay - after this delay if another activity
+        // has resumed then isPaused will == false. If isPaused is still true the user has left the application
+        handler.postDelayed(delayedCheck = new Runnable() {
+            @Override
+            public void run() {
+                if (isPaused) {
+                    logAppBackground();
+
+                    // reset timestamp
+                    appUseStartTimestamp = null;
+                }
+            }
+        }, ACTIVITY_DELAY);
+    }
+
+    protected void logAppForeground() {
+        if (appUseStartTimestamp == null) {
+            appUseStartTimestamp = (new Date()).getTime();
+
+            // Generate UUID for app session id
+            appSessionID = UUID.randomUUID().toString();
+
+            // Create JSON object with start app session metadata
+            JSONObject metadata = new JSONObject();
+            try {
+                metadata.put(MFPAnalytics.CATEGORY, APP_SESSION_CATEGORY);
+                metadata.put(MFPAnalytics.TIMESTAMP_KEY, appUseStartTimestamp);
+                metadata.put(MFPAnalytics.APP_SESSION_ID_KEY, appSessionID);
+            } catch (JSONException e) {
+                // should not happen
+                logger.debug("JSONException encountered logging app session: " + e.getMessage());
+            }
+
+            MFPAnalytics.log(metadata);
         }
     }
 
-    @Override
-    public void onActivityResumed(Activity activity) {
-        //WLLifecycleHelper.getInstance().onPause();
+    protected void logAppBackground() {
+        logAppSession(false);
     }
 
-    @Override
-    public void onActivityPaused(Activity activity) {
-        //WLLifecycleHelper.getInstance().onResume();
+    public void logAppCrash() {
+        logAppSession(true);
     }
 
-    // we do not currently instrument any other lifecycle callbacks
-    @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
+    private void logAppSession(boolean isCrash) {
+        if (appUseStartTimestamp == null) {
+            // if the timestamp is null no app session was started, so don't record an app session
+            String sessionType = isCrash ? "app crash" : "app session";
+            logger.debug("Tried to record an " + sessionType + " without a starting timestamp");
+            return;
+        }
 
-    @Override
-    public void onActivityStarted(Activity activity) {}
+        long timestamp = (new Date()).getTime();
+        AppClosedBy closedBy = isCrash ? AppClosedBy.CRASH : AppClosedBy.USER;
 
-    @Override
-    public void onActivityStopped(Activity activity) {}
+        // Create JSON object with close app session metadata
+        JSONObject metadata = new JSONObject();
+        try {
+            metadata.put(MFPAnalytics.CATEGORY, APP_SESSION_CATEGORY);
+            metadata.put(SESSION_DURATION_KEY, timestamp - appUseStartTimestamp);
+            metadata.put(CLOSED_BY_KEY, closedBy.toString());
+            metadata.put(MFPAnalytics.APP_SESSION_ID_KEY, appSessionID);
+        } catch (JSONException e) {
+            // should not happen
+            logger.debug("JSONException encountered logging app session: " + e.getMessage());
+        }
 
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
+        MFPAnalytics.log(metadata);
+    }
 
-    @Override
-    public void onActivityDestroyed(Activity activity) {}
+    public static String getAppSessionID() {
+        return appSessionID;
+    }
 }

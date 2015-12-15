@@ -20,6 +20,7 @@ import android.content.pm.Signature;
 import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.MFPAnalytics;
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.internal.MFPAnalyticsActivityLifecycleListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
@@ -124,7 +125,7 @@ public final class Logger {
      */
     static public final Object WAIT_LOCK = new Object();
 
-	private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/";
+	private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/"; //For new service: "/apps/services/loguploader"
 
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
@@ -303,8 +304,10 @@ public final class Logger {
             }
             // log it to file:
             Logger logger = Logger.getInstance (this.getClass().getName());
-            // TODO: add context to metadata object
             logger.fatal ("Uncaught Exception", e);
+
+            MFPAnalyticsActivityLifecycleListener.getInstance().logAppCrash();
+
             // allow it to pass through:
             defaultUEH.uncaughtException(t, e);
         }
@@ -1253,6 +1256,14 @@ public final class Logger {
                 Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
 
                 sendLogsRequest.addHeader("Content-Type","application/json");
+
+                if(MFPAnalytics.clientApiKey != null && !MFPAnalytics.clientApiKey.equalsIgnoreCase("")){
+                    sendLogsRequest.addHeader("x-mfp-analytics-api-key", MFPAnalytics.clientApiKey);
+                }
+                else{
+                    requestListener.onFailure(null, new IllegalArgumentException("Client API key has not been set."), null);
+                    return;
+                }
 
                 sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
 

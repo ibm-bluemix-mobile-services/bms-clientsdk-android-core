@@ -20,6 +20,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.MFPAnalytics;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
@@ -70,6 +71,10 @@ public class MetadataHeaderInterceptor implements Interceptor {
             metadataHeader.put("appStoreId", applicationPackageName);
             metadataHeader.put("appStoreLabel", getAppLabel(context));  // human readable app name - it's what shows in the app store, on the app icon, and may not align with mfpAppName
 
+            if(MFPAnalytics.appName != null){
+                metadataHeader.put("mfpAppName", MFPAnalytics.appName);
+            }
+
             PackageInfo pInfo;
             try {
                 pInfo = context.getPackageManager().getPackageInfo(applicationPackageName, 0);
@@ -85,7 +90,7 @@ public class MetadataHeaderInterceptor implements Interceptor {
     }
 
 
-    private String getDeviceID(Context context) {
+    protected String getDeviceID(Context context) {
         String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 
         return UUID.nameUUIDFromBytes(uuid.getBytes()).toString();

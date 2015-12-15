@@ -13,9 +13,9 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.analytics.api;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,44 +27,53 @@ public class NetworkLoggingInterceptor implements Interceptor{
     @Override public com.squareup.okhttp.Response intercept(Interceptor.Chain chain) throws IOException {
         Request request = chain.request();
 
-        Logger logger = MFPAnalytics.logger;
+        long startTime = System.currentTimeMillis();
 
-        logger.analytics("BaseRequest outbound", null);
-
-        long t1 = System.currentTimeMillis();
-
-        String trackingid = UUID.randomUUID().toString();
+        String trackingID = UUID.randomUUID().toString();
 
         Request requestWithHeaders = request.newBuilder()
-                .header("x-wl-analytics-tracking-id", trackingid)
+                .header("x-wl-analytics-tracking-id", trackingID)
                 .build();
 
         com.squareup.okhttp.Response response = chain.proceed(requestWithHeaders);
 
-        long t2 = System.currentTimeMillis();
+
+        if(MFPAnalytics.isRecordingNetworkEvents){
+            JSONObject metadata = generateRoundTripRequestAnalyticsMetadata(request, startTime, trackingID, response);
+
+            if(metadata != null){
+                MFPAnalytics.log(metadata);
+            }
+        }
+
+        return response;
+    }
+
+    protected JSONObject generateRoundTripRequestAnalyticsMetadata(Request request, long startTime, String trackingID, Response response) throws IOException {
+        JSONObject metadata = new JSONObject();
+
+        long endTime = System.currentTimeMillis();
 
         try {
-            JSONObject metadata = new JSONObject();
-            metadata.put("$url", request.urlString());
-            metadata.put("$category", "network");
-            metadata.put("$trackingid", trackingid);
-            metadata.put("$outboundTimestamp", t1);
-            metadata.put("$inboundTimestamp", t2);
-            metadata.put("$duration", t2- t1);
+            metadata.put("$path", request.urlString());
+            metadata.put(MFPAnalytics.CATEGORY, "network");
+            metadata.put("$trackingid", trackingID);
+            metadata.put("$outboundTimestamp", startTime);
+            metadata.put("$inboundTimestamp", endTime);
+            metadata.put("$roundTripTime", endTime - startTime);
 
             if(response != null){
-                metadata.put("$statusCode", response.code());
+                metadata.put("$responseCode", response.code());
             }
 
             if(response != null && response.body() != null && response.body().contentLength() >= 0){
                 metadata.put("$bytesReceived", response.body().contentLength());
             }
 
-            logger.analytics("BaseRequest inbound", metadata);
+            return metadata;
         } catch (JSONException e) {
             //Do nothing, since it is just for analytics.
+            return null;
         }
-
-        return response;
     }
 }
