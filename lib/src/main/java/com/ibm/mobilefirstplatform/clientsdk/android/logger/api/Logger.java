@@ -125,7 +125,7 @@ public final class Logger {
      */
     static public final Object WAIT_LOCK = new Object();
 
-	private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/"; //For new service: "/apps/services/loguploader"
+    private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/"; //For new service: "/apps/services/loguploader"
 
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
@@ -303,7 +303,7 @@ public final class Logger {
                 context.getSharedPreferences (SHARED_PREF_KEY, Context.MODE_PRIVATE).edit ().putBoolean (SHARED_PREF_KEY_CRASH_DETECTED, true).commit();
             }
             // log it to file:
-            Logger logger = Logger.getInstance (this.getClass().getName());
+            Logger logger = Logger.getLogger(this.getClass().getName());
             logger.fatal ("Uncaught Exception", e);
 
             MFPAnalyticsActivityLifecycleListener.getInstance().logAppCrash();
@@ -741,7 +741,7 @@ public final class Logger {
 
     /**
      * Ask the Logger if an uncaught exception, which often appears to the user as a crashed app, is present in the persistent capture buffer.
-     * This method should not be called after calling {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String)}.  If it is called too early, an error message is issued and false is returned.
+     * This method should not be called after calling {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String, String)}.  If it is called too early, an error message is issued and false is returned.
      *
      * @return boolean if an uncaught exception log entry is currently in the persistent log buffer
      */
@@ -1239,17 +1239,17 @@ public final class Logger {
 
                 String logUploaderURL = appRoute + LOG_UPLOADER_PATH + client.getBluemixAppGUID();
 
-				// TODO: make this the only option once old BMSClient.init is removed
-				// URL Structure
-				// https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
-				if (null != client.getBluemixRegionSuffix()){
-					logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
-                                    + "://imfmobileanalytics."
-									+ client.getBluemixRegionSuffix()
-									+ "/imfmobileanalytics"
-									+ LOG_UPLOADER_PATH
-									+ client.getBluemixAppGUID();
-				}
+                // TODO: make this the only option once old BMSClient.init is removed
+                // URL Structure
+                // https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
+                if (null != client.getBluemixRegionSuffix()){
+                    logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
+                            + "://imfmobileanalytics."
+                            + client.getBluemixRegionSuffix()
+                            + "/imfmobileanalytics"
+                            + LOG_UPLOADER_PATH
+                            + client.getBluemixAppGUID();
+                }
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
@@ -1264,8 +1264,6 @@ public final class Logger {
                     requestListener.onFailure(null, new IllegalArgumentException("Client API key has not been set."), null);
                     return;
                 }
-
-                sendLogsRequest.addHeader(REWRITE_DOMAIN_HEADER_NAME, client.getRewriteDomain());
 
                 try {
                     byte[] payload = Logger.getByteArrayFromFile(fileToSend);

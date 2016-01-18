@@ -15,11 +15,11 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import android.content.Context;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.ResponseImpl;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationHeaderHelper;
 import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
@@ -38,7 +38,7 @@ public class Request extends BaseRequest {
     private RequestBody savedRequestBody;
     private Context context;
 
-    /**
+	/**
      * Constructs a new resource request with the specified URL, using the specified HTTP method.
      *
      * @param url    The resource URL, may be either relative or absolute.
@@ -160,7 +160,8 @@ public class Request extends BaseRequest {
 
     @Override
     protected void sendRequest(final ResponseListener listener, final RequestBody requestBody) {
-        String cachedAuthHeader = AuthorizationManager.getInstance().getCachedAuthorizationHeader();
+		AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
+        String cachedAuthHeader = authorizationManager.getCachedAuthorizationHeader();
 
         if (cachedAuthHeader != null) {
             addHeader("Authorization", cachedAuthHeader);
@@ -190,9 +191,14 @@ public class Request extends BaseRequest {
                     return;
                 }
 
-                if (AuthorizationHeaderHelper.isAuthorizationRequired(response)) {
+				AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
+				int responseCode = response.code();
+				Map<String, List<String>> responseHeaders = response.headers().toMultimap();
+				boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);
+
+                if (isAuthorizationRequired) {
                     if (oauthFailCounter++ < 2) {
-                        AuthorizationManager.getInstance().obtainAuthorizationHeader(
+                        authorizationManager.obtainAuthorization(
                                 ctx,
                                 new ResponseListener() {
                                     @Override

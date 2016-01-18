@@ -3,124 +3,101 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.app;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
 
+import com.ibm.bluemix.ssoservice.authorizationmanager.SSOAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationContext;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthenticationListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.AuthenticationContext;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.AuthenticationListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 
-public class MainActivity extends Activity implements ResponseListener{
+public class MainActivity extends Activity{
 
-    //private final static String backendURL = "http://9.148.225.153:9080"; // your BM application URL
-    //private final static String backendURL = "http://bmscord.mybluemix.net";
-    private final static String backendURL = "http://bmscord.mybluemix.net";
-    private final static String backendGUID = "86c972e0-0d74-4651-b2bd-f8de74c10e32"; // the GUID you get from the dashboard
-    private final static String customResourceURL = "http://bmscord.mybluemix.net/protected"; // any protected resource
-    private final static String customRealm = "customAuthRealm_1"; // auth realm
+	private final static Logger logger = Logger.getLogger("Anton");
 
+//	private final static String backendRoute = "http://abms.mybluemix.net";
+//	private final static String backendGuid = "2fe35477-51b0-4c87-803d-aca59511433b";
+//	private final static String customRealm = "AntonRealm";
+
+	private final static String backendRoute = "http://sso-backend.mybluemix.net";
+	private final static String backendGuid = "";
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
 		try {
-			BMSClient.getInstance().initialize(getApplicationContext(), backendURL, backendGUID);
+			BMSClient.getInstance().initialize(getApplicationContext(), backendRoute, backendGuid, BMSClient.REGION_US_SOUTH);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 
-        /*
-        BMSClient.getInstance().registerAuthenticationListener(customRealm, new AuthenticationListener() {
-            @Override
-            public void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context) {
+//		BMSClient.getInstance().setAuthorizationManager(SSOAuthorizationManager.getInstance());
+//		SSOAuthorizationManager.getInstance().setLoginUrl(backendRoute + "/login");
 
-            }
+		BMSClient.getInstance().setAuthorizationManager(MCAAuthorizationManager.createInstance(this.getApplicationContext()));
 
-            @Override
-            public void onAuthenticationSuccess(Context context, JSONObject info) {
+		MCAAuthorizationManager.getInstance().registerAuthenticationListener(customRealm, new AuthenticationListener() {
+			@Override
+			public void onAuthenticationChallengeReceived (AuthenticationContext authContext, JSONObject challenge, Context context) {
+				logger.error("onAuthenticationChallengeReceived :: " + challenge.toString());
 
-            }
+				JSONObject challengeAnswer = new JSONObject();
+				try {
+					challengeAnswer.put("username", "john.lennon");
+					challengeAnswer.put("password", "12345");
+				} catch(JSONException e){
+					logger.fatal("SHOULD NEVER HAPPEN!");
+				}
+				authContext.submitAuthenticationChallengeAnswer(challengeAnswer);
+			}
 
-            @Override
-            public void onAuthenticationFailure(Context context, JSONObject info) {
+			@Override
+			public void onAuthenticationSuccess (Context context, JSONObject info) {
+				logger.error("onAuthenticationSuccess :: " + info.toString());
+			}
 
-            }
-        });
-        */
+			@Override
+			public void onAuthenticationFailure (Context context, JSONObject info) {
+				logger.error("onAuthenticationFailure :: " + info.toString());
+			}
+		});
 
-        // to make the authorization happen next time
-        AuthorizationManager.getInstance().clearAuthorizationData();
-        
-        Request r = new Request(customResourceURL, Request.GET);
-        r.send(this, this);
-        /*
-        AuthorizationManager.getInstance().obtainAuthorizationHeader(this, new ResponseListener(){
-
-            @Override
-            public void onSuccess(Response response) {
-
-            }
-
-            @Override
-            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-
-            }
-        });
-        */
-    }
-
-	@Override
-	public void onSuccess(Response response) {
-        // here we handle authentication success
-        if (response.getStatus() == 303) {
-            Request r = new Request(customResourceURL, Request.GET);
-            r.send(this, this);
-        }
-
+		BMSClient.getInstance().getAuthorizationManager().clearAuthorizationData();
 	}
 
-	@Override
-	public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-        // handle auth failure
+	public void StartButtonClicked (View view) {
+		logger.info("StartButtonClicked");
+
+		Request request = new Request("/protected", Request.GET);
+
+		request.send(this, new ResponseListener() {
+			@Override
+			public void onSuccess (Response response) {
+				logger.info("ResponseListener Success ::" + response.getResponseText());
+			}
+
+			@Override
+			public void onFailure (Response response, Throwable t, JSONObject extendedInfo) {
+				if (null != response){
+					logger.error("ResponseListener Failure :: response :: " + response.getResponseText());
+				} else if (null != t){
+					logger.error("ResponseListenerFailure :: t :: " + t.getMessage());
+				} else {
+					logger.error("ResponseListener Failure :: extendedInfo :: " + extendedInfo.toString());
+				}
+			}
+		});
 	}
 }
 
-class CustomChallengeHandler implements AuthenticationListener {
-
-    @Override
-    public void onAuthenticationChallengeReceived(AuthenticationContext authContext, JSONObject challenge, Context context) {
-        try {
-            // provide your custom credentials here
-            // you can display a dialog here to obtain user name and password
-            JSONObject answer = new JSONObject("{\"userName\":\"asaf\",\"password\":\"123\"}");
-
-            // submit the credentials obtained from the user
-            authContext.submitAuthenticationChallengeAnswer(answer);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    @Override
-    public void onAuthenticationSuccess(Context context, JSONObject info) {
-
-    }
-
-    @Override
-    public void onAuthenticationFailure(Context context, JSONObject info) {
-
-    }
-}

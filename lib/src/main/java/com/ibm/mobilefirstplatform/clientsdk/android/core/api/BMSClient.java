@@ -17,19 +17,19 @@ import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.internal.MetadataHeaderInterceptor;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.internal.BaseRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.AbstractClient;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.AuthorizationRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.internal.Utils;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
+import com.squareup.okhttp.OkHttpClient;
 
+import java.net.CookiePolicy;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * The BMSClient is a singleton that serves as the entry point to MobileFirst.
  */
-public class BMSClient extends MFPClient {
+public class BMSClient extends AbstractClient {
 
 	public final static String REGION_US_SOUTH = "ng.bluemix.net";
 	public final static String REGION_UK = "eu-gb.bluemix.net";
@@ -42,7 +42,6 @@ public class BMSClient extends MFPClient {
 
     private String backendRoute;
     private String backendGUID;
-    private String rewriteDomain;
 	private String bluemixRegionSuffix;
     private String defaultProtocol = HTTPS_SCHEME;
 
@@ -53,65 +52,12 @@ public class BMSClient extends MFPClient {
     public static BMSClient getInstance() {
         if (instance == null) {
             instance = new BMSClient();
-
-            //Set up network interceptor to log network event times analytics for authorization requests.
-            AuthorizationRequest.setup();
-        }
+		}
 
         return (BMSClient)instance;
     }
 
     private BMSClient() {
-    }
-
-    /**
-     * Initializes the SDK with supplied parameters
-     * <p>
-     * This method should be called before you send the first request
-     * </p>
-     * @param context Android application context
-     * @param bluemixAppRoute Specifies the base URL for the authorization server
-     * @param bluemixAppGUID Specifies the GUID of the application
-     * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
-	 * @deprecated in 1.2.0. Use initialize(Context context, String bluemixAppRoute, String bluemixAppGUID, String bluemixRegion) instead
-     */
-    public void initialize(Context context, String bluemixAppRoute, String bluemixAppGUID) throws MalformedURLException {
-        Context appContext = context.getApplicationContext();
-        this.backendGUID = bluemixAppGUID;
-        this.backendRoute = bluemixAppRoute;
-		this.bluemixRegionSuffix = null;
-        this.rewriteDomain = null;
-        String subzone = null;
-
-        if (backendRoute != null) {
-            backendRoute = removeTrailingSlashesFromURL(backendRoute);
-
-            URL url = new URL(backendRoute);
-
-            String query = url.getQuery();
-            if (query != null) {
-                subzone = Utils.getParameterValueFromQuery(query, QUERY_PARAM_SUBZONE);
-                this.backendRoute = backendRoute.substring(0, backendRoute.length() - query.length() - 1);
-            }
-        }
-
-        this.rewriteDomain = Utils.buildRewriteDomain(this.backendRoute, subzone);
-        AuthorizationManager.createInstance(appContext);
-        Logger.setContext(appContext);
-
-        //Intercept requests to add metadata header
-        BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(appContext));
-
-        //Set up network interceptor to log network event times analytics for requests.
-        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
-    }
-
-    private String removeTrailingSlashesFromURL(String url) {
-        if(url.trim().substring(url.length()-1).equalsIgnoreCase("/")){
-            return url.trim().substring(0, url.length()-1);
-        }
-
-        return url;
     }
 
 	/**
@@ -129,9 +75,11 @@ public class BMSClient extends MFPClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
-		this.rewriteDomain = null;
-		AuthorizationManager.createInstance(context.getApplicationContext());
+		this.authorizationManager = new DummyAuthorizationManager();
 		Logger.setContext(context.getApplicationContext());
+
+		Request.setCookieManager(cookieManager);
+		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 
         //Intercept requests to add metadata header
         BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(context.getApplicationContext()));
@@ -154,14 +102,6 @@ public class BMSClient extends MFPClient {
      */
     public String getBluemixAppGUID() {
         return backendGUID;
-    }
-
-    /**
-     * @exclude
-     * @return rewrite domain generated from backend route url.
-     */
-    public String getRewriteDomain() {
-        return rewriteDomain;
     }
 
 	/**
