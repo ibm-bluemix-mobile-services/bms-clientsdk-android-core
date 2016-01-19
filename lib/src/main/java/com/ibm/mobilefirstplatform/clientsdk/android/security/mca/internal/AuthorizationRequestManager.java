@@ -47,6 +47,7 @@ import java.util.Map;
  */
 public class AuthorizationRequestManager implements ResponseListener {
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + "AuthorizationRequestAgent");
+    public static String overrideServerHost = null;
     /**
      * Parts of the path to authorization endpoint.
      */
@@ -168,11 +169,17 @@ public class AuthorizationRequestManager implements ResponseListener {
             rootUrl = url.toString().replace(path, "");
         } else {
             // "path" is a relative
-            rootUrl = BMSClient.getInstance().getDefaultProtocol()
-                    + "://"
-                    + AUTH_SERVER_NAME
-                    + "."
-                    + BMSClient.getInstance().getBluemixRegionSuffix()
+
+			String serverHost = BMSClient.getInstance().getDefaultProtocol()
+							+ "://"
+							+ AUTH_SERVER_NAME
+							+ "."
+							+ BMSClient.getInstance().getBluemixRegionSuffix();
+
+			if (overrideServerHost!=null)
+				serverHost = overrideServerHost;
+
+            rootUrl = serverHost
                     + "/"
                     + AUTH_SERVER_NAME
                     + "/"
