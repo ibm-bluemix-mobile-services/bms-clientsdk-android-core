@@ -67,9 +67,16 @@ task androidSourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
+task androidLibraryJar(type: Jar) {
+    from 'build/intermediates/classes/release/'
+    archiveName project.name + '.jar'
+    exclude '**/BuildConfig.*'
+}
+
 artifacts {
     archives androidSourcesJar
     archives androidJavadocsJar
+    archives androidLibraryJar
 }
 
 signing {
