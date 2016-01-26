@@ -37,7 +37,7 @@ public class JULHandler extends Handler {
 
     @Override
     public void publish(LogRecord logRecord) {
-        Logger logger = Logger.getInstance(logRecord.getLoggerName());
+        Logger logger = Logger.getLogger(logRecord.getLoggerName());
         // no need to intercept INFO, we already do so by overriding java.util.logging.Logger.info in Logger
         if (logRecord.getLevel().equals(Level.SEVERE)) {
             logger.error(logRecord.getMessage(), logRecord.getThrown());

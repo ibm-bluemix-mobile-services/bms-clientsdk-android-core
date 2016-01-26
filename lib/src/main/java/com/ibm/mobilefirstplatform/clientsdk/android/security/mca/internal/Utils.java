@@ -26,14 +26,10 @@ import java.net.URL;
 import java.net.URLDecoder;
 
 /**
- * Created by vitalym on 7/21/15.
- */
-
-/**
  * Internal helper class with various utilities.
  */
 public class Utils {
-    private static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "Utils");
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + "Utils");
     private final static String SECURE_PATTERN_START = "/*-secure-\n";
     private final static String SECURE_PATTERN_END = "*/";
 

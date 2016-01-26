@@ -189,8 +189,8 @@ public class LoggerTest {
         String s = new String(Logger.getByteArrayFromFile(new File(activity.getFilesDir(), FILE_NAME0)));
         assertEquals("", s);
 
-        Logger logger = Logger.getInstance("testNullContext");
-        Logger.setCapture(true);
+        Logger logger = Logger.getLogger("testNullContext");
+        Logger.storeLogs(true);
         logger.info("hi");
         // no file should exist, since we can't write to file when the static Context object in Logger is null
         assertEquals(0, mockFileLogger.getAccumulatedLogCalls().length());
@@ -199,8 +199,8 @@ public class LoggerTest {
     @Test
     public void testGetInstance() {
         Logger.setContext(activity);
-        Logger loggerInstance1 = Logger.getInstance("tag 1");
-        Logger loggerInstance2 = Logger.getInstance("tag 2");
+        Logger loggerInstance1 = Logger.getLogger("tag 1");
+        Logger loggerInstance2 = Logger.getLogger("tag 2");
         // should be exactly the same instance:
         assertFalse("instances returned from createInstance are the same object, but should not be", loggerInstance1.hashCode() == loggerInstance2.hashCode());
     }
@@ -208,16 +208,16 @@ public class LoggerTest {
     @Test
     public void testDefaults() {
         // test defaults before setContext is called
-        assertEquals(Logger.LEVEL.DEBUG, Logger.getLevel());
+        assertEquals(Logger.LEVEL.DEBUG, Logger.getLogLevel());
         assertTrue(Logger.getCapture());
-        assertEquals(100000, Logger.getMaxStoreSize());
+        assertEquals(100000, Logger.getMaxLogStoreSize());
     }
 
     @Test
     public void testGetInstanceSameTag() {
         Logger.setContext(activity);
-        Logger loggerInstance1 = Logger.getInstance("tag");
-        Logger loggerInstance2 = Logger.getInstance("tag");
+        Logger loggerInstance1 = Logger.getLogger("tag");
+        Logger loggerInstance2 = Logger.getLogger("tag");
         // should be exactly the same instance:
         assertTrue("instances returned from createInstance are not the same object, but should be", loggerInstance1.hashCode() == loggerInstance2.hashCode());
     }
@@ -229,9 +229,9 @@ public class LoggerTest {
         Logger.setContext(activity);
 //		System.out.println(mockFileLogger.getAccumulatedLogCalls().getJSONObject(0).getString("msg"));
 //		System.out.println(mockFileLogger.getAccumulatedLogCalls().getJSONObject(1).getString("msg"));
-        Logger.setLevel(Logger.LEVEL.DEBUG);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
 
-        Logger logger = Logger.getInstance("tag 2");
+        Logger logger = Logger.getLogger("tag 2");
 
         logger.info("message 1");
         waitForNotify(logger);
@@ -267,11 +267,11 @@ public class LoggerTest {
         RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().putBoolean(Logger.SHARED_PREF_KEY_logPersistence_from_server, true).commit();
 
         // even when setCapture API call is made, the presence and setting of SHARED_PREF_KEY_logPersistence_from_server wins
-        Logger.setCapture(false);
+        Logger.storeLogs(false);
 
         waitForNotify(Logger.WAIT_LOCK);
 
-        // when SHARED_PREF_KEY_logPersistence_from_server is set, it takes precedence over whatever was set programmatically by Logger.setCapture API call
+        // when SHARED_PREF_KEY_logPersistence_from_server is set, it takes precedence over whatever was set programmatically by Logger.storeLogs API call
         assertTrue(Logger.getCapture());
 
         // also should pick up the server override SHARED_PREF_KEY_logPersistence_from_server value when Logger.setContext is called:
@@ -283,7 +283,7 @@ public class LoggerTest {
         // when the SHARED_PREF_KEY_logPersistence_from_server is removed, and setCapture is called, it should now take effect again:
         RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().remove(Logger.SHARED_PREF_KEY_logPersistence_from_server).commit();
         // even when setCapture API call is made, the presense and setting of SHARED_PREF_KEY_logPersistence_from_server wins
-        Logger.setCapture(false);
+        Logger.storeLogs(false);
         assertFalse(Logger.getCapture());
 
         // and when Logger.setContext is called:
@@ -297,8 +297,8 @@ public class LoggerTest {
     public void testGetInstanceNullTag() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance(null);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger(null);
         logger.info("message 1");
 
         waitForNotify(logger);
@@ -313,8 +313,8 @@ public class LoggerTest {
     public void testGetInstanceEmptyTag() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("  ");
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("  ");
         logger.info("message 1");
 
         waitForNotify(logger);
@@ -340,15 +340,15 @@ public class LoggerTest {
     @Test
     public void testSharedPrefsTakesValueBeforeContext() throws Exception {
         // methods called before setContext should result in their values going into SharedPrefs:
-        Logger.setCapture(!Logger.DEFAULT_capture);
+        Logger.storeLogs(!Logger.DEFAULT_capture);
 
         waitForNotify(Logger.WAIT_LOCK);
 
-        Logger.setLevel(LEVEL.WARN);
+        Logger.setLogLevel(LEVEL.WARN);
 
         waitForNotify(Logger.WAIT_LOCK);
 
-        Logger.setMaxStoreSize(90000);
+        Logger.setMaxLogStoreSize(90000);
 
         waitForNotify(Logger.WAIT_LOCK);
 
@@ -367,9 +367,9 @@ public class LoggerTest {
     public void testGetByteArrayFromFile() throws Exception {
         // don't use a mock for the FileLogger in this test
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("tag");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("tag");
+        Logger.storeLogs(true);
 
         logger.info("message");
 
@@ -396,8 +396,8 @@ public class LoggerTest {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         // test that the JUL path works, and the mappings are good
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger.storeLogs(true);
 
         HashMap<String, LEVEL> messagesMapping = new HashMap<String, LEVEL>();
         messagesMapping.put("JULsevere", LEVEL.ERROR);
@@ -415,7 +415,7 @@ public class LoggerTest {
         java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger("package");
 
         // a trick to get this test to wait
-        Logger logger = Logger.getInstance("package");
+        Logger logger = Logger.getLogger("package");
 
         // JUL API:
         julLogger.severe("JULsevere");
@@ -471,13 +471,13 @@ public class LoggerTest {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         // test that the JUL path works, and the metadata shows the caller, not JULLogger
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger.storeLogs(true);
 
         java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger("package");
 
         // a trick to wait for the logger to finish in this test
-        Logger logger = Logger.getInstance("package");
+        Logger logger = Logger.getLogger("package");
 
         // JUL API:
         julLogger.severe("JULsevere");
@@ -514,9 +514,9 @@ public class LoggerTest {
     public void testIString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.info("message");
 
@@ -541,9 +541,9 @@ public class LoggerTest {
     public void testIStringThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.INFO);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.INFO);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.info("message", new Exception());
 
@@ -568,9 +568,9 @@ public class LoggerTest {
     public void testDString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.debug("message");
 
@@ -595,9 +595,9 @@ public class LoggerTest {
     public void testDStringThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.debug("message", new Exception());
 
@@ -622,9 +622,9 @@ public class LoggerTest {
     public void testEString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.error("message");
 
@@ -649,9 +649,9 @@ public class LoggerTest {
     public void testEStringThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.error("message", new Exception());
 
@@ -676,9 +676,9 @@ public class LoggerTest {
     public void testFString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.fatal("message");
 
@@ -704,9 +704,9 @@ public class LoggerTest {
     public void testFStringThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.fatal("message", new Exception());
 
@@ -731,9 +731,9 @@ public class LoggerTest {
     public void testWString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.warn("message");
 
@@ -758,9 +758,9 @@ public class LoggerTest {
     public void testWStringThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.warn("message", new Exception());
 
@@ -785,8 +785,8 @@ public class LoggerTest {
     public void testAString() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
         Logger.setAnalyticsCapture(true);
 
         logger.analytics("message",null);
@@ -809,93 +809,6 @@ public class LoggerTest {
 
     }
 
-    @Ignore //filters have been removed
-    @Test
-    public void testAStringWithFilters() throws Exception {
-        // Filters should not prevent analytics captures
-        FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
-        Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
-        filters.put("jsonstore", Logger.LEVEL.INFO);
-        Logger.setFilters(filters); // should send to file anyway
-        Logger.setAnalyticsCapture(true);
-
-        logger.analytics("message", null);
-
-        waitForNotify(logger);
-
-        JSONArray jsonArray = mockFileLogger.getAccumulatedLogCalls();
-        JSONObject jsonObject = jsonArray.getJSONObject(0);
-
-        // jsonObject should have a fixed number of key/value pairs
-        assertEquals("resulting jsonobject in file has wrong number of key/value pairs", 6, jsonObject.length());
-        // verify the key/value pairs
-        assertTrue(jsonObject.has(TIMESTAMP_KEY));  // don't test the value, as it may differ from current
-        assertEquals("package", jsonObject.get(PACKAGE_KEY));
-        // WARN
-        assertEquals("ANALYTICS", jsonObject.get(LEVEL_KEY));
-        assertEquals("message", jsonObject.get(MESSAGE_KEY));
-        // ensure no exception is thrown by parsing the threadid value:
-        assertFalse(jsonObject.getLong(THREADID_KEY) == 0);
-    }
-
-    @Ignore //filters have been removed
-    @Test
-    public void testFilters() throws Exception {
-        FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
-        // make sure filters are honored
-        Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-
-        Logger.setCapture(true);
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
-        filters.put("jsonstore", Logger.LEVEL.INFO);
-
-        Logger.setFilters(filters);
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        Logger logger1 = Logger.getInstance("package");
-        Logger logger2 = Logger.getInstance("jsonstore");
-
-        logger1.debug("package debug 1");
-
-        waitForNotify(logger1);
-
-        logger2.debug("jsonstore debug");
-
-        waitForNotify(logger2);
-
-        logger2.warn("jsonstore warn");
-
-        waitForNotify(logger2);
-
-        logger2.info("jsonstore info");
-
-        waitForNotify(logger2);
-
-        Logger.setFilters(null);  // remove the filters
-
-        waitForNotify(Logger.WAIT_LOCK);
-
-        logger1.debug("package debug 2");
-
-        waitForNotify(logger1);
-
-        JSONArray jsonArray = mockFileLogger.getAccumulatedLogCalls();
-
-        // there should be three entries
-        assertEquals(3, jsonArray.length());
-        assertEquals("jsonstore warn", jsonArray.getJSONObject(0).get(MESSAGE_KEY));
-        assertEquals("jsonstore info", jsonArray.getJSONObject(1).get(MESSAGE_KEY));
-        assertEquals("package debug 2", jsonArray.getJSONObject(2).get(MESSAGE_KEY));
-    }
-
     @Test
     public void testLevelFromString() {
         assertEquals(Logger.LEVEL.FATAL, Logger.LEVEL.fromString("FaTaL"));
@@ -912,9 +825,9 @@ public class LoggerTest {
         Logger.setContext(activity);
 
         // just make sure things don't break
-        Logger.setLevel(null);
+        Logger.setLogLevel(null);
 
-        Logger logger = Logger.getInstance("tag");
+        Logger logger = Logger.getLogger("tag");
         logger.info("hi");
 
 		/*
@@ -929,14 +842,14 @@ public class LoggerTest {
     public void testLevels() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         final String hi = "hi";
 
         // no calls should create a file:
 
-        Logger.setLevel(LEVEL.ERROR);
+        Logger.setLogLevel(LEVEL.ERROR);
         logger.warn(hi);
         waitForNotify(logger);
         logger.info(hi);
@@ -944,13 +857,13 @@ public class LoggerTest {
         logger.debug(hi);
         waitForNotify(logger);
 
-        Logger.setLevel(LEVEL.WARN);
+        Logger.setLogLevel(LEVEL.WARN);
         logger.info(hi);
         waitForNotify(logger);
         logger.debug(hi);
         waitForNotify(logger);
 
-        Logger.setLevel(LEVEL.INFO);
+        Logger.setLogLevel(LEVEL.INFO);
         logger.debug(hi);
         waitForNotify(logger);
 
@@ -967,39 +880,39 @@ public class LoggerTest {
         RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().putString(Logger.SHARED_PREF_KEY_level_from_server, "DeBuG").commit();
 
         // even when setCapture API call is made, the presence and setting of SHARED_PREF_KEY_level_from_server wins
-        Logger.setLevel(LEVEL.WARN);
+        Logger.setLogLevel(LEVEL.WARN);
 
         waitForNotify(Logger.WAIT_LOCK);
 
-        // when SHARED_PREF_KEY_level_from_server is set, it takes precedence over whatever was set programmatically by Logger.setCapture API call
-        assertEquals(LEVEL.DEBUG, Logger.getLevel());
+        // when SHARED_PREF_KEY_level_from_server is set, it takes precedence over whatever was set programmatically by Logger.storeLogs API call
+        assertEquals(LEVEL.DEBUG, Logger.getLogLevel());
 
         // also should pick up the server override SHARED_PREF_KEY_level_from_server value when Logger.setContext is called:
         Logger.unsetContext();
         Logger.setContext(activity);
 
-        assertEquals(LEVEL.DEBUG, Logger.getLevel());
+        assertEquals(LEVEL.DEBUG, Logger.getLogLevel());
 
         // when the SHARED_PREF_KEY_level_from_server is removed, and setCapture is called, it should now take effect again:
         RuntimeEnvironment.application.getSharedPreferences(Logger.SHARED_PREF_KEY, Context.MODE_PRIVATE).edit().remove(Logger.SHARED_PREF_KEY_level_from_server).commit();
         // even when setCapture API call is made, the presense and setting of SHARED_PREF_KEY_level_from_server wins
-        Logger.setLevel(LEVEL.WARN);
-        assertEquals(LEVEL.WARN, Logger.getLevel());
+        Logger.setLogLevel(LEVEL.WARN);
+        assertEquals(LEVEL.WARN, Logger.getLogLevel());
 
         // and when Logger.setContext is called:
         Logger.unsetContext();
         Logger.setContext(activity);
 
-        assertEquals(LEVEL.WARN, Logger.getLevel());
+        assertEquals(LEVEL.WARN, Logger.getLogLevel());
     }
 
     @Test
     public void testNullThrowable() throws Exception {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.warn("message", null);  // null!
 
@@ -1027,11 +940,11 @@ public class LoggerTest {
         final int size = 100;
 
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger.setMaxStoreSize(size);
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger.setMaxLogStoreSize(size);
+        Logger.storeLogs(true);
 
-        Logger logger = Logger.getInstance("tag");
+        Logger logger = Logger.getLogger("tag");
 
         byte[] bytes = new byte[size];
         for (int i = 0; i < size; i++) {
@@ -1066,11 +979,11 @@ public class LoggerTest {
         final int size = 11000;
 
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
-        Logger.setMaxStoreSize(size);
-        Logger.setCapture(true);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
+        Logger.setMaxLogStoreSize(size);
+        Logger.storeLogs(true);
 
-        Logger logger = Logger.getInstance("tag");
+        Logger logger = Logger.getLogger("tag");
 
         // no need to do 'size' log calls since the data is big enough.  Doing 'size' calls makes a sloooow test.
         for (int i = 0; i < (size/50); i++) {
@@ -1101,11 +1014,11 @@ public class LoggerTest {
 
         // don't use the mock FileLogger in this test
         Logger.setContext(activity);
-        Logger.setLevel(Logger.LEVEL.DEBUG);
+        Logger.setLogLevel(Logger.LEVEL.DEBUG);
         File file = new File(activity.getFilesDir(), FILE_NAME0);
 
-        Logger logger = Logger.getInstance("package");
-        Logger.setCapture(true);
+        Logger logger = Logger.getLogger("package");
+        Logger.storeLogs(true);
 
         logger.info("a message");
 
@@ -1130,18 +1043,18 @@ public class LoggerTest {
         FileLoggerMock mockFileLogger = setFileLoggerInstanceField(activity);
         // order in the file should reflect the order of the calls even though multi-threaded:
         Logger.setContext(activity);
-        Logger logger = Logger.getInstance("pkg");
+        Logger logger = Logger.getLogger("pkg");
         final int limit = 100;
         for (int i = 0; i < limit; i++) {
             if (i % 2 == 0) {
-                Logger.setCapture(true);
+                Logger.storeLogs(true);
             } else {
-                Logger.setCapture(false);
+                Logger.storeLogs(false);
             }
             if (i % 2 == 0) {
-                Logger.setLevel(Logger.LEVEL.DEBUG);
+                Logger.setLogLevel(Logger.LEVEL.DEBUG);
             } else {
-                Logger.setLevel(Logger.LEVEL.WARN);
+                Logger.setLogLevel(Logger.LEVEL.WARN);
             }
             logger.debug(String.valueOf(i));
         }
@@ -1166,9 +1079,9 @@ public class LoggerTest {
         ArrayList<Boolean> results = new ArrayList<Boolean>();
         for (int i = 0; i < limit; i++) {
             if (i % 2 == 0) {
-                Logger.setCapture(true);
+                Logger.storeLogs(true);
             } else {
-                Logger.setCapture(false);
+                Logger.storeLogs(false);
             }
             results.add(Logger.getCapture());
         }
@@ -1188,11 +1101,11 @@ public class LoggerTest {
         ArrayList<Logger.LEVEL> results = new ArrayList<Logger.LEVEL>();
         for (int i = 0; i < limit; i++) {
             if (i % 2 == 0) {
-                Logger.setLevel(Logger.LEVEL.DEBUG);
+                Logger.setLogLevel(Logger.LEVEL.DEBUG);
             } else {
-                Logger.setLevel(Logger.LEVEL.INFO);
+                Logger.setLogLevel(Logger.LEVEL.INFO);
             }
-            results.add(Logger.getLevel());
+            results.add(Logger.getLogLevel());
         }
         for (int i = 0; i < limit; i++) {
             if (i % 2 == 0) {

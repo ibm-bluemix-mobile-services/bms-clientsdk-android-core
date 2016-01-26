@@ -84,7 +84,7 @@ public class FileLogger extends FileLoggerInterface {
         if (null != singleton) {
             filePath = context.getFilesDir () + System.getProperty("file.separator") + fileName;
             FileHandler handler = null;
-            handler = new FileHandler(filePath, Logger.getMaxStoreSize(), Logger.MAX_NUM_LOG_FILES, true);
+            handler = new FileHandler(filePath, Logger.getMaxLogStoreSize(), Logger.MAX_NUM_LOG_FILES, true);
             handler.setFormatter(formatter);
             singleton.addHandler (handler);
             singleton.log (Level.FINEST, logData.toString() + ",");

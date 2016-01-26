@@ -29,11 +29,8 @@ import java.util.Set;
 
 import static com.squareup.okhttp.internal.Util.UTF_8;
 
-/**
- * Created by vitalym on 9/16/15.
- */
 public class ResponseImpl implements Response {
-    private static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
     private com.squareup.okhttp.Response okHttpResponse;
     private Headers headers;
     private MediaType contentType;
