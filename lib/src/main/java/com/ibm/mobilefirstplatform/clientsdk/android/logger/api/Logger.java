@@ -125,12 +125,12 @@ public final class Logger {
      */
     static public final Object WAIT_LOCK = new Object();
 
-    private static final String LOG_UPLOADER_PATH = "/imfmobileanalytics/v1/receiver/apps/"; //For new service: "/apps/services/loguploader"
+    private static final String LOG_UPLOADER_PATH = "/analytics-service/data/events/clientlogs/";
+    private static final String LOG_UPLOADER_APP_ROUTE = "mfp-analytics-service";
 
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
     private static final String CONTEXT_NULL_MSG = Logger.class.getName() + ".setContext(Context) must be called to fully enable debug log capture.  Currently, the 'capture' flag is set but the 'context' field is not.  This warning will only be printed once.";
-    private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
     private static boolean context_null_msg_already_printed = false;
     /**
      * @exclude
@@ -258,13 +258,8 @@ public final class Logger {
         INFO      { @Override protected int getLevelValue() {return 300;}; },
         DEBUG     { @Override protected int getLevelValue() {return 400;}; };
 
-        /**
-         * @exclude
-         */
         protected abstract int getLevelValue();
-        /**
-         * @exclude
-         */
+
         protected boolean isLoggable() {  // call like this:  LEVEL.WARN.isLoggable(), which checks against the global level object
             LEVEL currentLevel = getLevelSync();
             return (null != currentLevel) && currentLevel.getLevelValue() >= this.getLevelValue();
@@ -339,20 +334,6 @@ public final class Logger {
     }
 
     /**
-     * @deprecated As of 2.0.0, replaced by {@link #getLogger(String)}.
-     *
-     * Get or create an instance of this logger.  If an instance already exists for
-     * 'name' parameter, that instance will be returned.
-     *
-     * @param name the tag that should be printed with log messages.  The value is passed
-     *        through to android.util.Log and persistently recorded when log capture is enabled.
-     * @return an instance of this class
-     */
-    static synchronized public Logger getInstance(final String name) {
-        return getLogger(name);
-    }
-
-    /**
      * Get the Logger for the given name.
      *
      * @param name the tag that should be printed with log messages.  The value is passed
@@ -403,9 +384,9 @@ public final class Logger {
 
             // logFileMaxSize
             if (null != logFileMaxSize) {  // someone called setMaxStoreSize method before setContext
-                setMaxStoreSize(logFileMaxSize);  // seems redundant, but we do this to save to SharedPrefs now that we have Context
+                setMaxLogStoreSize(logFileMaxSize);  // seems redundant, but we do this to save to SharedPrefs now that we have Context
             } else {  // set it to the SharedPrefs value, or DEFAULT if no value in SharedPrefs yet
-                setMaxStoreSize(prefs.getInt(SHARED_PREF_KEY_logFileMaxSize, DEFAULT_logFileMaxSize));
+                setMaxLogStoreSize(prefs.getInt(SHARED_PREF_KEY_logFileMaxSize, DEFAULT_logFileMaxSize));
             }
 
             // capture
@@ -418,19 +399,6 @@ public final class Logger {
             uncaughtExceptionHandler = new UncaughtExceptionHandler ();
             Thread.setDefaultUncaughtExceptionHandler (uncaughtExceptionHandler);
         }
-    }
-
-    /**
-     * @deprecated As of 2.0.0, replaced by {@link #setLogLevel(LEVEL)}.
-     *
-     * Set the level and above at which log messages should be saved/printed.
-     * For example, passing LEVEL.INFO will log INFO, WARN, ERROR, and FATAL.  A
-     * null parameter value is ignored and has no effect.
-     *
-     * @param desiredLevel @see LEVEL
-     */
-    static public void setLevel(final LEVEL desiredLevel) {
-        setLogLevel(desiredLevel);
     }
 
     /**
@@ -469,16 +437,6 @@ public final class Logger {
     }
 
     /**
-     * @deprecated As of 2.0.0, replaced by {@link #getLogLevel()}.
-     * Get the current Logger.LEVEL.
-     *
-     * @return Logger.LEVEL
-     */
-    static public LEVEL getLevel() {
-        return getLogLevel();
-    }
-
-    /**
      * Get the current Logger.LEVEL.
      *
      * @return Logger.LEVEL
@@ -507,17 +465,6 @@ public final class Logger {
             returnValue = LEVEL.fromString(prefs.getString(SHARED_PREF_KEY_level_from_server, returnValue.toString()));
         }
         return returnValue;
-    }
-
-    /**
-     * @deprecated As of 2.0.0, replaced by {@link #storeLogs(boolean)}.
-     *
-     * Global setting: turn persisting of log data passed to this class's log methods on or off.
-     *
-     * @param capture flag to indicate if log data should be saved persistently
-     */
-    static public void setCapture(final boolean capture) {
-        storeLogs(capture);
     }
 
     /**
@@ -632,33 +579,6 @@ public final class Logger {
     }
 
     /**
-     * @deprecated As of 2.0.0, filters are no longer used. This method will do nothing.
-     */
-    static public void setFilters(final HashMap<String, LEVEL> filters) {
-        return; //setFilters will now do nothing. Filters have been removed.
-    }
-
-    /**
-     * @deprecated As of 2.0.0, filters are no longer used. This method will do nothing.
-     */
-    static public HashMap<String, LEVEL> getFilters() {
-        return null; //Get filters will now do nothing.
-    }
-
-    /**
-     *
-     * @deprecated As of 2.0.0, replaced by {@link #setMaxLogStoreSize(int)}.
-     *
-     * Set the maximum size of the local log file.  Once the maximum file size is reached,
-     * no more data will be appended.  Consider that this file is sent to a server.
-     *
-     * @param bytes maximum size of the file in bytes, minimum 10000
-     */
-    static public void setMaxStoreSize(final int bytes) {
-        setMaxLogStoreSize(bytes);
-    }
-
-    /**
      * Set the maximum size of the local log file.  Once the maximum file size is reached,
      * no more data will be appended.  Consider that this file is sent to a server.
      *
@@ -676,17 +596,6 @@ public final class Logger {
     }
 
     /**
-     * @deprecated As of 2.0.0, replaced by {@link #getMaxLogStoreSize()}.
-     *
-     * Get the current setting for the max file size threshold.
-     *
-     * @return current max file size threshold
-     */
-    static public int getMaxStoreSize() {
-        return getMaxLogStoreSize();
-    }
-
-    /**
      * Get the current setting for the max file size threshold.
      *
      * @return current max file size threshold
@@ -697,8 +606,8 @@ public final class Logger {
 
     /**
      * Send the accumulated log data when the persistent log buffer exists and is not empty.  The data
-     * accumulates in the log buffer from the use of {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger} with capture
-     * (see {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger#setCapture(boolean)}) turned on.
+     * accumulates in the log buffer from the use of {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger}
+     * with log storage turned on (see {@link com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger#storeLogs(boolean)}).
      *
      */
     static public void send () {
@@ -761,23 +670,12 @@ public final class Logger {
     //region Logger API - instance methods
 
     /**
-     * Get the name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
+     * Get the name for this Logger.
      *
      * @return The name for this instance of Logger
      */
     public String getName() {
         return this.name;
-    }
-
-    /**
-     * @deprecated As of 1.1.0, replaced by {@link #getName()}.
-     * Get the name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
-     *
-     * @return The name for this instance of Logger
-     */
-    @Deprecated
-    public String getPackageName() {
-        return getName();
     }
 
     /**
@@ -1111,12 +1009,12 @@ public final class Logger {
 
     private static class DoLogRunnable implements Runnable {
 
-        private LEVEL calledLevel;
+        private final LEVEL calledLevel;
         private String message;
-        private long timestamp;
-        private JSONObject metadata;
-        private Throwable t;
-        private Logger logger;
+        private final long timestamp;
+        private final JSONObject metadata;
+        private final Throwable t;
+        private final Logger logger;
 
         public DoLogRunnable(final LEVEL calledLevel, final String message, final long timestamp, final JSONObject metadata, final Throwable t, final Logger logger) {
             this.calledLevel = calledLevel;
@@ -1177,19 +1075,13 @@ public final class Logger {
     }
 
     /**
-     * @exclude
-     *
      * This is mostly to enable unit test to avoid the filesystem.  fileLoggerInstance may be
      * a mock injected by LoggerTest, for example.
-     *
      */
     public static byte[] getByteArrayFromFile(File file) throws UnsupportedEncodingException {
         return (fileLoggerInstance == null) ? new byte[]{} : fileLoggerInstance.getFileContentsAsByteArray(file);
     }
 
-    /**
-     * @exclude
-     */
     private synchronized static void sendFiles(String fileName, ResponseListener listener) {
 
         if (context == null) {
@@ -1227,7 +1119,7 @@ public final class Logger {
                 // has accumulated more log entries during our attempt to send in this thread.
                 File fileToSend = new File(file + ".send");
                 if (!fileToSend.exists()) {
-                    Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
+                    Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
                     file.renameTo (fileToSend);
                 }
 
@@ -1235,21 +1127,9 @@ public final class Logger {
 
                 BMSClient client = BMSClient.getInstance();
 
-                String appRoute = client.getBluemixAppRoute();
+                String appRoute = client.getDefaultProtocol() + "://" + LOG_UPLOADER_APP_ROUTE + "." + client.getBluemixRegionSuffix();
 
-                String logUploaderURL = appRoute + LOG_UPLOADER_PATH + client.getBluemixAppGUID();
-
-                // TODO: make this the only option once old BMSClient.init is removed
-                // URL Structure
-                // https://imfmobileanalytics.{bluemixdomain}/imfmobileanalytics/v1/receiver/apps/{appGUID}
-                if (null != client.getBluemixRegionSuffix()){
-                    logUploaderURL = BMSClient.getInstance().getDefaultProtocol()
-                            + "://imfmobileanalytics."
-                            + client.getBluemixRegionSuffix()
-                            + "/imfmobileanalytics"
-                            + LOG_UPLOADER_PATH
-                            + client.getBluemixAppGUID();
-                }
+                String logUploaderURL = appRoute + LOG_UPLOADER_PATH;
 
                 SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
 
@@ -1271,22 +1151,24 @@ public final class Logger {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    String payloadString = "__logdata=" + new String(payload, "UTF-8");
+                    JSONObject payloadObj = new JSONObject();
+                    payloadObj.put("__logdata", new String(payload, "UTF-8"));
 
-                    sendLogsRequest.send(null, payloadString, requestListener);
+//                    String payloadString = "__logdata=" + new String(payload, "UTF-8"); //TODO: remove?
+
+                    sendLogsRequest.send(null, payloadObj.toString(), requestListener);
                 } catch (IOException e) {
+                    Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
+                } catch (JSONException e) {
                     Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 }
             }
         }
     }
 
-    /**
-     * @exclude
-     */
     static class SendLogsRequestListener implements ResponseListener {
 
-        private static final Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + SendLogsRequestListener.class.getName());
+        private static final Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + SendLogsRequestListener.class.getName());
 
         private final File file;
 
