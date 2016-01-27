@@ -112,14 +112,12 @@ public class MFPAnalyticsActivityLifecycleListener {
             JSONObject metadata = new JSONObject();
             try {
                 metadata.put(MFPAnalytics.CATEGORY, APP_SESSION_CATEGORY);
-                metadata.put(MFPAnalytics.TIMESTAMP_KEY, appUseStartTimestamp);
+                metadata.put("timestamp", appUseStartTimestamp);
                 metadata.put(MFPAnalytics.APP_SESSION_ID_KEY, appSessionID);
             } catch (JSONException e) {
                 // should not happen
                 logger.debug("JSONException encountered logging app session: " + e.getMessage());
             }
-
-            MFPAnalytics.log(metadata);
         }
     }
 
