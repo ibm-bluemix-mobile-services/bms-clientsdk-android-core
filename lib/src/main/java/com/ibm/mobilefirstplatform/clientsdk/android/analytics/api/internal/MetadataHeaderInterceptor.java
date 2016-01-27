@@ -83,7 +83,7 @@ public class MetadataHeaderInterceptor implements Interceptor {
             try {
                 pInfo = context.getPackageManager().getPackageInfo(applicationPackageName, 0);
                 metadataHeader.put("appVersionDisplay", pInfo.versionName);  // human readable display version
-                metadataHeader.put("appVersionCode", pInfo.versionCode);  // version as known to the app store
+                metadataHeader.put("appVersionCode", "" + pInfo.versionCode);  // version as known to the app store
             } catch (PackageManager.NameNotFoundException e) {
                 Logger.getLogger(Logger.LOG_TAG_NAME).error("Could not get PackageInfo.", e);
             }
