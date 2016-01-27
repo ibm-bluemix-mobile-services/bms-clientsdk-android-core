@@ -126,7 +126,7 @@ public final class Logger {
     static public final Object WAIT_LOCK = new Object();
 
     private static final String LOG_UPLOADER_PATH = "/analytics-service/data/events/clientlogs/";
-    private static final String LOG_UPLOADER_APP_ROUTE = "mfp-analytics-service";
+    private static final String LOG_UPLOADER_APP_ROUTE = "mobile-analytics-dashboard";
 
     // for internal logging to android.util.Log only, not our log collection
     public static final String LOG_TAG_NAME = Logger.class.getName ();
@@ -1092,58 +1092,39 @@ public final class Logger {
         // java.util.logging.FileHandler can roll over.
         // We should send the oldest logs first
         for (int i = Logger.MAX_NUM_LOG_FILES - 1; i > -1; i--) {
+            JSONObject payloadObj = new JSONObject();
+
             File file = new File(context.getFilesDir (), fileName + "." + i);
-            if (file.length() > 0) {
 
+            // Use a temporary file to allow multi-threads to continue to write to the
+            // original log file, so we don't lose log data by wiping out a log file that
+            // has accumulated more log entries during our attempt to send in this thread.
+            File fileToSend = new File(file + ".send");
+
+            if (!fileToSend.exists()) {
+                Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
+                file.renameTo (fileToSend);
+            }
+
+            if (fileToSend.length() > 0) {
 				/*
-				 * Read the file contents, send the data to the server, and
-				 * delete the file upon successful receipt by the server.
-				 *
-				 * The logic here is to allow multi-threaded apps to continue writing to [FILE]:
-				 *
-				 * if ([FILE].send exists due to previous failure to send) {
-				 *     currentFilename = [FILE].send
-				 * } else {
-				 *     move [FILE] to [FILE].send
-				 *     currentFilename = [FILE].send
-				 * }
-				 * send currentFilename
-				 * if (send success)
-				 *     delete currentFilename
-				 * else
-				 *     keep currentFilename
-				 */
-
-                // Use a temporary file to allow multi-threads to continue to write to the
-                // original log file, so we don't lose log data by wiping out a log file that
-                // has accumulated more log entries during our attempt to send in this thread.
-                File fileToSend = new File(file + ".send");
-                if (!fileToSend.exists()) {
-                    Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
-                    file.renameTo (fileToSend);
-                }
-
-                boolean isAnalyticsRequest = fileName.equalsIgnoreCase(Logger.ANALYTICS_FILENAME);
-
-                BMSClient client = BMSClient.getInstance();
-
-                String appRoute = client.getDefaultProtocol() + "://" + LOG_UPLOADER_APP_ROUTE + "." + client.getBluemixRegionSuffix();
-
-                String logUploaderURL = appRoute + LOG_UPLOADER_PATH;
-
-                SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
-
-                Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
-
-                sendLogsRequest.addHeader("Content-Type","application/json");
-
-                if(MFPAnalytics.getClientApiKey() != null && !MFPAnalytics.getClientApiKey().equalsIgnoreCase("")){
-                    sendLogsRequest.addHeader("x-mfp-analytics-api-key", MFPAnalytics.getClientApiKey());
-                }
-                else{
-                    requestListener.onFailure(null, new IllegalArgumentException("Client API key has not been set."), null);
-                    return;
-                }
+                 * Read the file contents, send the data to the server, and
+                 * delete the file upon successful receipt by the server.
+                 *
+                 * The logic here is to allow multi-threaded apps to continue writing to [FILE]:
+                 *
+                 * if ([FILE].send exists due to previous failure to send) {
+                 *     currentFilename = [FILE].send
+                 * } else {
+                 *     move [FILE] to [FILE].send
+                 *     currentFilename = [FILE].send
+                 * }
+                 * send currentFilename
+                 * if (send success)
+                 *     delete currentFilename
+                 * else
+                 *     keep currentFilename
+                 */
 
                 try {
                     byte[] payload = Logger.getByteArrayFromFile(fileToSend);
@@ -1151,18 +1132,38 @@ public final class Logger {
                         return;  // don't bother sending empty string; return now
                     }
 
-                    JSONObject payloadObj = new JSONObject();
                     payloadObj.put("__logdata", new String(payload, "UTF-8"));
 
-//                    String payloadString = "__logdata=" + new String(payload, "UTF-8"); //TODO: remove?
-
-                    sendLogsRequest.send(null, payloadObj.toString(), requestListener);
                 } catch (IOException e) {
                     Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 } catch (JSONException e) {
                     Logger.getLogger(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 }
             }
+
+            boolean isAnalyticsRequest = fileName.equalsIgnoreCase(Logger.ANALYTICS_FILENAME);
+
+            BMSClient client = BMSClient.getInstance();
+
+            String appRoute = client.getDefaultProtocol() + "://" + LOG_UPLOADER_APP_ROUTE + "." + client.getBluemixRegionSuffix();
+
+            String logUploaderURL = appRoute + LOG_UPLOADER_PATH;
+
+            SendLogsRequestListener requestListener = new SendLogsRequestListener(fileToSend, listener, isAnalyticsRequest, logUploaderURL);
+
+            Request sendLogsRequest = new Request(logUploaderURL, Request.POST);
+
+            sendLogsRequest.addHeader("Content-Type","application/json");
+
+            if(MFPAnalytics.getClientApiKey() != null && !MFPAnalytics.getClientApiKey().equalsIgnoreCase("")){
+                sendLogsRequest.addHeader("x-mfp-analytics-api-key", MFPAnalytics.getClientApiKey());
+            }
+            else{
+                requestListener.onFailure(null, new IllegalArgumentException("Client API key has not been set."), null);
+                return;
+            }
+
+            sendLogsRequest.send(null, payloadObj.toString(), requestListener);
         }
     }
 
