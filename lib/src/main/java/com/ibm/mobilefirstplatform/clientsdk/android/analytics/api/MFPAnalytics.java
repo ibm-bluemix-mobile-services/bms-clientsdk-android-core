@@ -52,7 +52,7 @@ import java.util.UUID;
  * <p>
  * Log data is accumulated persistently to a log file until the file size is greater than FILE_SIZE_LOG_THRESHOLD.
  * At this point the log file is rolled over. Log data will only be captured once
- * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String)} is called.  Once both files are full, the oldest log data
+ * {@link com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient#initialize(Context, String, String, String)} is called.  Once both files are full, the oldest log data
  * is pushed out to make room for new log data.
  * </p>
  * <p>
