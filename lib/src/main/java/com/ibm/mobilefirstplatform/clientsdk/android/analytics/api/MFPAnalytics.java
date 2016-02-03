@@ -222,6 +222,9 @@ public class MFPAnalytics {
         public static void init(Application app) {
             if (instance == null) {
                 instance = new MFPActivityLifeCycleCallbackListener();
+
+                MFPAnalyticsActivityLifecycleListener.getInstance().onResume();
+
                 app.registerActivityLifecycleCallbacks(instance);
             }
         }
