@@ -125,7 +125,7 @@ public final class Logger {
      */
     static public final Object WAIT_LOCK = new Object();
 
-    private static final String LOG_UPLOADER_PATH = "/analytics-service/data/events/clientlogs/";
+    private static final String LOG_UPLOADER_PATH = "/analytics-service/rest/data/events/clientlogs/";
     private static final String LOG_UPLOADER_APP_ROUTE = "mobile-analytics-dashboard";
 
     // for internal logging to android.util.Log only, not our log collection
