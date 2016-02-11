@@ -83,9 +83,6 @@ public class BMSClient extends AbstractClient {
 
         //Intercept requests to add metadata header
         BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(context.getApplicationContext()));
-
-        //Set up network interceptor to log network event times analytics for requests.
-        BaseRequest.registerInterceptor(new NetworkLoggingInterceptor());
 	}
 
     /**
