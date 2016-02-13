@@ -16,10 +16,13 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity.AppIdentity;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity.DeviceIdentity;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity.UserIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.UserIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseAppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseDeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseUserIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.AuthorizationHeaderHelper;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.AuthorizationProcessManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.AuthorizationRequest;
@@ -55,11 +58,11 @@ public class MCAAuthorizationManager implements AuthorizationManager {
 
         //init generic data, like device data and application data
         if (preferences.deviceIdentity.get() == null) {
-            preferences.deviceIdentity.set(new DeviceIdentity(context));
+            preferences.deviceIdentity.set(new BaseDeviceIdentity(context));
         }
 
         if (preferences.appIdentity.get() == null) {
-            preferences.appIdentity.set(new AppIdentity(context));
+            preferences.appIdentity.set(new BaseAppIdentity(context));
         }
     }
 
@@ -192,14 +195,14 @@ public class MCAAuthorizationManager implements AuthorizationManager {
      * @return authorized user identity
      */
     public UserIdentity getUserIdentity() {
-        return new UserIdentity(preferences.userIdentity.getAsMap());
+        return new BaseUserIdentity(preferences.userIdentity.getAsMap());
     }
 
     /**
      * @return device identity
      */
     public DeviceIdentity getDeviceIdentity() {
-        return new DeviceIdentity(preferences.deviceIdentity.getAsMap());
+        return new BaseDeviceIdentity(preferences.deviceIdentity.getAsMap());
     }
 
     /**
@@ -207,7 +210,7 @@ public class MCAAuthorizationManager implements AuthorizationManager {
      * @return application identity
      */
     public AppIdentity getAppIdentity() {
-        return new AppIdentity(preferences.appIdentity.getAsMap());
+        return new BaseAppIdentity(preferences.appIdentity.getAsMap());
     }
 
     /**

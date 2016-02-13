@@ -75,7 +75,7 @@ public class BMSClient extends AbstractClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
-		this.authorizationManager = new DummyAuthorizationManager();
+		this.authorizationManager = new DummyAuthorizationManager(context);
 		Logger.setContext(context.getApplicationContext());
 
 		Request.setCookieManager(cookieManager);

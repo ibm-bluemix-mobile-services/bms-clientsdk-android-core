@@ -11,32 +11,27 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.identity;
 
 import android.content.Context;
-import android.os.Build;
-import android.provider.Settings;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
- * Holds the device identity json
+ * Holds the application identity json
  */
-public class DeviceIdentity extends JSONObject {
-
-    final static String ID = "id";
-    final static String OS = "platform";
-    final static String MODEL = "model";
+public class BaseAppIdentity extends JSONObject implements AppIdentity {
 
     /**
      * Init the data using map
      * @param asMap hold the device data
      */
-    public DeviceIdentity(Map asMap) {
+    public BaseAppIdentity (Map asMap) {
         super(asMap);
     }
 
@@ -44,43 +39,26 @@ public class DeviceIdentity extends JSONObject {
      * Init the data using context
      * @param context android application context
      */
-    public DeviceIdentity(Context context) {
+    public BaseAppIdentity (Context context) {
         try {
-            put(ID, getDeviceUUID(context));
-            put(OS, Build.VERSION.RELEASE);
-            put(MODEL, Build.MODEL);
+            put(ID,context.getPackageName());
+            put(VERSION,"1.0");
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * @return device unique id
+     * @return get application id (package name)
      */
     public String getId() {
         return optString(ID);
     }
 
     /**
-     * @return device OS
+     * @return get application version
      */
-    public String getOS() {
-        return optString(OS);
-    }
-
-    /**
-     * @return device model
-     */
-    public String getModel() {
-        return optString(MODEL);
-    }
-
-    /**
-     * @param context android application context
-     * @return device unique id
-     */
-    private String getDeviceUUID(Context context) {
-        String uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        return UUID.nameUUIDFromBytes(uuid.getBytes()).toString();
+    public String getVersion() {
+        return optString(VERSION);
     }
 }

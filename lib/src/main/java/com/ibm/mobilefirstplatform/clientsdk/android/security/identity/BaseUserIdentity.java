@@ -11,7 +11,9 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.identity;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.UserIdentity;
 
 import org.json.JSONObject;
 
@@ -20,13 +22,9 @@ import java.util.Map;
 /**
  * Holds the user identity json
  */
-public class UserIdentity extends JSONObject {
+public class BaseUserIdentity extends JSONObject implements UserIdentity {
 
-    final static String ID = "id";
-    final static String AUTH_BY = "authBy";
-    final static String DISPLAY_NAME = "displayName";
-
-    public UserIdentity(Map asMap) {
+    public BaseUserIdentity (Map asMap) {
         super(asMap);
     }
 
