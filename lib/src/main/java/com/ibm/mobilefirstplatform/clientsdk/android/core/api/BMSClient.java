@@ -21,7 +21,6 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.AbstractClien
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
-import com.squareup.okhttp.OkHttpClient;
 
 import java.net.CookiePolicy;
 import java.net.MalformedURLException;
@@ -37,9 +36,7 @@ public class BMSClient extends AbstractClient {
 
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";
-
-    private final static String QUERY_PARAM_SUBZONE = "subzone";
-
+	
     private String backendRoute;
     private String backendGUID;
 	private String bluemixRegionSuffix;
