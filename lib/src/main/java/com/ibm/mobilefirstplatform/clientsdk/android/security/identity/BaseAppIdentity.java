@@ -14,6 +14,7 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.security.identity;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 
@@ -41,10 +42,13 @@ public class BaseAppIdentity extends JSONObject implements AppIdentity {
      */
     public BaseAppIdentity (Context context) {
         try {
-            put(ID,context.getPackageName());
-            put(VERSION,"1.0");
+            String packageName = context.getPackageName();
+            put(ID, packageName);
+            put(VERSION, context.getPackageManager().getPackageInfo(packageName, 0).versionName);
         } catch (JSONException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (PackageManager.NameNotFoundException e){
+            throw new RuntimeException(e);
         }
     }
 

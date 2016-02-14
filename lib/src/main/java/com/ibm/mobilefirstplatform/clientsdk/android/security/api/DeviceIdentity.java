@@ -17,9 +17,32 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.api;
 public interface DeviceIdentity {
 	String ID = "id";
 	String OS = "platform";
+	String OS_VERSION = "osVersion";
 	String MODEL = "model";
+	String BRAND = "brand";
 
+	/**
+	 * @return deviceId
+	 */
 	String getId();
+
+	/**
+	 * @return device OS
+	 */
 	String getOS();
+
+	/**
+	 * @return OS version
+	 */
+	String getOSVersion();
+
+	/**
+	 * @return device model
+	 */
 	String getModel();
+
+	/**
+	 * @return device brand
+	 */
+	String getBrand();
 }

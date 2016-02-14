@@ -26,16 +26,50 @@ public interface AuthorizationManager {
 
 	String WWW_AUTHENTICATE_HEADER_NAME = "Www-Authenticate";
 
+	/**
+	 * @return Whether authorization is required
+	 * @param headers http response headers
+	 * @param statusCode http response status code
+	 */
 	boolean isAuthorizationRequired(int statusCode, Map<String, List<String>> headers);
+
+	/**
+	 * @return Whether authorization is required
+	 * @param urlConnection HttpURLConnection representing http response
+	 */
 	boolean isAuthorizationRequired(HttpURLConnection urlConnection) throws IOException;
 
+	/**
+	 * Starts authorization process
+	 * @param context Context for obtaining authorization. Should be Activity if authorization in interactive
+	 */
 	void obtainAuthorization (Context context, ResponseListener listener, Object... params);
+
+	/**
+	 * Returns previously obtained authorization header. The value will be added to all outgoing requests
+	 * as Authorization header.
+	 * @return cached authorization header
+	 */
 	String getCachedAuthorizationHeader();
 
+	/**
+	 * Clears authorization data
+	 */
 	void clearAuthorizationData();
 
+	/**
+	 * @return UserIdentity object
+	 */
 	UserIdentity getUserIdentity();
+
+	/**
+	 * @return DeviceIdentity object
+	 */
 	DeviceIdentity getDeviceIdentity();
+
+	/**
+	 * @return AppIdentity object
+	 */
 	AppIdentity getAppIdentity();
 
 }

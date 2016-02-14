@@ -45,7 +45,9 @@ public class BaseDeviceIdentity extends JSONObject implements DeviceIdentity {
     public BaseDeviceIdentity (Context context) {
         try {
             put(ID, getDeviceUUID(context));
-            put(OS, Build.VERSION.RELEASE);
+            put(OS, "android");
+            put(OS_VERSION, Build.VERSION.RELEASE);
+			put(BRAND, Build.BRAND);
             put(MODEL, Build.MODEL);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -73,7 +75,21 @@ public class BaseDeviceIdentity extends JSONObject implements DeviceIdentity {
         return optString(MODEL);
     }
 
-    /**
+	/**
+	 * @return OS version
+	 */
+	public String getOSVersion(){
+		return optString(OS_VERSION);
+	}
+
+	/**
+	 * @return device brand
+	 */
+	public String getBrand(){
+		return optString(BRAND);
+	}
+
+	/**
      * @param context android application context
      * @return device unique id
      */

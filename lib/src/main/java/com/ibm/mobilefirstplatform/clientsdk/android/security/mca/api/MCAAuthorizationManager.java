@@ -192,10 +192,11 @@ public class MCAAuthorizationManager implements AuthorizationManager {
     }
 
     /**
-     * @return authorized user identity
+     * @return authorized user identity. Will return null if user is not yet authorized
      */
     public UserIdentity getUserIdentity() {
-        return new BaseUserIdentity(preferences.userIdentity.getAsMap());
+        Map map = preferences.userIdentity.getAsMap();
+        return (map == null) ? null : new BaseUserIdentity(map);
     }
 
     /**

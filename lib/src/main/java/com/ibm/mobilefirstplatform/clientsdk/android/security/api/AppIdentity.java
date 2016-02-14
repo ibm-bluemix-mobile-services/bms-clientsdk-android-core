@@ -17,7 +17,15 @@ public interface AppIdentity {
 	String ID = "id";
 	String VERSION = "version";
 
+	/**
+	 * @return application Id (bundleId)
+	 */
 	String getId();
+
+
+	/**
+	 * @return application version string
+	 */
 	String getVersion();
 
 }

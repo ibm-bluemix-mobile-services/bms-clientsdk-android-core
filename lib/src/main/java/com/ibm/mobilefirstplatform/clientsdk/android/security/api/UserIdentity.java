@@ -18,8 +18,19 @@ public interface UserIdentity {
 	String AUTH_BY = "authBy";
 	String DISPLAY_NAME = "displayName";
 
+	/**
+	 * @return user Id
+	 */
 	String getId();
+
+	/**
+	 * @return authorization source
+	 */
 	String getAuthBy();
+
+	/**
+	 * @return user display name
+	 */
 	String getDisplayName();
 
 }
