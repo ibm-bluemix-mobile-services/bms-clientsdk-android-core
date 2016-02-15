@@ -22,8 +22,10 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity.AppIdentity;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseAppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseDeviceIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.certificate.CertificateStore;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.certificate.CertificatesUtility;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.certificate.DefaultJSONSigner;
@@ -148,8 +150,8 @@ public class AuthorizationProcessManager {
         HashMap<String, String> params;
 
         try {
-            DeviceIdentity deviceData = new DeviceIdentity(preferences.deviceIdentity.getAsMap());
-            AppIdentity applicationData = new AppIdentity(preferences.appIdentity.getAsMap());
+            DeviceIdentity deviceData = new BaseDeviceIdentity(preferences.deviceIdentity.getAsMap());
+            AppIdentity applicationData = new BaseAppIdentity(preferences.appIdentity.getAsMap());
 
             csrJSON.put("deviceId", deviceData.getId());
             csrJSON.put("deviceOs", "" + deviceData.getOS());

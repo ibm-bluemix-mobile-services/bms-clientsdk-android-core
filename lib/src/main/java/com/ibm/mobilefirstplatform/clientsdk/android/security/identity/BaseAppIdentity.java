@@ -11,9 +11,12 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.identity;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,16 +26,13 @@ import java.util.Map;
 /**
  * Holds the application identity json
  */
-public class AppIdentity extends JSONObject {
-
-    final static String ID = "id";
-    final static String VERSION = "version";
+public class BaseAppIdentity extends JSONObject implements AppIdentity {
 
     /**
      * Init the data using map
      * @param asMap hold the device data
      */
-    public AppIdentity(Map asMap) {
+    public BaseAppIdentity (Map asMap) {
         super(asMap);
     }
 
@@ -40,12 +40,15 @@ public class AppIdentity extends JSONObject {
      * Init the data using context
      * @param context android application context
      */
-    public AppIdentity(Context context) {
+    public BaseAppIdentity (Context context) {
         try {
-            put(ID,context.getPackageName());
-            put(VERSION,"1.0");
+            String packageName = context.getPackageName();
+            put(ID, packageName);
+            put(VERSION, context.getPackageManager().getPackageInfo(packageName, 0).versionName);
         } catch (JSONException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (PackageManager.NameNotFoundException e){
+            throw new RuntimeException(e);
         }
     }
 

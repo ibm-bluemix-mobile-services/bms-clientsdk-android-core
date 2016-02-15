@@ -1,4 +1,4 @@
-package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.security;
+package com.ibm.mobilefirstplatform.clientsdk.android;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.certificate.CertificateStore;
 

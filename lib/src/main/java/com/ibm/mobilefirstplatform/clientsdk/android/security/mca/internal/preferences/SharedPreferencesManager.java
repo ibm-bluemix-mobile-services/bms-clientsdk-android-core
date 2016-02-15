@@ -16,6 +16,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.pref
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.encryption.StringEncryption;
 
 import org.json.JSONException;
@@ -34,6 +35,8 @@ public class SharedPreferencesManager {
     protected SharedPreferences sharedPreferences;
     protected SharedPreferences.Editor editor;
     protected StringEncryption stringEncryption;
+
+	private final static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + SharedPreferencesManager.class.getName());
 
     public SharedPreferencesManager(Context context, String name, int mode) {
         this.sharedPreferences = context.getSharedPreferences(name, mode);
@@ -101,6 +104,7 @@ public class SharedPreferencesManager {
 
         public Map getAsMap() {
             try {
+
                 JSONObject json = new JSONObject(get());
 
                 Map<String, Object> asMap = new HashMap<>();
@@ -112,7 +116,9 @@ public class SharedPreferencesManager {
                 }
                 return asMap;
             } catch (JSONException e) {
-                e.printStackTrace();
+                logger.error("Failed to create JSONPreference map");
+            } catch (NullPointerException e){
+                logger.warn("JSONPreference value is null");
             }
             return null;
         }

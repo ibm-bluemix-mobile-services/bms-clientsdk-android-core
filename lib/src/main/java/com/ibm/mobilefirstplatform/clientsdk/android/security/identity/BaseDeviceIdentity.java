@@ -11,11 +11,13 @@
  *     limitations under the License.
  */
 
-package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.identity;
+package com.ibm.mobilefirstplatform.clientsdk.android.security.identity;
 
 import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.DeviceIdentity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,17 +28,13 @@ import java.util.UUID;
 /**
  * Holds the device identity json
  */
-public class DeviceIdentity extends JSONObject {
-
-    final static String ID = "id";
-    final static String OS = "platform";
-    final static String MODEL = "model";
+public class BaseDeviceIdentity extends JSONObject implements DeviceIdentity {
 
     /**
      * Init the data using map
      * @param asMap hold the device data
      */
-    public DeviceIdentity(Map asMap) {
+    public BaseDeviceIdentity (Map asMap) {
         super(asMap);
     }
 
@@ -44,10 +42,12 @@ public class DeviceIdentity extends JSONObject {
      * Init the data using context
      * @param context android application context
      */
-    public DeviceIdentity(Context context) {
+    public BaseDeviceIdentity (Context context) {
         try {
             put(ID, getDeviceUUID(context));
-            put(OS, Build.VERSION.RELEASE);
+            put(OS, "android");
+            put(OS_VERSION, Build.VERSION.RELEASE);
+			put(BRAND, Build.BRAND);
             put(MODEL, Build.MODEL);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -75,7 +75,21 @@ public class DeviceIdentity extends JSONObject {
         return optString(MODEL);
     }
 
-    /**
+	/**
+	 * @return OS version
+	 */
+	public String getOSVersion(){
+		return optString(OS_VERSION);
+	}
+
+	/**
+	 * @return device brand
+	 */
+	public String getBrand(){
+		return optString(BRAND);
+	}
+
+	/**
      * @param context android application context
      * @return device unique id
      */

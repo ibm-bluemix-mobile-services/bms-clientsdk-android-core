@@ -16,15 +16,27 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.UserIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseAppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseDeviceIdentity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
 public class DummyAuthorizationManager implements AuthorizationManager {
+
+	private final DeviceIdentity deviceIdentity;
+	private final AppIdentity appIdentity;
+
+	public DummyAuthorizationManager(Context context){
+		deviceIdentity = new BaseDeviceIdentity(context);
+		appIdentity = new BaseAppIdentity(context);
+	}
 
 	@Override
 	public boolean isAuthorizationRequired (int statusCode, Map<String, List<String>> headers) {
@@ -49,5 +61,20 @@ public class DummyAuthorizationManager implements AuthorizationManager {
 	@Override
 	public void clearAuthorizationData () {
 
+	}
+
+	@Override
+	public UserIdentity getUserIdentity () {
+		return null;
+	}
+
+	@Override
+	public DeviceIdentity getDeviceIdentity () {
+		return deviceIdentity;
+	}
+
+	@Override
+	public AppIdentity getAppIdentity () {
+		return appIdentity;
 	}
 }

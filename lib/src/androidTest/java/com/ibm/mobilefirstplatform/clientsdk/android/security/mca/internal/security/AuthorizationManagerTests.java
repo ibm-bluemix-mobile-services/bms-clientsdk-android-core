@@ -16,6 +16,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.secu
 
 import android.test.InstrumentationTestCase;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseAppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseDeviceIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
 
 import org.json.JSONObject;
@@ -30,7 +32,7 @@ public class AuthorizationManagerTests extends InstrumentationTestCase {
 
 	public void testDefaultAppIdentity() throws Exception {
 
-		JSONObject appIdentity = MCAAuthorizationManager.getInstance().getAppIdentity();
+		JSONObject appIdentity = (BaseAppIdentity)MCAAuthorizationManager.getInstance().getAppIdentity();
 
 		assertNotNull(appIdentity.getString("version"));
 		assertNotNull(appIdentity.getString("id"));
@@ -38,7 +40,7 @@ public class AuthorizationManagerTests extends InstrumentationTestCase {
 
 	public void testDefaultDeviceIdentity() throws Exception {
 
-		JSONObject deviceIdentity = MCAAuthorizationManager.getInstance().getDeviceIdentity();
+		JSONObject deviceIdentity = (BaseDeviceIdentity)MCAAuthorizationManager.getInstance().getDeviceIdentity();
 
 		assertNotNull(deviceIdentity.get("id"));
 		assertNotNull(deviceIdentity.get("platform"));
