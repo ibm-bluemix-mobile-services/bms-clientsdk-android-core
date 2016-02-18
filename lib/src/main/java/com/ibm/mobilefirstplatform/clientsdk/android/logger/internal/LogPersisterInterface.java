@@ -19,9 +19,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import org.json.JSONObject;
 
 /**
- * @exclude
- *
- * Use this interface to separate the Logger in the Analytics SDK
+ * This interface is used to talk with the LogPersister in the new Analytics SDK.
  */
 public interface LogPersisterInterface {
     void setLogLevel(Logger.LEVEL level);
@@ -33,7 +31,6 @@ public interface LogPersisterInterface {
     void setMaxLogStoreSize(final int bytes);
     int getMaxLogStoreSize();
 
-    void send();
     void send(ResponseListener listener);
 
     boolean isUncaughtExceptionDetected();

@@ -300,7 +300,7 @@ public final class Logger {
     static public void send (ResponseListener listener) {
         //No-op unless the Analytics SDK has been included:
         if(logPersister != null){
-            logPersister.send();
+            logPersister.send(listener);
         }
     }
 
