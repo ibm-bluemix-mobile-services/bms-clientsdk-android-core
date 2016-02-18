@@ -15,11 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import android.content.Context;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
-import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.internal.MetadataHeaderInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.AbstractClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
-import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 
 import java.net.CookiePolicy;
@@ -73,13 +69,9 @@ public class BMSClient extends AbstractClient {
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
 		this.authorizationManager = new DummyAuthorizationManager(context);
-		Logger.setContext(context.getApplicationContext());
 
 		Request.setCookieManager(cookieManager);
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-
-        //Intercept requests to add metadata header
-        BaseRequest.registerInterceptor(new MetadataHeaderInterceptor(context.getApplicationContext()));
 	}
 
     /**

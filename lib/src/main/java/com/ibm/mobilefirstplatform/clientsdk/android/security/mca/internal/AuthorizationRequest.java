@@ -13,7 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.analytics.api.NetworkLoggingInterceptor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.squareup.okhttp.OkHttpClient;
@@ -57,7 +56,6 @@ public class AuthorizationRequest extends BaseRequest {
      * Setup network interceptor.
      */
     public static void setup(){
-        httpClient.networkInterceptors().add(new NetworkLoggingInterceptor());
         httpClient.setFollowRedirects(false);
     }
 
