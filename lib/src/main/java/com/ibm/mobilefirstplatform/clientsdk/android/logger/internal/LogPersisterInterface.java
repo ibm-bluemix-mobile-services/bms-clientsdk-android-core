@@ -24,6 +24,7 @@ import org.json.JSONObject;
 public interface LogPersisterInterface {
     void setLogLevel(Logger.LEVEL level);
     Logger.LEVEL getLogLevel();
+    Logger.LEVEL getLogLevelSync();
 
     void storeLogs(final boolean shouldStoreLogs);
     boolean isStoringLogs();

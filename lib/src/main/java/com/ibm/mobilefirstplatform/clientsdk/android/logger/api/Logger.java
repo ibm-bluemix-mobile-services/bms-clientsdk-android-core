@@ -112,7 +112,16 @@ public final class Logger {
         protected abstract int getLevelValue();
 
         public boolean isLoggable() {  // call like this:  LEVEL.WARN.isLoggable(), which checks against the global level object
-            LEVEL currentLevel = getLogLevel();
+
+            LEVEL currentLevel;
+
+            if (logPersister == null) {
+                currentLevel = getLogLevel();
+            }
+            else{
+                currentLevel = logPersister.getLogLevelSync(); //This has to be getLogLevelSync(), NOT getLogLevel(), otherwise deadlocks will occur when trying to log anything.
+            }
+
             return (null != currentLevel) && currentLevel.getLevelValue() >= this.getLevelValue();
         }
 
