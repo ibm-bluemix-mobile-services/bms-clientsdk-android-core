@@ -38,6 +38,8 @@ public class BMSClient extends AbstractClient {
 	private String bluemixRegionSuffix;
     private String defaultProtocol = HTTPS_SCHEME;
 
+    protected static AbstractClient instance = null;
+
     /**
      * Should be called to obtain the instance of BMSClient.
      * @return the instance of BMSClient.

@@ -18,7 +18,6 @@ import java.net.CookieManager;
 
 public abstract class AbstractClient {
 
-    protected static AbstractClient instance = null;
     protected static final CookieManager cookieManager = new CookieManager();
 
 	protected AuthorizationManager authorizationManager = null;
