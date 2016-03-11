@@ -26,9 +26,9 @@ import java.net.MalformedURLException;
  */
 public class BMSClient extends AbstractClient {
 
-	public final static String REGION_US_SOUTH = "ng.bluemix.net";
-	public final static String REGION_UK = "eu-gb.bluemix.net";
-	public final static String REGION_SYDNEY = "au-syd.bluemix.net";
+	public final static String REGION_US_SOUTH = ".ng.bluemix.net";
+	public final static String REGION_UK = ".eu-gb.bluemix.net";
+	public final static String REGION_SYDNEY = ".au-syd.bluemix.net";
 
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";

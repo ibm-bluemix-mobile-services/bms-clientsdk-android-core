@@ -80,7 +80,8 @@ import java.util.WeakHashMap;
 public final class Logger {
     public static final String INTERNAL_PREFIX = "mfpsdk.";
 
-    private static LEVEL level = LEVEL.FATAL; //Defaulting to fatal since we can't check if the app has been signed or not without the context.
+    //Defaulting to DEBUG. SDK internal logs are hidden by default.
+    private static LEVEL level = LEVEL.DEBUG;
 
     // Track instances so we give back the same one for the same logger name passed to getInstance method.
     // We use a WeakHashMap because some instances in this map may go out of scope
