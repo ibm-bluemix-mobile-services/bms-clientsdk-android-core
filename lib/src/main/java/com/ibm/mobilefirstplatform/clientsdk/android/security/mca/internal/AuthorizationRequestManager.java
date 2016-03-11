@@ -173,7 +173,6 @@ public class AuthorizationRequestManager implements ResponseListener {
 			String serverHost = BMSClient.getInstance().getDefaultProtocol()
 							+ "://"
 							+ AUTH_SERVER_NAME
-							+ "."
 							+ BMSClient.getInstance().getBluemixRegionSuffix();
 
 			if (overrideServerHost!=null)
