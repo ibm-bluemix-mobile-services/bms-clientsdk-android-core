@@ -197,6 +197,7 @@ public class Request extends BaseRequest {
         String cachedAuthHeader = AuthorizationManager.getInstance().getCachedAuthorizationHeader();
 
         if (cachedAuthHeader != null) {
+            removeHeaders("Authorization");
             addHeader("Authorization", cachedAuthHeader);
         }
 
