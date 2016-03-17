@@ -18,6 +18,11 @@ This package contains the core components of Android SDK
 The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
+####1.1.0
+* Fixed send for Logger.
+* Added the ability to hide this SDK's 'debug' and 'info' level logs from Logcat. To show them again, call Logger.setSDKInternalLoggingEnabled(true).
+* Deprecated logger.getPackageName(), replaced by logger.getName().
+
 ####1.0.3
 * Support relative paths when creating Requests.
 * Fixed Analytics reporting.

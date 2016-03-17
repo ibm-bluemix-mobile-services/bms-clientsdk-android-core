@@ -61,7 +61,7 @@ public class AuthorizationProcessManager {
     private String sessionId;
 
     public AuthorizationProcessManager(Context context, AuthorizationManagerPreferences preferences) {
-        this.logger = Logger.getInstance(AuthorizationProcessManager.class.getSimpleName());
+        this.logger = Logger.getInstance(Logger.INTERNAL_PREFIX + AuthorizationProcessManager.class.getSimpleName());
 
         this.preferences = preferences;
         this.authorizationQueue = new ConcurrentLinkedQueue<>();

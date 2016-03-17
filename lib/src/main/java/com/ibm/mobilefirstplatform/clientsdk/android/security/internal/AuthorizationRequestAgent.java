@@ -45,7 +45,7 @@ import java.util.Map;
  * authorization challenges and re-sends the requests as necessary.
  */
 public class AuthorizationRequestAgent implements ResponseListener {
-    private static Logger logger = Logger.getInstance("AuthorizationRequestAgent");
+    private static Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + "AuthorizationRequestAgent");
     /**
      * Parts of the path to authorization endpoint.
      */

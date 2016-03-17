@@ -58,8 +58,8 @@ import javax.security.auth.x500.X500Principal;
 
 /**
  * Logger is an abstraction of, and pass through to, android.util.Log.  Logger provides some
- * enhanced capability such as capturing log calls, package filtering, and log level control at
- * both global and individual package scope.  It also provides a method call to send captured logs to
+ * enhanced capability such as capturing log calls, filtering by logger name, and log level control at
+ * both global and individual logger scope.  It also provides a method call to send captured logs to
  * the Bluemix application.
  *
  * When this Logger class's capture flag is turned on via setCapture(true) method call,
@@ -70,7 +70,7 @@ import javax.security.auth.x500.X500Principal;
  * {
  *   "timestamp"    : "17-02-2013 13:54:27:123",  // "dd-MM-yyyy hh:mm:ss:S"
  *   "level"        : "ERROR",                    // FATAL || ERROR || WARN || INFO || DEBUG
- *   "package"      : "your_package_name",                 // typically a class name, app name, or JavaScript object name
+ *   "name"         : "your_logger_name",         // can be anything, typically a class name, app name, or JavaScript object name
  *   "msg"          : "the message",              // a helpful log message
  *   "metadata"     : {"hi": "world"},            // (optional) additional JSON metadata, appended via doLog API call
  *   "threadid"     : long                        // (optional) id of the current thread
@@ -127,7 +127,7 @@ public final class Logger {
     static public final Object WAIT_LOCK = new Object();
 
     // for internal logging to android.util.Log only, not our log collection
-    public static final String LOG_PACKAGE_NAME = Logger.class.getName ();
+    public static final String LOG_TAG_NAME = Logger.class.getName ();
     private static final String CONTEXT_NULL_MSG = Logger.class.getName() + ".setContext(Context) must be called to fully enable debug log capture.  Currently, the 'capture' flag is set but the 'context' field is not.  This warning will only be printed once.";
     private final static String REWRITE_DOMAIN_HEADER_NAME = "X-REWRITE-DOMAIN";
     private static boolean context_null_msg_already_printed = false;
@@ -193,6 +193,7 @@ public final class Logger {
      * @exclude
      */
     public static final int MAX_NUM_LOG_FILES = 2;
+    public static final String INTERNAL_PREFIX = "mfpsdk.";
 
     private static Context context;
     private static Boolean capture = null;  // save log messages to file?
@@ -205,7 +206,7 @@ public final class Logger {
     private static HashMap<String, LEVEL> filters = new HashMap<String, LEVEL>();
     // don't set up the static UncaughtExceptionHandler until after we have a context
     private static UncaughtExceptionHandler uncaughtExceptionHandler = null;
-    // Track instances so we give back the same one for the same 'packageName' passed to getInstance method.
+    // Track instances so we give back the same one for the same logger name passed to getInstance method.
     // We use a WeakHashMap because some instances in this map may go out of scope
     // very soon after instantiation, thus no reason to keep a strong reference, and let
     // the garbage collector do its job.
@@ -242,13 +243,14 @@ public final class Logger {
         });
     }
 
-    private final String packageName;
+    private final String name;
 
     //Use these flags to determine if a send request is in progress, either for the logs or for the analytics:
     private static boolean sendingLogs = false;
     private static boolean sendingAnalyticsLogs = false;
 
-
+    //Use this flag to determine if internal debug and info logs should be output to Logcat or not:
+    protected static boolean internalLoggingEnabled = false;
 
     /**
      * Levels supported in this Logger class.
@@ -318,12 +320,12 @@ public final class Logger {
     }
 
     // private, for factory creation of Logger objects
-    private Logger(final String packageName) {
+    private Logger(final String name) {
         if (fileLoggerInstance == null) {
             FileLogger.setContext(context);
             fileLoggerInstance = FileLogger.getInstance();
         }
-        this.packageName = (packageName == null || packageName.trim().equals ("")) ? "NONE" : packageName.trim();
+        this.name = (name == null || name.trim().equals ("")) ? "NONE" : name.trim();
     };
 
     /*
@@ -346,17 +348,17 @@ public final class Logger {
 
     /**
      * Get or create an instance of this logger.  If an instance already exists for
-     * 'packageName' parameter, that instance will be returned.
+     * 'name' parameter, that instance will be returned.
      *
-     * @param packageName the package or tag that should be printed with log messages.  The value is passed
+     * @param name the tag that should be printed with log messages.  The value is passed
      *        through to android.util.Log and persistently recorded when log capture is enabled.
      * @return an instance of this class
      */
-    static synchronized public Logger getInstance(final String packageName) {
-        Logger logger = instances.get (packageName); {
+    static synchronized public Logger getInstance(final String name) {
+        Logger logger = instances.get (name); {
             if (null == logger) {
-                logger = new Logger(packageName);
-                instances.put (packageName,  logger);
+                logger = new Logger(name);
+                instances.put (name,  logger);
             }
         }
         return logger;
@@ -602,8 +604,9 @@ public final class Logger {
     }
 
     /**
-     * Filter on packages at and above designated LEVEL.  This is a white list.  Any package not listed in the filters will not be logged.
-     * Pass null or an empty HashMap parameter to remove filters and resume logging at the default LEVEL.
+     * Filter on loggers at and above designated LEVEL.  This is a white list.  Any loggers not listed in the filters will not be logged.
+     * Pass null or an empty HashMap parameter to remove filters and resume logging at the default LEVEL. This also includes anything
+     * logged through java.util.log.
      *
      * @param filters set of filters and associated level (and above) to allow for logging
      */
@@ -638,7 +641,7 @@ public final class Logger {
     /**
      * Get the current list of filters.
      *
-     * @return map of white list package filters and the designated LEVEL
+     * @return map of white list logger filters and the designated LEVEL
      */
     static public HashMap<String, LEVEL> getFilters() {
         final Future<HashMap<String, LEVEL>> task = ThreadPoolWorkQueue.submit(new Callable<HashMap<String, LEVEL>>() {
@@ -750,7 +753,7 @@ public final class Logger {
     static public boolean isUnCaughtExceptionDetected () {
         if (context == null) {
             if (!context_null_msg_already_printed) {
-                Log.w(LOG_PACKAGE_NAME, CONTEXT_NULL_MSG);
+                Log.w(LOG_TAG_NAME, CONTEXT_NULL_MSG);
                 context_null_msg_already_printed = true;
             }
             return false;
@@ -763,12 +766,23 @@ public final class Logger {
     //region Logger API - instance methods
 
     /**
-     * Get the package name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
+     * Get the name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
      *
-     * @return The package name for this instance of Logger
+     * @return The name for this instance of Logger
      */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * @deprecated As of 1.1.0, replaced by {@link #getName()}.
+     * Get the name for this Logger. This can be passed to the {@link #setFilters(HashMap)} method.
+     *
+     * @return The name for this instance of Logger
+     */
+    @Deprecated
     public String getPackageName() {
-        return this.packageName;
+        return getName();
     }
 
     /**
@@ -977,7 +991,7 @@ public final class Logger {
             jsonMetadata.put ("$src", "java");
 
         } catch (Exception e) {
-            Log.e(LOG_PACKAGE_NAME, "Could not generate jsonMetadata object.", e);
+            Log.e(LOG_TAG_NAME, "Could not generate jsonMetadata object.", e);
         }
 
         return jsonMetadata;
@@ -1078,7 +1092,7 @@ public final class Logger {
             }
         }
         catch (JSONException e) {
-            Log.e(LOG_PACKAGE_NAME, "Error adding JSONObject key/value pairs", e);
+            Log.e(LOG_TAG_NAME, "Error adding JSONObject key/value pairs", e);
         }
         return jsonObject;
 
@@ -1090,7 +1104,7 @@ public final class Logger {
      */
     private static JSONObject appendFullStackTrace (JSONObject jsonMetadata, Throwable t) {
         JSONArray stackArray = new JSONArray();
-        StackTraceElement[] stackTraceElements = t.getStackTrace ();
+        StackTraceElement[] stackTraceElements = t.getStackTrace();
         for (int i = 0; i < stackTraceElements.length; i++) {
             stackArray.put (stackTraceElements[i].toString());
         }
@@ -1123,7 +1137,7 @@ public final class Logger {
 
         if (context == null) {
             if (!context_null_msg_already_printed) {
-                Log.w(LOG_PACKAGE_NAME, CONTEXT_NULL_MSG);
+                Log.w(LOG_TAG_NAME, CONTEXT_NULL_MSG);
                 context_null_msg_already_printed = true;
             }
             return;
@@ -1141,7 +1155,7 @@ public final class Logger {
                 fileLoggerInstance.log(jsonObject, FILENAME);
             }
         } catch (Exception e) {
-            Log.e(LOG_PACKAGE_NAME, "An error occurred capturing data to file.", e);
+            Log.e(LOG_TAG_NAME, "An error occurred capturing data to file.", e);
         }
     }
 
@@ -1172,32 +1186,36 @@ public final class Logger {
 
             // honor the filters as a whitelist, if present
             if (currentFilters != null && currentFilters.size() > 0) {
-                if (currentFilters.containsKey(logger.packageName)) {
-                    canLog = calledLevel.getLevelValue() <= currentFilters.get(logger.packageName).getLevelValue();
+                if (currentFilters.containsKey(logger.name)) {
+                    canLog = calledLevel.getLevelValue() <= currentFilters.get(logger.name).getLevelValue();
                 } else {
                     canLog = false;
                 }
             } else {
-                canLog = ((calledLevel != null) && calledLevel.isLoggable());
+                canLog = (calledLevel != null) && calledLevel.isLoggable();
             }
 
             if (canLog || (calledLevel == LEVEL.ANALYTICS)) {
-                Logger.captureToFile(Logger.createJSONObject(calledLevel, logger.packageName, message, timestamp, metadata, t), calledLevel);
+                Logger.captureToFile(Logger.createJSONObject(calledLevel, logger.name, message, timestamp, metadata, t), calledLevel);
                 message = (null == message) ? "(null)" : message;  // android.util.Log can't handle null, so protect it
                 message = Logger.prependMetadata (message, metadata);
                 switch (calledLevel) {
                     case FATAL:
                     case ERROR:
-                        if (null == t) { Log.e(logger.packageName, message); } else { Log.e(logger.packageName, message, t); };
+                        if (null == t) { Log.e(logger.name, message); } else { Log.e(logger.name, message, t); }
                         break;
                     case WARN:
-                        if (null == t) { Log.w(logger.packageName, message); } else { Log.w(logger.packageName, message, t); };
+                        if (null == t) { Log.w(logger.name, message); } else { Log.w(logger.name, message, t); }
                         break;
                     case INFO:
-                        if (null == t) { Log.i(logger.packageName, message); } else { Log.i(logger.packageName, message, t); };
+                        if(!isInternalLogger(logger) || internalLoggingEnabled){
+                            if (null == t) { Log.i(logger.name, message); } else { Log.i(logger.name, message, t); }
+                        }
                         break;
                     case DEBUG:
-                        if (null == t) { Log.d(logger.packageName, message); } else { Log.d(logger.packageName, message, t); };
+                        if(!isInternalLogger(logger) || internalLoggingEnabled){
+                            if (null == t) { Log.d(logger.name, message); } else { Log.d(logger.name, message, t); }
+                        }
                         break;
                     default:
                         break;
@@ -1211,6 +1229,18 @@ public final class Logger {
         }
     }
 
+    /**
+     * Enable displaying all Bluemix Mobile Services SDK debug and info logs in Logcat.
+     * By default, only errors, warnings, and fatal messages are displayed in Logcat.
+     * @param enabled Determines whether to display Bluemix Mobile Services SDK debug and info logs in Logcat.
+     */
+    public static void setSDKInternalLoggingEnabled(boolean enabled){
+        internalLoggingEnabled = enabled;
+    }
+
+    protected static boolean isInternalLogger(Logger logger){
+        return logger.getName().startsWith(INTERNAL_PREFIX);
+    }
 
     /**
      * @exclude
@@ -1263,7 +1293,7 @@ public final class Logger {
                 // has accumulated more log entries during our attempt to send in this thread.
                 File fileToSend = new File(file + ".send");
                 if (!fileToSend.exists()) {
-                    Logger.getInstance(LOG_PACKAGE_NAME).debug("Moving " + file + " to " + fileToSend);
+                    Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).debug("Moving " + file + " to " + fileToSend);
                     file.renameTo (fileToSend);
                 }
 
@@ -1303,7 +1333,7 @@ public final class Logger {
 
                     sendLogsRequest.send(null, payload, requestListener);
                 } catch (IOException e) {
-                    Logger.getInstance(LOG_PACKAGE_NAME).error("Failed to send logs due to exception.", e);
+                    Logger.getInstance(Logger.INTERNAL_PREFIX + LOG_TAG_NAME).error("Failed to send logs due to exception.", e);
                 }
 
             }
@@ -1315,7 +1345,7 @@ public final class Logger {
      */
     static class SendLogsRequestListener implements ResponseListener {
 
-        private static final Logger logger = Logger.getInstance(SendLogsRequestListener.class.getName());
+        private static final Logger logger = Logger.getInstance(Logger.INTERNAL_PREFIX + SendLogsRequestListener.class.getName());
 
         private final File file;
 
