@@ -36,6 +36,10 @@ android {
 dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.4'
 
+    compile('com.ibm.mobilefirstplatform.clientsdk.android:analyticsspec:1.+@aar'){
+        transitive = true
+    }
+
     testCompile 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.0'
     testCompile 'org.robolectric:shadows-httpclient:3.0'
