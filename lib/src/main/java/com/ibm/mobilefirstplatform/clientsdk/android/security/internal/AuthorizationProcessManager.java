@@ -114,7 +114,24 @@ public class AuthorizationProcessManager {
         }
     }
 
-
+    /**
+     * logs out user
+     * @param context Android Activity that will handle the authorization (like facebook or google)
+     * @param listener Response listener
+     */
+    public void logout(Context context, ResponseListener listener) {
+        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
+        options.parameters = new HashMap<String,String>(1);
+        options.parameters.put("client_id", preferences.clientId.get());
+        options.headers = new HashMap<>(1);
+        addSessionIdHeader(options.headers);
+        options.requestMethod = Request.GET;
+        try {
+            authorizationRequestSend(context,"logout", options, listener);
+        } catch (Exception e) {
+            logger.debug("Could not log out");
+        }
+    }
     /**
      * Invoke request for registration, the result of the request should contain ClientId.
      * @param context android context
