@@ -13,20 +13,8 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
-import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.MediaType;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import static com.squareup.okhttp.internal.Util.UTF_8;
 
 /**
  * This class has methods to get more details from the Response to the BaseRequest.
