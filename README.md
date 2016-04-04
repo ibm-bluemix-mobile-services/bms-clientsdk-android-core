@@ -19,7 +19,8 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
 ####1.2.0
-* Added logout functionality.
+* Added logout functionality. To use it call
+  AuthorizationManager.getInstance().logout(getApplicationContext(), listener), where listener is to be called when the logout completes (you can also pass null instead).
 
 ####1.1.0
 * Fixed send for Logger.
