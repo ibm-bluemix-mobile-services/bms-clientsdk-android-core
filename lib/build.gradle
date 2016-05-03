@@ -36,7 +36,7 @@ android {
 dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.4'
 
-    compile 'com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:1.+'
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:[1.0.0,)'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.0'
@@ -107,7 +107,7 @@ def isReleaseBuild() {
 }
 
 def getVersion() {
-    return '2.0.1-SNAPSHOT'
+    return '2.0.0'
 }
 
 uploadArchives {
