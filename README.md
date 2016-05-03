@@ -13,11 +13,15 @@ This package contains the core components of Android SDK
 * Logger
 * Analytics
 
-
 ###Supported Levels
 The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
+####2.0.0
+* To use all the Analytics features, the new Analytics SDK will now need to be added as a dependency. Refer to https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-analytics for more details.
+* Several APIs have been updated, and those would not be compatible with previous versions.
+    * For example, BMSClient.initialize() now requires a region to be passed to it as well.
+
 ####1.1.0
 * Fixed send for Logger.
 * Added the ability to hide this SDK's 'debug' and 'info' level logs from Logcat. To show them again, call Logger.setSDKInternalLoggingEnabled(true).
