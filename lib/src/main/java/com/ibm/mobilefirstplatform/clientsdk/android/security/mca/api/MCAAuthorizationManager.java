@@ -255,5 +255,15 @@ public class MCAAuthorizationManager implements AuthorizationManager {
         return challengeHandlers.get(realm);
     }
 
+    /**
+     * logs out user
+     * @param context Android Activity that will handle the authorization (like facebook or google)
+     * @param listener Response listener
+     */
+
+    public void logout(Context context, ResponseListener listener){
+        clearAuthorizationData();
+        authorizationProcessManager.logout(context, listener);
+    }
 
 }

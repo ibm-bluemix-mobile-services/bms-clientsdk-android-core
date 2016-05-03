@@ -77,4 +77,13 @@ public class DummyAuthorizationManager implements AuthorizationManager {
 	public AppIdentity getAppIdentity () {
 		return appIdentity;
 	}
+
+	/**
+	 * logs out user
+	 * @param context Android Activity that will handle the authorization (like facebook or google)
+	 * @param listener Response listener
+	 */
+
+	@Override
+	public void logout(Context context, ResponseListener listener){}
 }

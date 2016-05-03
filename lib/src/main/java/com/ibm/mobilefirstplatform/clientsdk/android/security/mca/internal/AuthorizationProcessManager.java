@@ -121,7 +121,7 @@ public class AuthorizationProcessManager {
      * @param listener Response listener
      */
     public void logout(Context context, ResponseListener listener) {
-        AuthorizationRequestAgent.RequestOptions options = new AuthorizationRequestAgent.RequestOptions();
+        AuthorizationRequestManager.RequestOptions options = new AuthorizationRequestManager.RequestOptions();
         options.parameters = new HashMap<String,String>(1);
         options.parameters.put("client_id", preferences.clientId.get());
         options.headers = new HashMap<>(1);
