@@ -36,9 +36,7 @@ android {
 dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.4'
 
-    compile('com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:1.+@aar'){
-        transitive = true
-    }
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:1.+'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.0'

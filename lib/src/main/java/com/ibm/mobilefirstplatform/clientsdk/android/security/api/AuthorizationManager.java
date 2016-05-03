@@ -72,5 +72,12 @@ public interface AuthorizationManager {
 	 */
 	AppIdentity getAppIdentity();
 
+	/**
+	 * logs out user
+	 * @param context Android Activity that will handle the authorization (like facebook or google)
+	 * @param listener Response listener
+	 */
+	void logout(Context context, ResponseListener listener);
+
 }
 
