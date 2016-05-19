@@ -1,7 +1,7 @@
 language: android
 android:
   components:
-  - build-tools-23.0.0
+  - build-tools-23.0.2
   - android-23
   - extra
 script: ./gradlew clean assemble test uploadArchives --refresh-dependencies
