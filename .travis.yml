@@ -9,3 +9,9 @@ script: ./gradlew clean assemble test uploadArchives --refresh-dependencies
 before_install:
 - openssl aes-256-cbc -K $encrypted_4d7c096889b1_key -iv $encrypted_4d7c096889b1_iv
   -in gradle.properties.enc -out gradle.properties -d
+after_script:
+  - ./travis-build-trigger.sh 7588400 $TRAVIS_BRANCH $AUTH_TOKEN
+  - ./travis-build-trigger.sh 8211858 $TRAVIS_BRANCH $AUTH_TOKEN
+  - ./travis-build-trigger.sh 7588402 $TRAVIS_BRANCH $AUTH_TOKEN
+  - ./travis-build-trigger.sh 7588405 $TRAVIS_BRANCH $AUTH_TOKEN
+  - ./travis-build-trigger.sh 7588407 $TRAVIS_BRANCH $AUTH_TOKEN
