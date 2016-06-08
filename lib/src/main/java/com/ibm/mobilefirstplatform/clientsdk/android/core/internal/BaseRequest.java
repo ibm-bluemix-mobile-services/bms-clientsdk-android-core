@@ -16,8 +16,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.CipherSuite;
-import com.squareup.okhttp.ConnectionSpec;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.Interceptor;
@@ -25,7 +23,6 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.TlsVersion;
 
 import org.json.JSONObject;
 
@@ -34,8 +31,7 @@ import java.net.CookieManager;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
+import java.security.NoSuchAlgorithmException;Remove
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
