@@ -15,14 +15,15 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.TLSEnabledSSLSocketFactory;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.net.MalformedURLException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-/**
- * Created by vitalym on 10/14/15.
- */
+import javax.net.ssl.SSLSocketFactory;
 
 /**
  * AuthorizationRequest is used internally to send authorization requests.
@@ -30,6 +31,18 @@ import java.util.Map;
 public class AuthorizationRequest extends BaseRequest {
 
     private static OkHttpClient httpClient = new OkHttpClient();
+
+    static {
+        SSLSocketFactory tlsEnabledSSLSocketFactory;
+        try {
+            tlsEnabledSSLSocketFactory = new TLSEnabledSSLSocketFactory();
+            httpClient.setSslSocketFactory(tlsEnabledSSLSocketFactory);
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Constructs the authorization request
