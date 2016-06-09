@@ -1,6 +1,10 @@
 IBM Bluemix Mobile Services - Client SDK Android Core
 ===
 
+[![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=master)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
+[![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=development)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
+
 This is the core component of Android SDK for IBM Bluemix Mobile Services. https://console.ng.bluemix.net/solutions/mobilefirst
 
 ###Installation
@@ -13,14 +17,20 @@ This package contains the core components of Android SDK
 * Logger
 * Analytics
 
-
 ###Supported Levels
 The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
+
+####2.0.0
+* To use all the Analytics features, the new Analytics SDK will now need to be added as a dependency. Refer to https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-analytics for more details.
+* Several APIs have been updated, and those would not be compatible with previous versions.
+    * For example, BMSClient.initialize() now requires a region to be passed to it as well.
+
 ####1.2.0
 * Added logout functionality. To use it call
   AuthorizationManager.getInstance().logout(getApplicationContext(), listener), where listener is to be called when the logout completes (you can also pass null instead).
+
 
 ####1.1.0
 * Fixed send for Logger.
