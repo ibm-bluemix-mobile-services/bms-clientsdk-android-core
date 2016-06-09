@@ -25,7 +25,7 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 * To use all the Analytics features, the new Analytics SDK will now need to be added as a dependency. Refer to https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-analytics for more details.
 * Several APIs have been updated, and those would not be compatible with previous versions.
     * For example, BMSClient.initialize() now requires a region to be passed to it as well.
-=======
+
 ####1.2.0
 * Added logout functionality. To use it call
   AuthorizationManager.getInstance().logout(getApplicationContext(), listener), where listener is to be called when the logout completes (you can also pass null instead).
@@ -63,4 +63,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
