@@ -31,8 +31,8 @@ plugins {
 
 sonarqube {
     properties {
-        property 'sonar.projectName', project.name
-        property 'sonar.projectKey', 'ibm-bluemix-mobile-services:' + project.name
+        property 'sonar.projectName', 'Bluemix Mobile Services Core SDK for Android'
+        property 'sonar.projectKey', project.name
         property 'sonar.projectVersion', '1.0'
     }
 }
