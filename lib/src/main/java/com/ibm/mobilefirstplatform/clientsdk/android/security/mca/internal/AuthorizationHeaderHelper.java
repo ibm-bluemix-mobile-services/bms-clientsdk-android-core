@@ -30,7 +30,7 @@ public class AuthorizationHeaderHelper {
     public static final String BEARER = "Bearer";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String WWW_AUTHENTICATE_HEADER = "WWW-Authenticate";
-
+    private static final String AUTH_REALM = "\"imfAuthentication\"";
 
     public static boolean isAuthorizationRequired(int statusCode, String responseAuthorizationHeader) {
         return isAuthorizationRequired(statusCode, Arrays.asList(responseAuthorizationHeader));
@@ -67,15 +67,15 @@ public class AuthorizationHeaderHelper {
      * Check if the params came from response that requires authorization
      * @param statusCode status code of the responce
      * @param wwwAuthenticateHeaders list of WWW-Authenticate headers
-     * @return true if status is 401 or 403 and The value of the header contains 'Bearer'
+     * @return true if status is 401 or 403 and The value of the header starts with 'Bearer' and that it contains ""imfAuthentication""
      */
     private static boolean isAuthorizationRequired(int statusCode, List<String> wwwAuthenticateHeaders) {
 
         if (statusCode == 401 || statusCode == 403) {
-            
+
             //It is possible that there will be more then one header for this header-name. This is why we need the loop here.
             for (String header : wwwAuthenticateHeaders) {
-                if (header.contains(BEARER)) {
+                if (header.toLowerCase().startsWith(BEARER.toLowerCase()) && header.toLowerCase().contains(AUTH_REALM.toLowerCase())) {
                     return true;
                 }
             }

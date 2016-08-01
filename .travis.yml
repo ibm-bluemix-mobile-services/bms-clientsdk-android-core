@@ -8,18 +8,20 @@ android:
 env:
   global:
   - END_TASK=""
+  - secure: LokIMR9PGzuAr4nkJ4IF103395HJx1iea/qflwn5486N9uzYwakmq0TGDt3jzsy9hl9g8+9QdfXfF97PzWivL9A3tMNGv+ijWOMsqBObsMrq8IiOnNJSKeVbKrFqm1dMGlxKszf+M+LLqrW89fdICL/WfoFrns0SxcZXbKzmebJRfrk4T3NzFvo981Ax0oDFlJEb8qZV8uMXugX73vz/5CJoAJZ7I6p5mjAv/uIBFEQHbFrEaL5oNqMlOgVyOnFF3ZMVDKMPP98vww3YeUeiH2rE8vnwFg4o34UF1ofLqoHSyjSz0LumMUooEdLTfYmTH/BfyOphFgJMKmV3Vj1J5VyW3+eBLiTEpAVtkX6OjRlNom54CBDOnIQ7yboKlLoXUyAgI1w0QD8yfdXktxQ0Nl4MbysLV+eK2coOy7qgtL2XjaDZxZ9BycgahK3Fwaii+yj122Og1xe3aZw4J9Ftw+Rrj+lFx0LDIO4oeZKFRNKH9cmJwMJAczbNGadqINn2iGiRXc5eR51jvO+xNPtHdpW+037ZePqyWORgLd5PgyvMtt0yLFE40I8f+nK31AzccwcPFV2naNR333+zYc7DyIsP61BGIqf9Z/HZvNn/Jtv/3s9Gvre3P4nUWhdmhWlNo4iRLxmjFjQET2tTPTfBakKta6xIfyg7a7q508tYhBs=
+jdk:
+  - oraclejdk8
 script:
   - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
-      export END_TASK="uploadArchives";
+      export END_TASK="uploadArchives sonarqube";
     fi
-  - ./gradlew clean assemble test ${END_TASK} --refresh-dependencies
+  - ./gradlew clean assemble test ${END_TASK} --refresh-dependencies -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN
 before_install:
   - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
       openssl aes-256-cbc -K $encrypted_4d7c096889b1_key -iv $encrypted_4d7c096889b1_iv -in gradle.properties.enc -out gradle.properties -d;
     fi
 after_script:
   - ./travis-build-trigger.sh 7588400 $TRAVIS_BRANCH $AUTH_TOKEN
-  - ./travis-build-trigger.sh 8211858 $TRAVIS_BRANCH $AUTH_TOKEN
   - ./travis-build-trigger.sh 7588402 $TRAVIS_BRANCH $AUTH_TOKEN
   - ./travis-build-trigger.sh 7588405 $TRAVIS_BRANCH $AUTH_TOKEN
   - ./travis-build-trigger.sh 7588407 $TRAVIS_BRANCH $AUTH_TOKEN

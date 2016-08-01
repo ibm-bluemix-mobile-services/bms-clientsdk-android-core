@@ -4,6 +4,7 @@ IBM Bluemix Mobile Services - Client SDK Android Core
 [![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=master)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
 [![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=development)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
+[![Quality Gate](http://nemo.sonarqube.org/api/badges/gate?key=bms-clientsdk-android-core)](http://nemo.sonarqube.org/dashboard/index/bms-clientsdk-android-core) [![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
 
 This is the core component of Android SDK for IBM Bluemix Mobile Services. https://console.ng.bluemix.net/solutions/mobilefirst
 
@@ -11,7 +12,7 @@ This is the core component of Android SDK for IBM Bluemix Mobile Services. https
 You can either download and import this package to your Android Studio project or get it via Gradle.
 
 ###Contents
-This package contains the core components of Android SDK
+This package contains the following APIs:
 * HTTP Infrastructure
 * Security and Authentication
 * Logger
