@@ -23,6 +23,9 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
 
+####2.0.2
+* Fixed problem in the Security capabilities when getting the authorization header.
+
 ####2.0.0
 * To use all the Analytics features, the new Analytics SDK will now need to be added as a dependency. Refer to https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-analytics for more details.
 * Several APIs have been updated, and those would not be compatible with previous versions.
