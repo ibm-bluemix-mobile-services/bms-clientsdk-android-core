@@ -15,6 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api;
 
 import android.content.Context;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
@@ -28,6 +29,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.Autho
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.AuthorizationRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.challengehandlers.ChallengeHandler;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.preferences.AuthorizationManagerPreferences;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.preferences.SharedPreferencesManager;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -51,6 +53,9 @@ public class MCAAuthorizationManager implements AuthorizationManager {
     private AuthorizationManagerPreferences preferences;
     private AuthorizationProcessManager authorizationProcessManager;
     private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<>();
+    private String tenantId = null;
+    private String bluemixRegionSuffix = null;
+
 
     private MCAAuthorizationManager (Context context) {
         this.preferences = new AuthorizationManagerPreferences(context);
@@ -75,8 +80,38 @@ public class MCAAuthorizationManager implements AuthorizationManager {
         if (instance == null) {
             instance = new MCAAuthorizationManager(context.getApplicationContext());
 
+            instance.bluemixRegionSuffix = BMSClient.getInstance().getBluemixRegionSuffix();
+            instance.tenantId = BMSClient.getInstance().getBluemixAppGUID();
+
             AuthorizationRequest.setup();
         }
+        return instance;
+    }
+
+    /**
+     * Init singleton instance with context and tenantId
+     * @param context Application context
+     * @param tenantId the unique tenant id of the MCA service instance that the application connects to.
+     * @return The singleton instance
+     */
+    public static synchronized MCAAuthorizationManager createInstance(Context context, String tenantId) {
+        instance = createInstance(context);
+        instance.tenantId = tenantId;
+        return instance;
+
+    }
+
+    /**
+     * Init singleton instance with context, tenantId and Bluemix region.
+     * @param context Application context
+     * @param tenantId the unique tenant id of the MCA service instance that the application connects to.
+     * @param bluemixRegion Specifies the Bluemix deployment to use.
+     * @return The singleton instance
+     */
+    public static synchronized MCAAuthorizationManager createInstance(Context context, String tenantId, String bluemixRegion) {
+        instance = createInstance(context);
+        instance.tenantId = tenantId;
+        instance.bluemixRegionSuffix = bluemixRegion;
         return instance;
     }
 
@@ -88,6 +123,20 @@ public class MCAAuthorizationManager implements AuthorizationManager {
             throw new IllegalStateException("getInstance can't be called before createInstance");
         }
         return instance;
+    }
+
+    /**
+     * @return The MCA instance tenantId
+     */
+    public String getTenantId(){
+        return tenantId;
+    }
+
+    /**
+     * @return Bluemix region suffix ,use to build URLs
+     */
+    public String getBluemixRegionSuffix(){
+        return bluemixRegionSuffix;
     }
 
     /**
