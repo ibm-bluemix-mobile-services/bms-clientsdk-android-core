@@ -55,6 +55,8 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 * Initial release
 
 
+###License
+
 Copyright 2015 IBM Corp.
 
 Licensed under the Apache License, Version 2.0 (the "License");
