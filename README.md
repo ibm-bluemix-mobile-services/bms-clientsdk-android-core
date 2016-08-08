@@ -6,7 +6,7 @@ IBM Bluemix Mobile Services - Client SDK Android Core
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
 [![Quality Gate](http://nemo.sonarqube.org/api/badges/gate?key=bms-clientsdk-android-core)](http://nemo.sonarqube.org/dashboard/index/bms-clientsdk-android-core) [![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
 
-This is the core component of Android SDK for IBM Bluemix Mobile Services. https://console.ng.bluemix.net/solutions/mobilefirst
+This is the core component of Android SDK for [IBM® Bluemix® Mobile services] (https://console.ng.bluemix.net/docs/mobile/index.html).
 
 ###Installation
 You can either download and import this package to your Android Studio project or get it via Gradle.
