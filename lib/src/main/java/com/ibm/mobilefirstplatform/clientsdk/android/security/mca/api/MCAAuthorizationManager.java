@@ -96,7 +96,9 @@ public class MCAAuthorizationManager implements AuthorizationManager {
      */
     public static synchronized MCAAuthorizationManager createInstance(Context context, String tenantId) {
         instance = createInstance(context);
-        instance.tenantId = tenantId;
+        if (null != tenantId) {
+            instance.tenantId = tenantId;
+        }
         return instance;
 
     }
@@ -109,9 +111,11 @@ public class MCAAuthorizationManager implements AuthorizationManager {
      * @return The singleton instance
      */
     public static synchronized MCAAuthorizationManager createInstance(Context context, String tenantId, String bluemixRegion) {
-        instance = createInstance(context);
-        instance.tenantId = tenantId;
-        instance.bluemixRegionSuffix = bluemixRegion;
+        instance = createInstance(context, tenantId);
+        if (null != bluemixRegion) {
+            instance.bluemixRegionSuffix = bluemixRegion;
+
+        }
         return instance;
     }
 
