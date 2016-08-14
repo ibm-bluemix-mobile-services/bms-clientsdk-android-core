@@ -23,6 +23,9 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
 
+####2.1.0
+* Added MCAAuthorizationManager create methods with tenantId and region parameters, in order to be able to support service keys
+
 ####2.0.2
 * Fixed problem in the Security capabilities when getting the authorization header.
 
