@@ -173,7 +173,7 @@ public class AuthorizationRequestManager implements ResponseListener {
 			String serverHost = BMSClient.getInstance().getDefaultProtocol()
 							+ "://"
 							+ AUTH_SERVER_NAME
-							+ BMSClient.getInstance().getBluemixRegionSuffix();
+							+ MCAAuthorizationManager.getInstance().getBluemixRegionSuffix();
 
 			if (overrideServerHost!=null)
 				serverHost = overrideServerHost;
@@ -183,7 +183,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                     + AUTH_SERVER_NAME
                     + "/"
                     + AUTH_PATH
-                    + BMSClient.getInstance().getBluemixAppGUID();
+                    + MCAAuthorizationManager.getInstance().getTenantId();
         }
 
         sendRequestInternal(rootUrl, path, options);
