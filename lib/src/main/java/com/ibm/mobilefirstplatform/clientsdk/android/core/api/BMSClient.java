@@ -56,7 +56,7 @@ public class BMSClient extends AbstractClient {
     }
 
 	/**
-	 * @deprecated As of release 2.1.0, replaced by {@link #initialize(Context, String...)}
+	 * @deprecated As of release 2.2.0, replaced by {@link #initialize(Context, String...)}
 	 * Initializes the SDK with supplied parameters
 	 * <p>
 	 * This method should be called before you send the first request
