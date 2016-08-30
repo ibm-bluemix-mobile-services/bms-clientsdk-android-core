@@ -33,9 +33,9 @@ public class BMSClient extends AbstractClient {
     public final static String HTTP_SCHEME = "http";
     public final static String HTTPS_SCHEME = "https";
 	
-    private String backendRoute;
-    private String backendGUID;
-	private String bluemixRegionSuffix;
+    private String backendRoute = null;
+    private String backendGUID = null;
+	private String bluemixRegionSuffix = null;
     private String defaultProtocol = HTTPS_SCHEME;
 
     protected static AbstractClient instance = null;
@@ -56,6 +56,7 @@ public class BMSClient extends AbstractClient {
     }
 
 	/**
+	 * @deprecated As of release 2.1.0, replaced by {@link #initialize(Context, String...)}
 	 * Initializes the SDK with supplied parameters
 	 * <p>
 	 * This method should be called before you send the first request
@@ -70,6 +71,23 @@ public class BMSClient extends AbstractClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
+		this.authorizationManager = new DummyAuthorizationManager(context);
+
+		Request.setCookieManager(cookieManager);
+		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+	}
+
+	/**
+	 * Initializes the SDK with supplied parameters.
+	 * <p>
+	 * This method should be called before you send the first request
+	 * </p>
+	 * @param context Android application context
+	 * @param bluemixRegion Specifies the Bluemix region to use. Use values in BMSClient.REGION* static props.
+	 * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
+	 */
+	public void initialize(Context context, String... bluemixRegion){
+		this.bluemixRegionSuffix = bluemixRegion[0]; // Change this if we ever support retries with multiple regions
 		this.authorizationManager = new DummyAuthorizationManager(context);
 
 		Request.setCookieManager(cookieManager);
