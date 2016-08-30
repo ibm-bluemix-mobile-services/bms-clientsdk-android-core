@@ -11,6 +11,13 @@ This is the core component of Android SDK for [IBM® Bluemix® Mobile services] 
 ###Installation
 You can either download and import this package to your Android Studio project or get it via Gradle.
 
+###Using the SDK
+Before doing anything, first initialize the BMS Core SDK by calling `BMSClient.initialize`:
+
+```
+    BMSClient.initialize(getApplicationContext(), BMSClient.REGION_US_SOUTH); //Replace the region with the Bluemix region you are using.
+```
+
 ###Contents
 This package contains the following APIs:
 * HTTP Infrastructure
@@ -22,6 +29,9 @@ This package contains the following APIs:
 The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
+
+####2.2.0
+* Added a new initializer for BMSClient that does not require the app route and app guid; the old initializer has now been deprecated and will be removed on the next major version (3.x). Note that this initializer has no checked exceptions, unlike the old one.
 
 ####2.1.0
 * Added MCAAuthorizationManager create methods with tenantId and region parameters, in order to be able to support service keys
