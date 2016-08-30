@@ -6,7 +6,7 @@ IBM Bluemix Mobile Services - Client SDK Android Core
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
 [![Quality Gate](http://nemo.sonarqube.org/api/badges/gate?key=bms-clientsdk-android-core)](http://nemo.sonarqube.org/dashboard/index/bms-clientsdk-android-core) [![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
 
-This is the core component of Android SDK for IBM Bluemix Mobile Services. https://console.ng.bluemix.net/solutions/mobilefirst
+This is the core component of Android SDK for [IBM® Bluemix® Mobile services] (https://console.ng.bluemix.net/docs/mobile/index.html).
 
 ###Installation
 You can either download and import this package to your Android Studio project or get it via Gradle.
@@ -22,6 +22,9 @@ This package contains the following APIs:
 The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
+
+####2.1.0
+* Added MCAAuthorizationManager create methods with tenantId and region parameters, in order to be able to support service keys
 
 ####2.0.2
 * Fixed problem in the Security capabilities when getting the authorization header.
@@ -54,6 +57,8 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 ####1.0.0
 * Initial release
 
+
+###License
 
 Copyright 2015 IBM Corp.
 

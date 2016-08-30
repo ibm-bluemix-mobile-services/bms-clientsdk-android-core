@@ -168,12 +168,19 @@ public class AuthorizationRequestManager implements ResponseListener {
             path = url.getPath();
             rootUrl = url.toString().replace(path, "");
         } else {
+            String MCATenantId = MCAAuthorizationManager.getInstance().getTenantId();
+            if(MCATenantId == null){
+                MCATenantId = BMSClient.getInstance().getBluemixAppGUID();
+            }
+            String bluemixRegionSuffix = MCAAuthorizationManager.getInstance().getBluemixRegionSuffix();
+            if(bluemixRegionSuffix == null){
+                bluemixRegionSuffix = BMSClient.getInstance().getBluemixRegionSuffix();
+            }
             // "path" is a relative
-
 			String serverHost = BMSClient.getInstance().getDefaultProtocol()
 							+ "://"
 							+ AUTH_SERVER_NAME
-							+ BMSClient.getInstance().getBluemixRegionSuffix();
+							+ bluemixRegionSuffix;
 
 			if (overrideServerHost!=null)
 				serverHost = overrideServerHost;
@@ -183,7 +190,7 @@ public class AuthorizationRequestManager implements ResponseListener {
                     + AUTH_SERVER_NAME
                     + "/"
                     + AUTH_PATH
-                    + BMSClient.getInstance().getBluemixAppGUID();
+                    + MCATenantId;
         }
 
         sendRequestInternal(rootUrl, path, options);
