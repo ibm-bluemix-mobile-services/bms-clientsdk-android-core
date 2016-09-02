@@ -14,13 +14,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "com.ibm.bms_clientsdk_android_core"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
 
@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23+'
+    compile 'com.android.support:appcompat-v7:24+'
     compile 'org.jsoup:jsoup:1.8.3'
     compile project(':lib')
 }
