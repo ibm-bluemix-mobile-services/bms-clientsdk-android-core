@@ -436,7 +436,7 @@ public class BaseRequest {
         if(method.equalsIgnoreCase(BaseRequest.GET)) {
             requestBuilder.get();
         }
-        else if(!method.equalsIgnoreCase(BaseRequest.HEAD)){
+        else if(method.equalsIgnoreCase(BaseRequest.HEAD)){
             requestBuilder.head();
         }
         else {

@@ -16,7 +16,7 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 ext{
-    CORE_SDK_VERSION = '2.2.2-SNAPSHOT'
+    CORE_SDK_VERSION = '2.2.3-SNAPSHOT'
 }
 
 android {
