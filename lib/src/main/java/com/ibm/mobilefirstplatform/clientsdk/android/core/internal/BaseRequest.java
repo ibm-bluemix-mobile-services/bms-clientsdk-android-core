@@ -432,11 +432,15 @@ public class BaseRequest {
             return;
         }
 
-        //A GET request cannot have a body in OKHTTP
-        if (!method.equalsIgnoreCase("GET")) {
-            requestBuilder.method(method, requestBody);
-        } else {
+        //A GET or HEAD request cannot have a body in OKHTTP
+        if(method.equalsIgnoreCase(BaseRequest.GET)) {
             requestBuilder.get();
+        }
+        else if(!method.equalsIgnoreCase(BaseRequest.HEAD)){
+            requestBuilder.head();
+        }
+        else {
+            requestBuilder.method(method, requestBody);
         }
 
         Request request = requestBuilder.build();

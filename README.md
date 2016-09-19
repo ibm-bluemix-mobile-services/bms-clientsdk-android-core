@@ -30,6 +30,9 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
 
+####2.2.2
+* Any request using the HEAD HTTP verb would fail, due to the Request class adding a body. This is fixed, and now HEAD requests are sent without a body.
+
 ####2.2.1
 * Android Nougat officially supported; changed the target SDK version to 24.
 
