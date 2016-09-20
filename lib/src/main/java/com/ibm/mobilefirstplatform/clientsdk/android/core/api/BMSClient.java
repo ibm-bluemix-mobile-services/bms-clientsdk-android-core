@@ -56,7 +56,7 @@ public class BMSClient extends AbstractClient {
     }
 
 	/**
-	 * @deprecated As of release 2.2.0, replaced by {@link #initialize(Context, String...)}
+	 * @deprecated As of release 2.2.0, replaced by {@link #initialize(Context, String)}
 	 * Initializes the SDK with supplied parameters
 	 * <p>
 	 * This method should be called before you send the first request
@@ -86,8 +86,8 @@ public class BMSClient extends AbstractClient {
 	 * @param bluemixRegion Specifies the Bluemix region to use. Use values in BMSClient.REGION* static props.
 	 * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
 	 */
-	public void initialize(Context context, String... bluemixRegion){
-		this.bluemixRegionSuffix = bluemixRegion[0]; // Change this if we ever support retries with multiple regions
+	public void initialize(Context context, String bluemixRegion){
+		this.bluemixRegionSuffix = bluemixRegion; // Change this if we ever support retries with multiple regions
 		this.authorizationManager = new DummyAuthorizationManager(context);
 
 		Request.setCookieManager(cookieManager);

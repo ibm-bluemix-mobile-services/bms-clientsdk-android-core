@@ -30,6 +30,9 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 
 ###Change log
 
+####2.2.4
+* Fixed an issue with the new initializer; signature remains the same.
+
 ####2.2.3
 * Fixed conditional logic error when sending requests.
 
@@ -40,7 +43,8 @@ The package is supported on Android API level 14 and up (Android 4.0 and up).
 * Android Nougat officially supported; changed the target SDK version to 24.
 
 ####2.2.0
-* Added a new initializer for BMSClient that does not require the app route and app guid; the old initializer has now been deprecated and will be removed on the next major version (3.x). Note that this initializer has no checked exceptions, unlike the old one.
+* Added a new initializer for BMSClient that does not require the app route and app guid: `BMSClient.initialize(context, BMSClient.REGION_US_SOUTH);` 
+* The old initializer has now been deprecated and will be removed on the next major version (3.x). Note that this initializer has no checked exceptions, unlike the old one.
 
 ####2.1.0
 * Added MCAAuthorizationManager create methods with tenantId and region parameters, in order to be able to support service keys
