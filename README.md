@@ -26,7 +26,7 @@ This package contains the following APIs:
 * Analytics
 
 ###Supported Levels
-The package is supported on Android API level 14 and up (Android 4.0 and up).
+The package is supported on Android API level 15 and up (Android 4.0.3 and up).
 
 ###Change log
 
