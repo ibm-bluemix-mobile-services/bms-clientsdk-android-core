@@ -95,7 +95,8 @@ public class BMSClient extends AbstractClient {
 	}
 
     /**
-     *
+     * @deprecated As of release 2.2.0. if you use the new initialize methoud this function return null.
+     * Will be removed as release 3.x
      * @return backend route url
      */
     public String getBluemixAppRoute() {
@@ -103,7 +104,8 @@ public class BMSClient extends AbstractClient {
     }
 
     /**
-     *
+     * @deprecated As of release 2.2.0. if you use the new initialize methoud this function return null.
+     * Will be removed as release 3.x
      * @return backend GUID
      */
     public String getBluemixAppGUID() {
