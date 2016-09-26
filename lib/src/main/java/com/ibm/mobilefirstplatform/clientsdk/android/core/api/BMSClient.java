@@ -71,7 +71,7 @@ public class BMSClient extends AbstractClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
-        if(null == this.authorizationManager) {
+        if (null == this.authorizationManager) {
             this.authorizationManager = new DummyAuthorizationManager(context);
         }
 		Request.setCookieManager(cookieManager);
@@ -89,7 +89,7 @@ public class BMSClient extends AbstractClient {
 	 */
 	public void initialize(Context context, String bluemixRegion){
 		this.bluemixRegionSuffix = bluemixRegion; // Change this if we ever support retries with multiple regions
-        if(null == this.authorizationManager) {
+        if (null == this.authorizationManager) {
             this.authorizationManager = new DummyAuthorizationManager(context);
         }
 		Request.setCookieManager(cookieManager);
