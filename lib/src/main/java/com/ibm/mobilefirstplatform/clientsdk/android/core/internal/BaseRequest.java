@@ -127,7 +127,15 @@ public class BaseRequest {
             this.url = convertRelativeURLToBluemixAbsolute(url);
         }
 
+        removeTrailingSlash();
+
         setTimeout(timeout);
+    }
+
+    protected void removeTrailingSlash() {
+        if(this.url != null && this.url.endsWith("/")){
+            this.url = this.url.substring(0, this.url.length() - 1);
+        }
     }
 
     private String convertRelativeURLToBluemixAbsolute(String url) {
