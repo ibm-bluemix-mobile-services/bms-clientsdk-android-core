@@ -71,8 +71,9 @@ public class BMSClient extends AbstractClient {
 		this.backendGUID = bluemixAppGUID;
 		this.backendRoute = bluemixAppRoute;
 		this.bluemixRegionSuffix = bluemixRegion;
-		this.authorizationManager = new DummyAuthorizationManager(context);
-
+        if (null == this.authorizationManager) {
+            this.authorizationManager = new DummyAuthorizationManager(context);
+        }
 		Request.setCookieManager(cookieManager);
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 	}
@@ -88,14 +89,16 @@ public class BMSClient extends AbstractClient {
 	 */
 	public void initialize(Context context, String bluemixRegion){
 		this.bluemixRegionSuffix = bluemixRegion; // Change this if we ever support retries with multiple regions
-		this.authorizationManager = new DummyAuthorizationManager(context);
-
+        if (null == this.authorizationManager) {
+            this.authorizationManager = new DummyAuthorizationManager(context);
+        }
 		Request.setCookieManager(cookieManager);
 		cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 	}
 
     /**
-     *
+     * @deprecated As of release 2.2.0. if you use the new initialize methoud this function return null.
+     * Will be removed as release 3.x
      * @return backend route url
      */
     public String getBluemixAppRoute() {
@@ -103,7 +106,8 @@ public class BMSClient extends AbstractClient {
     }
 
     /**
-     *
+     * @deprecated As of release 2.2.0. if you use the new initialize methoud this function return null.
+     * Will be removed as release 3.x
      * @return backend GUID
      */
     public String getBluemixAppGUID() {
