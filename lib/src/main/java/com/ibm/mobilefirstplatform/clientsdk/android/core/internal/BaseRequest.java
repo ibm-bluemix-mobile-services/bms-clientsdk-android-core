@@ -48,6 +48,7 @@ public class BaseRequest {
     public static final int DEFAULT_TIMEOUT = 60000;
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String JSON_CONTENT_TYPE = "application/json";
+    public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     public static final String TEXT_PLAIN = "text/plain";
 
     /**
@@ -340,7 +341,13 @@ public class BaseRequest {
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
     protected void send(byte[] data, ResponseListener listener) {
-        RequestBody body = RequestBody.create(MediaType.parse(headers.get(CONTENT_TYPE)), data);
+        String contentType = headers.get(CONTENT_TYPE);
+
+        if (contentType == null) {
+            contentType = BINARY_CONTENT_TYPE;
+        }
+
+        RequestBody body = RequestBody.create(MediaType.parse(headers.get(contentType)), data);
 
         sendRequest(listener, body);
     }
