@@ -15,7 +15,7 @@ You can either download and import this package to your Android Studio project o
 Before doing anything, first initialize the BMS Core SDK by calling `BMSClient.initialize`:
 
 ```
-    BMSClient.initialize(getApplicationContext(), BMSClient.REGION_US_SOUTH); //Replace the region with the Bluemix region you are using.
+    BMSClient.getInstance().initialize(getApplicationContext(), BMSClient.REGION_US_SOUTH); //Replace the region with the Bluemix region you are using.
 ```
 
 ###Contents
