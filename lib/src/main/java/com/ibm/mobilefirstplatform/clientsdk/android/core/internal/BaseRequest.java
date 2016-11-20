@@ -48,6 +48,7 @@ public class BaseRequest {
     public static final int DEFAULT_TIMEOUT = 60000;
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String JSON_CONTENT_TYPE = "application/json";
+    public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     public static final String TEXT_PLAIN = "text/plain";
 
     /**
@@ -126,7 +127,15 @@ public class BaseRequest {
             this.url = convertRelativeURLToBluemixAbsolute(url);
         }
 
+        removeTrailingSlash();
+
         setTimeout(timeout);
+    }
+
+    protected void removeTrailingSlash() {
+        if(this.url != null && this.url.endsWith("/")){
+            this.url = this.url.substring(0, this.url.length() - 1);
+        }
     }
 
     private String convertRelativeURLToBluemixAbsolute(String url) {
@@ -340,7 +349,13 @@ public class BaseRequest {
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
     protected void send(byte[] data, ResponseListener listener) {
-        RequestBody body = RequestBody.create(MediaType.parse(headers.get(CONTENT_TYPE)), data);
+        String contentType = headers.get(CONTENT_TYPE);
+
+        if (contentType == null) {
+            contentType = BINARY_CONTENT_TYPE;
+        }
+
+        RequestBody body = RequestBody.create(MediaType.parse(headers.get(contentType)), data);
 
         sendRequest(listener, body);
     }
@@ -432,11 +447,15 @@ public class BaseRequest {
             return;
         }
 
-        //A GET request cannot have a body in OKHTTP
-        if (!method.equalsIgnoreCase("GET")) {
-            requestBuilder.method(method, requestBody);
-        } else {
+        //A GET or HEAD request cannot have a body in OKHTTP
+        if(method.equalsIgnoreCase(BaseRequest.GET)) {
             requestBuilder.get();
+        }
+        else if(method.equalsIgnoreCase(BaseRequest.HEAD)){
+            requestBuilder.head();
+        }
+        else {
+            requestBuilder.method(method, requestBody);
         }
 
         Request request = requestBuilder.build();

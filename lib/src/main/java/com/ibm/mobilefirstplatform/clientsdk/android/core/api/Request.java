@@ -224,6 +224,7 @@ public class Request extends BaseRequest {
                         listener.onFailure(new ResponseImpl(response), null, null);
                     }
                 }
+                response.body().close();
             }
         };
     }
