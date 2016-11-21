@@ -31,7 +31,7 @@ The package is supported on Android API level 15 and up (Android 4.0.3 and up).
 ###Change log
 
 ####2.2.6
-* Fixed a logout issue when working with Liberty with TAI backend.
+* Fixed a logout issue when working with Liberty with a TAI backend.
 
 ####2.2.5
 * Fixed issue where if no content type was specified, sending binary data would fail with a `NullPointerException`.
