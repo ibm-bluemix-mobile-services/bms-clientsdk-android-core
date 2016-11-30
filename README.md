@@ -30,6 +30,9 @@ The package is supported on Android API level 15 and up (Android 4.0.3 and up).
 
 ###Change log
 
+####2.2.7
+* Fixed issue when sending a Request with a byte array body, where it would throw a `NullPointerException` when trying to read the content type.
+
 ####2.2.6
 * Fixed a logout issue when working with Liberty with a TAI backend.
 

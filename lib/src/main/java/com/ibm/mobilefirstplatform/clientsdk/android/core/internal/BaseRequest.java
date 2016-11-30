@@ -355,7 +355,7 @@ public class BaseRequest {
             contentType = BINARY_CONTENT_TYPE;
         }
 
-        RequestBody body = RequestBody.create(MediaType.parse(headers.get(contentType)), data);
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
 
         sendRequest(listener, body);
     }
