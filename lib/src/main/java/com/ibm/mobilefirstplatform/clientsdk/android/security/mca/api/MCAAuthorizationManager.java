@@ -32,7 +32,10 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.prefe
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal.preferences.SharedPreferencesManager;
 
 import java.io.IOException;
+import java.net.CookieStore;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URLConnection;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
@@ -55,7 +58,7 @@ public class MCAAuthorizationManager implements AuthorizationManager {
     private HashMap<String, ChallengeHandler> challengeHandlers = new HashMap<>();
     private String tenantId = null;
     private String bluemixRegionSuffix = null;
-
+    private String TAI_COOKIE_NAME = "LtpaToken2";
 
     private MCAAuthorizationManager (Context context) {
         this.preferences = new AuthorizationManagerPreferences(context);
@@ -188,6 +191,18 @@ public class MCAAuthorizationManager implements AuthorizationManager {
         preferences.accessToken.clear();
         preferences.idToken.clear();
         preferences.userIdentity.clear();
+        if (BMSClient.getInstance() != null && BMSClient.getInstance().getCookieManager() != null) {
+            CookieStore cookieStore = BMSClient.getInstance().getCookieManager().getCookieStore();
+            if(cookieStore != null) {
+                for (URI uri : cookieStore.getURIs()) {
+                    for (HttpCookie cookie : cookieStore.get(uri)) {
+                        if (cookie.getName().equals(TAI_COOKIE_NAME)) {
+                            cookieStore.remove(uri, cookie);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
