@@ -4,7 +4,9 @@ IBM Bluemix Mobile Services - Client SDK Android Core
 [![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=master)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
 [![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=development)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
-[![Quality Gate](http://nemo.sonarqube.org/api/badges/gate?key=bms-clientsdk-android-core)](http://nemo.sonarqube.org/dashboard/index/bms-clientsdk-android-core) [![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/33762c419c1a4743a0348c93686acb1c)](https://www.codacy.com/app/ibm-bluemix-mobile-services/bms-clientsdk-android-core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ibm-bluemix-mobile-services/bms-clientsdk-android-core&amp;utm_campaign=Badge_Grade)
+[![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
+
 
 This is the core component of Android SDK for [IBM® Bluemix® Mobile services] (https://console.ng.bluemix.net/docs/mobile/index.html).
 
