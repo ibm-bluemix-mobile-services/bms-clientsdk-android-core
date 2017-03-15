@@ -1,0 +1,50 @@
+apply plugin: 'jacoco'
+
+class JacocoCustomResport extends JacocoReport {
+    JacocoCustomResport() {
+        super()
+        // Override upToDateWhen so the jacocoTestReport would always be executed
+        outputs.upToDateWhen { false }
+    }
+}
+// Ensure jacocoTestReport depends only on testDebugUnitTest
+tasks.whenTaskAdded { task ->
+    if (task.name == "testDebugUnitTest"){
+        jacocoTestReport.dependsOn(task)
+    }
+}
+
+task jacocoTestReport(type: JacocoCustomResport) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+
+    reports {
+        xml.enabled = true
+        xml.destination = file("$buildDir/reports/jacoco/test/jacocoTestReport.xml")
+        html.enabled = true
+    }
+
+    def sourceFilesDir = "${project.projectDir}/src/main/java"
+    println("jacoco.gradle :: sourceFilesDir ::" + sourceFilesDir)
+    sourceDirectories = files([sourceFilesDir])
+
+    def classDirectoriesDir = "${buildDir}/intermediates/classes/debug"
+    println("jacoco.gradle :: classDirectoriesDir ::" + classDirectoriesDir)
+    classDirectories = fileTree(
+            dir: classDirectoriesDir,
+            excludes: ['**/R*.class',
+                       '**/R$*.class',
+                       '**/*$InjectAdapter.class',
+                       '**/*$ModuleAdapter.class',
+                       '**/*$ViewInjector*.class',
+                       '**/*Test*.*',
+                       'android/**/*.*',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*'
+            ]
+    )
+
+    def executionDataFile = "${buildDir}/jacoco/testDebugUnitTest.exec"
+    println("jacoco.gradle :: executionDataFile ::" + executionDataFile)
+    executionData = files(executionDataFile)
+}

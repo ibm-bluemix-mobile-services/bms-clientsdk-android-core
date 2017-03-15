@@ -15,7 +15,8 @@ script:
   - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
       export END_TASK="uploadArchives";
     fi
-  - ./gradlew clean assemble test ${END_TASK}
+  - ./gradlew clean jacocoTestReport coveralls
+  - ./gradlew clean assemble ${END_TASK}
 before_install:
   - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
       openssl aes-256-cbc -K $encrypted_4d7c096889b1_key -iv $encrypted_4d7c096889b1_iv -in gradle.properties.enc -out gradle.properties -d;
