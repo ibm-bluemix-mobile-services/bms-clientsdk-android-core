@@ -80,6 +80,8 @@ public class BaseRequest {
      */
     public final static String OPTIONS = "OPTIONS";
 
+    protected int numberOfRetries;
+
     private String url = null;
     private String method = null;
     private int timeout;
@@ -108,7 +110,7 @@ public class BaseRequest {
      * @param method The HTTP method to use
      */
     public BaseRequest(String url, String method) {
-        this(url, method, DEFAULT_TIMEOUT);
+        this(url, method, DEFAULT_TIMEOUT, 0);
     }
 
     /**
@@ -120,8 +122,23 @@ public class BaseRequest {
      * @param timeout The timeout in milliseconds for this request.
      */
     public BaseRequest(String url, String method, int timeout) {
+        this(url, method, timeout, 0);
+    }
+
+    /**
+     * Constructs a new request with the specified URL, using the specified HTTP method.
+     * Additionally this constructor sets a custom timeout and number of times to automatically
+     * retry failed requests.
+     *
+     * @param url           The resource URL
+     * @param method        The HTTP method to use.
+     * @param timeout       The timeout in milliseconds for this request.
+     * @param autoRetries   The number of times to retry each request if it fails due to timeout or loss of network connection.
+     */
+    public BaseRequest(String url, String method, int timeout, int autoRetries) {
         this.url = url;
         this.method = method;
+        this.numberOfRetries = autoRetries;
 
         if(url != null && url.startsWith("/")) {
             this.url = convertRelativeURLToBluemixAbsolute(url);
@@ -459,17 +476,28 @@ public class BaseRequest {
         }
 
         Request request = requestBuilder.build();
+        sendOKHttpRequest(request, listener);
+    }
+
+    protected void sendOKHttpRequest(Request request, final ResponseListener listener) {
         OkHttpClient client = getHttpClient();
         client.newCall(request).enqueue(getCallback(listener));
         client.newCall(request);
-
     }
 
     protected Callback getCallback(final ResponseListener listener) {
         return new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
-                listener.onFailure(null, e, null);
+                if (numberOfRetries > 0) {
+                    sendOKHttpRequest(request, listener);
+
+                    numberOfRetries--;
+                } else {
+                    if (listener != null) {
+                        listener.onFailure(null, e, null);
+                    }
+                }
             }
 
             @Override
@@ -484,6 +512,11 @@ public class BaseRequest {
     }
 
     protected OkHttpClient getHttpClient(){
+        if (numberOfRetries > 0) {
+            httpClient.setRetryOnConnectionFailure(true);
+        } else {
+            httpClient.setRetryOnConnectionFailure(false);
+        }
         return httpClient;
     }
 

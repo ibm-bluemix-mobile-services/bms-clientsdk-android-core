@@ -12,21 +12,69 @@
 */
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import android.content.Context;
+import android.test.mock.MockContext;
+
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AppIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.DeviceIdentity;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.api.UserIdentity;
+
+import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
+
 public class RequestTest {
+
+    CountDownLatch latch = null;
+
+    private void setup() {
+
+        class MockAuthorizationManager implements AuthorizationManager {
+            private final DeviceIdentity deviceIdentity = null;
+            private final AppIdentity appIdentity = null;
+            public MockAuthorizationManager(Context context){ }
+            @Override
+            public boolean isAuthorizationRequired (int statusCode, Map<String, List<String>> headers) { return false; }
+            @Override
+            public boolean isAuthorizationRequired (HttpURLConnection urlConnection) throws IOException { return false; }
+            @Override
+            public void obtainAuthorization (Context context, ResponseListener listener, Object... params) { }
+            @Override
+            public String getCachedAuthorizationHeader () { return null; }
+            @Override
+            public void clearAuthorizationData () {}
+            @Override
+            public UserIdentity getUserIdentity () { return null; }
+            @Override
+            public DeviceIdentity getDeviceIdentity () { return null; }
+            @Override
+            public AppIdentity getAppIdentity () { return null; }
+            @Override
+            public void logout(Context context, ResponseListener listener) { }
+        }
+
+        BMSClient.getInstance().setAuthorizationManager(new MockAuthorizationManager(new MockContext()));
+    }
 
     @Test
     public void testDefaultValues() throws Exception{
-        String testUrl = "http://test.com";
+        String testUrl = "http://httpbin.org";
         Request request = new Request(testUrl, Request.POST);
 
         assertTrue(request.getAllHeaders() == null || request.getAllHeaders().size() == 0);
@@ -38,8 +86,77 @@ public class RequestTest {
     }
 
     @Test
+    public void testAutoRetriesWithTimeout() throws Exception {
+        setup();
+        latch = new CountDownLatch(1);
+
+        MockWebServer mockServer = new MockWebServer();
+        mockServer.start();
+
+        Request request = new Request(mockServer.url("").toString(), Request.GET, 10, 3);
+        ResponseListener listener = new ResponseListener() {
+            @Override
+            public void onSuccess(Response response) { }
+
+            @Override
+            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                if (response == null && t != null) {
+                    if (t.getMessage().contains("timeout") || t.getMessage().contains("timed out")) {
+                        latch.countDown();
+                    }
+                }
+            }
+        };
+
+        request.send(null, listener);
+
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+        assertEquals(0, request.getNumberOfRetries()); // Make sure all request retries have been exhausted
+
+        mockServer.shutdown();
+    }
+
+    @Test
+    public void testAutoRetriesWith504Response() throws Exception {
+        setup();
+        latch = new CountDownLatch(1);
+
+        int numberOfRetries = 5;
+
+        MockWebServer mockServer = new MockWebServer();
+        MockResponse response504 = new MockResponse().setResponseCode(504);
+
+        for (int i = 0; i <= numberOfRetries; i++) {
+            mockServer.enqueue(response504);
+        }
+        mockServer.start();
+
+        Request request = new Request(mockServer.url("").toString(), Request.GET, 10, numberOfRetries);
+        ResponseListener listener = new ResponseListener() {
+            @Override
+            public void onSuccess(Response response) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                if (response != null && response.getStatus() == 504) {
+                    latch.countDown();
+                }
+            }
+        };
+
+        request.send(null, listener);
+
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+        assertEquals(0, request.getNumberOfRetries()); // Make sure all request retries have been exhausted
+
+        mockServer.shutdown();
+    }
+
+    @Test
     public void timeoutShouldBeChangeable() throws Exception{
-        String testUrl = "http://test.com";
+        String testUrl = "http://httpbin.org";
         Request request = new Request(testUrl, Request.POST, 60);
 
         assertEquals(60, request.getTimeout());
@@ -51,7 +168,7 @@ public class RequestTest {
 
     @Test
     public void shouldBeAbleToAddQueryParameter() throws Exception {
-        String testUrl = "http://test.com";
+        String testUrl = "http://httpbin.org";
         Request request = new Request(testUrl, Request.POST, 60);
 
         String testQueryName = "test";
@@ -76,7 +193,7 @@ public class RequestTest {
 
     @Test
     public void shouldBeAbleToAddAndRemoveHeaders() throws Exception {
-        String testUrl = "http://test.com";
+        String testUrl = "http://httpbin.org";
         Request request = new Request(testUrl, Request.POST, 60);
 
         String testHeaderName = "testHeader";
@@ -103,7 +220,7 @@ public class RequestTest {
 
     @Test
     public void shouldBeAbleToSetHeaders() throws Exception {
-        String testUrl = "http://test.com";
+        String testUrl = "http://httpbin.org";
         Request request = new Request(testUrl, Request.POST, 60);
 
         String testHeaderName = "testHeader";

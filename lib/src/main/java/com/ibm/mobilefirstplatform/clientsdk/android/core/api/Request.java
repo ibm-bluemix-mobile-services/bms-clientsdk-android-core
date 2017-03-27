@@ -19,7 +19,6 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
@@ -59,6 +58,20 @@ public class Request extends BaseRequest {
     public Request(String url, String method, int timeout) {
         super(url, method, timeout);
 	}
+
+    /**
+     * Constructs a new resource request with the specified URL, using the specified HTTP method.
+     * Additionally this constructor sets a custom timeout and number of times to automatically
+     * retry failed requests.
+     *
+     * @param url           The resource URL
+     * @param method        The HTTP method to use.
+     * @param timeout       The timeout in milliseconds for this request.
+     * @param autoRetries   The number of times to retry each request if it fails due to timeout or loss of network connection.
+     */
+    public Request(String url, String method, int timeout, int autoRetries) {
+        super(url, method, timeout, autoRetries);
+    }
 
     /**
      * Returns the URL for this resource request.
@@ -181,8 +194,13 @@ public class Request extends BaseRequest {
         return new Callback() {
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
-                if (listener != null) {
-                    listener.onFailure(null, e, null);
+                if (numberOfRetries > 0) {
+                    numberOfRetries--;
+                    sendOKHttpRequest(request, listener);
+                } else {
+                    if (listener != null) {
+                        listener.onFailure(null, e, null);
+                    }
                 }
             }
 
@@ -220,6 +238,9 @@ public class Request extends BaseRequest {
                 } else {
                     if (response.isSuccessful() || response.isRedirect()) {
                         listener.onSuccess(new ResponseImpl(response));
+                    } else if (numberOfRetries > 0 && response.code() == 504) {
+                        numberOfRetries--;
+                        sendOKHttpRequest(response.request(), listener);
                     } else {
                         listener.onFailure(new ResponseImpl(response), null, null);
                     }
@@ -227,5 +248,9 @@ public class Request extends BaseRequest {
                 response.body().close();
             }
         };
+    }
+
+    protected int getNumberOfRetries() {
+        return numberOfRetries;
     }
 }
