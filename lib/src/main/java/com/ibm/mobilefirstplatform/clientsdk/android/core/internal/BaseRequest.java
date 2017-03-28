@@ -476,12 +476,12 @@ public class BaseRequest {
         }
 
         Request request = requestBuilder.build();
-        sendOKHttpRequest(request, listener);
+        sendOKHttpRequest(request, getCallback(listener));
     }
 
-    protected void sendOKHttpRequest(Request request, final ResponseListener listener) {
+    protected void sendOKHttpRequest(Request request, final Callback callback) {
         OkHttpClient client = getHttpClient();
-        client.newCall(request).enqueue(getCallback(listener));
+        client.newCall(request).enqueue(callback);
         client.newCall(request);
     }
 
@@ -490,9 +490,8 @@ public class BaseRequest {
             @Override
             public void onFailure(Request request, IOException e) {
                 if (numberOfRetries > 0) {
-                    sendOKHttpRequest(request, listener);
-
                     numberOfRetries--;
+                    sendOKHttpRequest(request, getCallback(listener));
                 } else {
                     if (listener != null) {
                         listener.onFailure(null, e, null);
@@ -512,11 +511,6 @@ public class BaseRequest {
     }
 
     protected OkHttpClient getHttpClient(){
-        if (numberOfRetries > 0) {
-            httpClient.setRetryOnConnectionFailure(true);
-        } else {
-            httpClient.setRetryOnConnectionFailure(false);
-        }
         return httpClient;
     }
 

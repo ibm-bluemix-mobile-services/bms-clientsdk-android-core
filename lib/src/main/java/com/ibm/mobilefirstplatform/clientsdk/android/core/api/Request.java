@@ -196,7 +196,7 @@ public class Request extends BaseRequest {
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
-                    sendOKHttpRequest(request, listener);
+                    sendOKHttpRequest(request, getCallback(listener));
                 } else {
                     if (listener != null) {
                         listener.onFailure(null, e, null);
@@ -240,7 +240,7 @@ public class Request extends BaseRequest {
                         listener.onSuccess(new ResponseImpl(response));
                     } else if (numberOfRetries > 0 && response.code() == 504) {
                         numberOfRetries--;
-                        sendOKHttpRequest(response.request(), listener);
+                        sendOKHttpRequest(response.request(), getCallback(listener));
                     } else {
                         listener.onFailure(new ResponseImpl(response), null, null);
                     }
