@@ -24,21 +24,43 @@ import android.telephony.TelephonyManager;
 
 
 /**
- * Use the `NetworkMonitor` class to determine the current status of the Android device's connection to the internet.
+ * <p>
+ * Use the NetworkMonitor class to monitor the status of the Android device's connection to the internet.
+ * </p>
  *
+ * <p>
+ * <b>Important: </b>Before using this class, make sure that your application has the required permissions.
+ * At a minimum, the AndroidManifest.xml should contain the following permissions: android.permission.INTERNET
+ * and android.permission.ACCESS_NETWORK_STATE. If you want to use {@link #getMobileNetworkType(Context)}, you need to
+ * also include android.permission.READ_PHONE_STATE in your AndroidManifest.xml and obtain user permission
+ * at runtime as described in the Android developer's guide for
+ * <a href="https://developer.android.com/training/permissions/requesting.html">Requesting Permissions at Run Time</a>.
+ * </p>
+ *
+ * <p>
+ * To listen for network changes, pass a {@link NetworkConnectionChangeListener} in {@link #NetworkMonitor(Context, NetworkConnectionChangeListener)},
+ * and use the {@link #startMonitoringNetworkChanges()} method. To turn off these notifications, call
+ * {@link #stopMonitoringNetworkChanges()}.
+ * </p>
+ *
+ * <p>
  * To get the type of network connection currently available, use {@link #getCurrentConnectionType(Context)}.
  * If this method returns {@link NetworkConnectionType#MOBILE}, you can narrow down the type further with
- * {@link #getMobileNetworkType(Context)}, which shows whether the device is using 4G, 3G, or 2G.
- *
- * To listen for network changes, pass a `NetworkConnectionChangeListener` in the `NetworkMonitor` constructor,
- * and use the {@link #startMonitoringNetworkChanges()} method. To turn off these notifications, use
- * {@link #stopMonitoringNetworkChanges()}.
+ * {@link #getMobileNetworkType(Context)} (only available on Android API 24 and higher),
+ * which shows whether the device is using 4G, 3G, or 2G.
+ * </p>
  */
 public class NetworkMonitor {
 
     private Context context;
     private NetworkChangeReceiver networkReceiver;
 
+    /**
+     * The constructor for NetworkMonitor.
+     *
+     * @param context The Android application context
+     * @param listener An optional network change listener
+     */
     public NetworkMonitor(Context context, NetworkConnectionChangeListener listener) {
         this.context = context;
         if (listener != null) {
@@ -46,6 +68,11 @@ public class NetworkMonitor {
         }
     }
 
+    /**
+     * Begin monitoring changes in the device's network connection.
+     * Before using this method, be sure to pass a {@link NetworkConnectionChangeListener} to
+     * {@link #NetworkMonitor(Context, NetworkConnectionChangeListener)}.
+     */
     public void startMonitoringNetworkChanges() {
         if (networkReceiver != null) {
             IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -53,12 +80,26 @@ public class NetworkMonitor {
         }
     }
 
+    /**
+     * Stop monitoring changes in the device's network connection.
+     */
     public void stopMonitoringNetworkChanges() {
         if (networkReceiver != null) {
             context.unregisterReceiver(networkReceiver);
         }
     }
 
+    /**
+     * Get the type of mobile data network connection.
+     * It is recommended to call {@link #getCurrentConnectionType(Context)} before this method to make sure
+     * that the device does have a mobile data connection.
+     *
+     * <p><b>Note:</b> This method is only available for Android API 24 and up. When used on a lower API version,
+     * this method will return "unknown".</p>
+     *
+     * @param context The Android application context
+     * @return "4G", "3G", "2G", or "unknown"
+     */
     @TargetApi(24)
     public String getMobileNetworkType(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -92,7 +133,13 @@ public class NetworkMonitor {
         }
     }
 
-    // IMPORTANT: Call from background thread
+    /**
+     * Get the type of network connection that the device is currently using
+     * to connect to the internet.
+     *
+     * @param context The Android application context
+     * @return The type of network connection that the device is currently using.
+     */
     public NetworkConnectionType getCurrentConnectionType(Context context) {
         NetworkInfo activeNetworkInfo = getActiveNetworkInfo(context);
 
@@ -112,8 +159,13 @@ public class NetworkMonitor {
                 return NetworkConnectionType.NO_CONNECTION;
         }
     }
-
-    // IMPORTANT: Call from background thread
+    
+    /**
+     * Check if the device currently has internet access.
+     *
+     * @param context The Android application context
+     * @return Whether the device has internet access
+     */
     public boolean isInternetAccessAvailable(Context context) {
         NetworkInfo activeNetworkInfo = getActiveNetworkInfo(context);
         return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
@@ -126,6 +178,7 @@ public class NetworkMonitor {
     }
 
 
+    // Responds to changes in the device's network connection
     protected class NetworkChangeReceiver extends BroadcastReceiver {
 
         private NetworkConnectionChangeListener networkChangeListener;

@@ -16,10 +16,42 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 /**
  * Describes how the device is currently connected to the internet.
+ *
+ * <ul>
+ * <li>{@link #WIFI}</li>
+ * <li>{@link #MOBILE}</li>
+ * <li>{@link #WIMAX}</li>
+ * <li>{@link #ETHERNET}</li>
+ * <li>{@link #NO_CONNECTION}</li>
+ * </ul>
  */
 public enum NetworkConnectionType {
 
-    WIFI, MOBILE, WIMAX, ETHERNET, NO_CONNECTION;
+    /**
+     * The device is connected via Wifi.
+     */
+    WIFI,
+
+    /**
+     * The device is connected via mobile data network (4G, 3G, or 2G).
+     */
+    MOBILE,
+
+    /**
+     * The device is connected via WiMax.
+     */
+    WIMAX,
+
+    /**
+     * The device is connected via Ethernet.
+     */
+    ETHERNET,
+
+    /**
+     * The device is not connected to the internet.
+     */
+    NO_CONNECTION;
+
 
     @Override
     public String toString() {

@@ -13,14 +13,25 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import android.content.Context;
+
 
 /**
+ * <p>
  * The listener that will be called when the Android device's network connection type changes.
+ * </p>
  *
- * To listen for network changes, pass this listener to the `NetworkMonitor` constructor, and use
- *
+ * <p>
+ * To listen for network changes, pass this listener to {@link NetworkMonitor#NetworkMonitor(Context, NetworkConnectionChangeListener)},
+ * and call {@link NetworkMonitor#startMonitoringNetworkChanges()}.
+ * </p>
  */
 public interface NetworkConnectionChangeListener {
 
+    /**
+     * Whenever the device's network connection changes to a different {@link NetworkConnectionType}, this method gets called.
+     *
+     * @param newConnection The new type of network connection.
+     */
     void networkChanged(NetworkConnectionType newConnection);
 }
