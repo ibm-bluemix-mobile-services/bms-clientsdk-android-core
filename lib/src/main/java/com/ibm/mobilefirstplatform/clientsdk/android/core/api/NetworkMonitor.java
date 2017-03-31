@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.telephony.TelephonyManager;
 
 
@@ -106,6 +107,10 @@ public class NetworkMonitor {
 
         String resultUnknown = "unknown";
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return resultUnknown;
+        }
+
         if (telephonyManager == null) {
             return resultUnknown;
         }
@@ -159,7 +164,7 @@ public class NetworkMonitor {
                 return NetworkConnectionType.NO_CONNECTION;
         }
     }
-    
+
     /**
      * Check if the device currently has internet access.
      *
