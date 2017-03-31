@@ -187,6 +187,7 @@ public class NetworkMonitor {
     protected class NetworkChangeReceiver extends BroadcastReceiver {
 
         private NetworkConnectionChangeListener networkChangeListener;
+        private NetworkConnectionType previousConnectionType;
 
         protected NetworkChangeReceiver(NetworkConnectionChangeListener listener) {
             super();
@@ -195,8 +196,13 @@ public class NetworkMonitor {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            NetworkConnectionType newConnectionType = getCurrentConnectionType(context);
-            networkChangeListener.networkChanged(newConnectionType);
+            if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                NetworkConnectionType newConnectionType = getCurrentConnectionType(context);
+                if (newConnectionType != previousConnectionType) {
+                    networkChangeListener.networkChanged(newConnectionType);
+                }
+                previousConnectionType = newConnectionType;
+            }
         }
     }
 }
