@@ -24,8 +24,11 @@ import com.squareup.okhttp.RequestBody;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+
+import okio.BufferedSink;
 
 /**
  * This class is used to create and send a request. It allows to add all the parameters to the request
@@ -171,6 +174,20 @@ public class Request extends BaseRequest {
         super.send(bytes, listener);
     }
 
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param context The context that will be passed to authentication listener.
+     * @param bytes The byte array containing the request body
+     * @param BufferedSink The BufferedSink for the resource request.
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     *
+     */
+    public void send(Context context, byte[] bytes, BufferedSink sink, ResponseListener listener){
+        this.context = context;
+        super.send(bytes, sink, listener);
+    }
+
     @Override
     protected void sendRequest(final ResponseListener listener, final RequestBody requestBody) {
 		AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
@@ -245,7 +262,7 @@ public class Request extends BaseRequest {
                         listener.onFailure(new ResponseImpl(response), null, null);
                     }
                 }
-                response.body().close();
+             //   response.body().close();
             }
         };
     }

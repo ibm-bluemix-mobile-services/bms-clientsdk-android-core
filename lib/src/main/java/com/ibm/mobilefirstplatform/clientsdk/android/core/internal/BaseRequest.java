@@ -27,6 +27,7 @@ import com.squareup.okhttp.RequestBody;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.CookieManager;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
+
+import okio.BufferedSink;
 
 /**
  * This class is used to create and send a request. It allows to add all the parameters to the request
@@ -368,14 +371,40 @@ public class BaseRequest {
     protected void send(byte[] data, ResponseListener listener) {
         String contentType = headers.get(CONTENT_TYPE);
 
-        if (contentType == null) {
+        if(contentType == null){
             contentType = BINARY_CONTENT_TYPE;
         }
 
-        RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
+        RequestBody body = null;
+
+        body = RequestBody.create(MediaType.parse(contentType), data);
+
+        sendRequest(listener, body);
+
+    }
+
+    /**
+     *
+     */
+
+    protected  void send(final byte[] data, final BufferedSink stream, ResponseListener listener)
+    {
+        final String contentType = headers.get(CONTENT_TYPE) == null ? BINARY_CONTENT_TYPE : headers.get(CONTENT_TYPE);
+
+        RequestBody body = new RequestBody() {
+            @Override public MediaType contentType() {
+                return MediaType.parse(contentType);
+            }
+
+            @Override
+            public void writeTo(BufferedSink sink) throws IOException {
+                stream.write(data);
+            }
+        };
 
         sendRequest(listener, body);
     }
+
 
     /** Configure this client to follow redirects.
      * If unset, redirects be followed.

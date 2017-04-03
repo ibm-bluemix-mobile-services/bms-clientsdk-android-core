@@ -16,10 +16,19 @@ import android.test.mock.MockContext;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +38,11 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okio.Buffer;
+import okio.BufferedSink;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import static junit.framework.Assert.assertEquals;
@@ -220,5 +233,92 @@ public class RequestTest {
 
         assertTrue(headers != null && headers.size() > 0);
         assertTrue(headers.get(0).equalsIgnoreCase(testHeaderValue));
+    }
+
+    @Test
+    public void shouldGetBufferedResponseBody() throws Exception {
+
+        setup();
+        final String data = "HelloWorld";
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(200).setBody(data));
+        server.start();
+
+        latch = new CountDownLatch(1);
+
+        Request request = new Request(server.url("").toString(), Request.POST, 60);
+
+        ResponseListener listener = new ResponseListener() {
+            @Override
+            public void onSuccess(Response response) {
+                try {
+                    InputStream is = response.getResponseStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    String actualData = "";
+
+                        actualData = reader.readLine();
+                        assertEquals(actualData, data);
+                        is.close();
+                        latch.countDown();
+
+                } catch(IOException e){
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                latch.countDown();
+                assertFalse("This should not happen " + t, true);
+            }
+        };
+
+        request.send(null, listener);
+        assertTrue(latch.await(100000, TimeUnit.MILLISECONDS));
+        server.shutdown();
+
+    }
+
+    @Test
+    public void shouldSetBufferedRequest() throws Exception {
+        setup();
+
+        final BufferedSink out = new Buffer();
+
+        String data = "HelloWorld";
+        MockWebServer server = new MockWebServer();
+        server.enqueue(new MockResponse().setResponseCode(200));
+        server.start();
+
+        latch = new CountDownLatch(1);
+
+        Request request = new Request(server.url("").toString(), Request.POST, 60);
+
+        ResponseListener listener = new ResponseListener() {
+            @Override
+            public void onSuccess(Response response) {
+                try
+                {
+                    out.close();
+                } catch(IOException e)
+                {
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
+                latch.countDown();
+                assertFalse("This should not happen " + t, true);
+            }
+        };
+
+
+        request.send(null, data.getBytes(), out, listener);
+        assertTrue(latch.await(100000, TimeUnit.MILLISECONDS));
+        server.shutdown();
+
     }
 }
