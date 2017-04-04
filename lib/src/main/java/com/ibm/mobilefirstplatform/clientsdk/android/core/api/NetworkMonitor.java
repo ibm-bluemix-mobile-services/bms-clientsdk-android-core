@@ -55,6 +55,7 @@ public class NetworkMonitor {
 
     private Context context;
     private NetworkChangeReceiver networkReceiver;
+    private TelephonyManager telephonyManager;
 
     /**
      * The constructor for NetworkMonitor.
@@ -67,6 +68,7 @@ public class NetworkMonitor {
         if (listener != null) {
             this.networkReceiver = new NetworkChangeReceiver(listener);
         }
+        this.telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
     /**
@@ -102,8 +104,6 @@ public class NetworkMonitor {
      */
     @TargetApi(24)
     public String getMobileNetworkType() {
-        TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-
         String resultUnknown = "unknown";
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -171,6 +171,11 @@ public class NetworkMonitor {
     public boolean isInternetAccessAvailable() {
         NetworkInfo activeNetworkInfo = getActiveNetworkInfo();
         return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
+    }
+
+
+    protected TelephonyManager getTelephonyManager() {
+        return this.telephonyManager;
     }
 
     protected NetworkChangeReceiver getNetworkReceiver() {
