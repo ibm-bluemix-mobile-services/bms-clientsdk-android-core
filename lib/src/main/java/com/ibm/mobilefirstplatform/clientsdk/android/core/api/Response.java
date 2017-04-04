@@ -13,6 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -49,5 +50,13 @@ public interface  Response {
      * @return A map with all the headers, and the corresponding values for each one.
      */
     Map<String, List<String>> getHeaders();
+
+    /**
+     * Get the InputStream from the response.
+     *
+     * @return An InputStream for the response
+     */
+
+    InputStream getResponseStream();
 
 }

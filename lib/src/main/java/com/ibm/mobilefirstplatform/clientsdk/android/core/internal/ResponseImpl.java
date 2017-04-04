@@ -21,6 +21,8 @@ import com.squareup.okhttp.MediaType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -41,13 +43,6 @@ public class ResponseImpl implements Response {
 
         if (okHttpResponse != null) {
             headers = okHttpResponse.headers();
-
-            try {
-                bodyBytes = okHttpResponse.body().bytes();
-            } catch (Exception e) {
-                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
-                bodyBytes = null;
-            }
 
             contentType = okHttpResponse.body().contentType();
         }
@@ -70,18 +65,19 @@ public class ResponseImpl implements Response {
      * This method parses the response body as a String.
      *
      * @return The body of the response as a String. Empty string if there is no body.
-     * @throws RuntimeException if the response text can not be parsed to a valid string.
+     * @throws RuntimeException if the response text can not be parsed to a valid string or response
+     * bytes can not be obtained.
      */
     public String getResponseText() {
-        if (bodyBytes == null) {
-            return "";
-        }
 
         Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
         try {
+            bodyBytes = okHttpResponse.body().bytes();
             return new String(bodyBytes, charset.name());
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
+        } catch(IOException i){
+            throw new RuntimeException(i);
         }
     }
 
@@ -109,8 +105,15 @@ public class ResponseImpl implements Response {
      * This method gets the bytes of the response body.
      *
      * @return the bytes of the response body. Will be null if there is no body.
+     * @throws RuntimeException if response bytes can not be obtained.
      */
     public byte[] getResponseBytes() {
+        try {
+            bodyBytes = okHttpResponse.body().bytes();
+        } catch(IOException e){
+            throw new RuntimeException(e);
+        }
+
         return bodyBytes;
     }
 
@@ -143,6 +146,28 @@ public class ResponseImpl implements Response {
             return null;
         }
         return headers.toMultimap();
+    }
+
+    /**
+     * Get the InputStream of the response body. If getResponseText or getBytes is called the InputStream will
+     * be closed.
+     *
+     * @return An InputStream of the response body
+     * @throws RuntimeException if the body can not obtain a byte stream
+     */
+
+    @Override
+    public InputStream getResponseStream() {
+        InputStream is;
+
+        try {
+            is = okHttpResponse.body().byteStream();
+        } catch(IOException e){
+            throw new RuntimeException(e);
+        }
+
+        return is;
+
     }
 
     /**
