@@ -300,6 +300,7 @@ public class RequestTest {
             public void onSuccess(Response response) {
                 try
                 {
+                    latch.countDown();
                     out.close();
                 } catch(IOException e)
                 {
