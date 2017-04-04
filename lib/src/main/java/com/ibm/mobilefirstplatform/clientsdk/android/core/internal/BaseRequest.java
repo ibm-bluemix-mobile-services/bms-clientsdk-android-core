@@ -384,7 +384,12 @@ public class BaseRequest {
     }
 
     /**
+     * Send this resource request asynchronously, with the content of the given byte array as the request body.
+     * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
      *
+     * @param data     The byte array containing the request body
+     * @param stream the BufferedSink stream for the request 
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
 
     protected  void send(final byte[] data, final BufferedSink stream, ResponseListener listener)
