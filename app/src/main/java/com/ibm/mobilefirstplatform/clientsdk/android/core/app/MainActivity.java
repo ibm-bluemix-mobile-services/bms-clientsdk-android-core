@@ -15,7 +15,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.app;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -24,19 +23,14 @@ import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionType;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkMonitor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.AuthenticationContext;
-import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.AuthenticationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.net.MalformedURLException;
+
 
 public class MainActivity extends Activity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -93,14 +87,14 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 		networkMonitor.startMonitoringNetworkChanges();
 
 		// See if the device currently has internet access, and see what type of connection it is using
-		Log.i("BMSCore", "Is connected to the internet: " + networkMonitor.isInternetAccessAvailable(getApplicationContext()));
-		Log.i("BMSCore", "Connection type: " + networkMonitor.getCurrentConnectionType(getApplicationContext()).toString());
+		Log.i("BMSCore", "Is connected to the internet: " + networkMonitor.isInternetAccessAvailable());
+		Log.i("BMSCore", "Connection type: " + networkMonitor.getCurrentConnectionType().toString());
 
 		// Check that the user has given permissions to read the phone's state.
 		// If permission is granted, get the type of mobile data network being used.
 		int networkPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
 		if (networkPermission == PackageManager.PERMISSION_GRANTED) {
-			Log.i("BMSCore", "Mobile network type: " + networkMonitor.getMobileNetworkType(getApplicationContext()));
+			Log.i("BMSCore", "Mobile network type: " + networkMonitor.getMobileNetworkType());
 		}
 		else {
 			Log.i("BMSCore", "Obtaining permission to read phone state");
@@ -133,7 +127,7 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 			case MY_PERMISSIONS_READ_PHONE_STATE:
 				if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
 					if (networkMonitor != null) {
-						Log.i("BMSCore", "Mobile network type: " + networkMonitor.getMobileNetworkType(getApplicationContext()));
+						Log.i("BMSCore", "Mobile network type: " + networkMonitor.getMobileNetworkType());
 					}
 				}
 				else {

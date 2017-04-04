@@ -32,7 +32,7 @@ import android.telephony.TelephonyManager;
  * <p>
  * <b>Important: </b>Before using this class, make sure that your application has the required permissions.
  * At a minimum, the AndroidManifest.xml should contain the following permissions: android.permission.INTERNET
- * and android.permission.ACCESS_NETWORK_STATE. If you want to use {@link #getMobileNetworkType(Context)}, you need to
+ * and android.permission.ACCESS_NETWORK_STATE. If you want to use {@link #getMobileNetworkType()}, you need to
  * also include android.permission.READ_PHONE_STATE in your AndroidManifest.xml and obtain user permission
  * at runtime as described in the Android developer's guide for
  * <a href="https://developer.android.com/training/permissions/requesting.html">Requesting Permissions at Run Time</a>.
@@ -45,9 +45,9 @@ import android.telephony.TelephonyManager;
  * </p>
  *
  * <p>
- * To get the type of network connection currently available, use {@link #getCurrentConnectionType(Context)}.
+ * To get the type of network connection currently available, use {@link #getCurrentConnectionType()}.
  * If this method returns {@link NetworkConnectionType#MOBILE}, you can narrow down the type further with
- * {@link #getMobileNetworkType(Context)} (only available on Android API 24 and higher),
+ * {@link #getMobileNetworkType()} (only available on Android API 24 and higher),
  * which shows whether the device is using 4G, 3G, or 2G.
  * </p>
  */
@@ -92,17 +92,16 @@ public class NetworkMonitor {
 
     /**
      * Get the type of mobile data network connection.
-     * It is recommended to call {@link #getCurrentConnectionType(Context)} before this method to make sure
+     * It is recommended to call {@link #getCurrentConnectionType()} before this method to make sure
      * that the device does have a mobile data connection.
      *
      * <p><b>Note:</b> This method is only available for Android API 24 and up. When used on a lower API version,
      * this method will return "unknown".</p>
      *
-     * @param context The Android application context
      * @return "4G", "3G", "2G", or "unknown"
      */
     @TargetApi(24)
-    public String getMobileNetworkType(Context context) {
+    public String getMobileNetworkType() {
         TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 
         String resultUnknown = "unknown";
@@ -142,13 +141,12 @@ public class NetworkMonitor {
      * Get the type of network connection that the device is currently using
      * to connect to the internet.
      *
-     * @param context The Android application context
      * @return The type of network connection that the device is currently using.
      */
-    public NetworkConnectionType getCurrentConnectionType(Context context) {
-        NetworkInfo activeNetworkInfo = getActiveNetworkInfo(context);
+    public NetworkConnectionType getCurrentConnectionType() {
+        NetworkInfo activeNetworkInfo = getActiveNetworkInfo();
 
-        if (activeNetworkInfo == null || !isInternetAccessAvailable(context)) {
+        if (activeNetworkInfo == null || !isInternetAccessAvailable()) {
             return NetworkConnectionType.NO_CONNECTION;
         }
         switch (activeNetworkInfo.getType()) {
@@ -168,11 +166,10 @@ public class NetworkMonitor {
     /**
      * Check if the device currently has internet access.
      *
-     * @param context The Android application context
      * @return Whether the device has internet access
      */
-    public boolean isInternetAccessAvailable(Context context) {
-        NetworkInfo activeNetworkInfo = getActiveNetworkInfo(context);
+    public boolean isInternetAccessAvailable() {
+        NetworkInfo activeNetworkInfo = getActiveNetworkInfo();
         return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
     }
 
@@ -180,7 +177,7 @@ public class NetworkMonitor {
         return this.networkReceiver;
     }
 
-    private NetworkInfo getActiveNetworkInfo(Context context) {
+    private NetworkInfo getActiveNetworkInfo() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return connectivityManager.getActiveNetworkInfo();
@@ -201,7 +198,7 @@ public class NetworkMonitor {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                NetworkConnectionType newConnectionType = getCurrentConnectionType(context);
+                NetworkConnectionType newConnectionType = getCurrentConnectionType();
                 if (newConnectionType != previousConnectionType) {
                     networkChangeListener.networkChanged(newConnectionType);
                 }
