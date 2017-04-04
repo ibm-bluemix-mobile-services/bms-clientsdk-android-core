@@ -39,7 +39,7 @@ import android.telephony.TelephonyManager;
  * </p>
  *
  * <p>
- * To listen for network changes, pass a {@link NetworkConnectionChangeListener} in {@link #NetworkMonitor(Context, NetworkConnectionChangeListener)},
+ * To listen for network changes, pass a {@link NetworkConnectionListener} in {@link #NetworkMonitor(Context, NetworkConnectionListener)},
  * and use the {@link #startMonitoringNetworkChanges()} method. To turn off these notifications, call
  * {@link #stopMonitoringNetworkChanges()}.
  * </p>
@@ -62,7 +62,7 @@ public class NetworkMonitor {
      * @param context The Android application context
      * @param listener An optional network change listener
      */
-    public NetworkMonitor(Context context, NetworkConnectionChangeListener listener) {
+    public NetworkMonitor(Context context, NetworkConnectionListener listener) {
         this.context = context;
         if (listener != null) {
             this.networkReceiver = new NetworkChangeReceiver(listener);
@@ -71,8 +71,8 @@ public class NetworkMonitor {
 
     /**
      * Begin monitoring changes in the device's network connection.
-     * Before using this method, be sure to pass a {@link NetworkConnectionChangeListener} to
-     * {@link #NetworkMonitor(Context, NetworkConnectionChangeListener)}.
+     * Before using this method, be sure to pass a {@link NetworkConnectionListener} to
+     * {@link #NetworkMonitor(Context, NetworkConnectionListener)}.
      */
     public void startMonitoringNetworkChanges() {
         if (networkReceiver != null) {
@@ -176,6 +176,10 @@ public class NetworkMonitor {
         return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
     }
 
+    protected NetworkChangeReceiver getNetworkReceiver() {
+        return this.networkReceiver;
+    }
+
     private NetworkInfo getActiveNetworkInfo(Context context) {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -186,10 +190,10 @@ public class NetworkMonitor {
     // Responds to changes in the device's network connection
     protected class NetworkChangeReceiver extends BroadcastReceiver {
 
-        private NetworkConnectionChangeListener networkChangeListener;
+        private NetworkConnectionListener networkChangeListener;
         private NetworkConnectionType previousConnectionType;
 
-        protected NetworkChangeReceiver(NetworkConnectionChangeListener listener) {
+        protected NetworkChangeReceiver(NetworkConnectionListener listener) {
             super();
             this.networkChangeListener = listener;
         }

@@ -22,11 +22,11 @@ import android.content.Context;
  * </p>
  *
  * <p>
- * To listen for network changes, pass this listener to {@link NetworkMonitor#NetworkMonitor(Context, NetworkConnectionChangeListener)},
+ * To listen for network changes, pass this listener to {@link NetworkMonitor#NetworkMonitor(Context, NetworkConnectionListener)},
  * and call {@link NetworkMonitor#startMonitoringNetworkChanges()}.
  * </p>
  */
-public interface NetworkConnectionChangeListener {
+public interface NetworkConnectionListener {
 
     /**
      * Whenever the device's network connection changes to a different {@link NetworkConnectionType}, this method gets called.

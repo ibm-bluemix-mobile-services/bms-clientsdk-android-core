@@ -23,7 +23,8 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionChangeListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionType;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkMonitor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
@@ -77,7 +78,7 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 	// Exercise the NetworkMonitor API
 	private void getNetworkInfo() {
 		// Create a listener to check for new network connections (e.g. switching from mobile to Wifi, or losing internet connection)
-		NetworkConnectionChangeListener listener = new NetworkConnectionChangeListener() {
+		NetworkConnectionListener listener = new NetworkConnectionListener() {
 
 			@Override
 			public void networkChanged(NetworkConnectionType newConnection) {
