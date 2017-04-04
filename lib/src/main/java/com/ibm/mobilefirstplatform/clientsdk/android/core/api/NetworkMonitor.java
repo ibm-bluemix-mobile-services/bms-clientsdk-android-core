@@ -110,10 +110,10 @@ public class NetworkMonitor {
             return resultUnknown;
         }
 
-        if (telephonyManager == null) {
+        if (getTelephonyManager() == null) {
             return resultUnknown;
         }
-        switch (telephonyManager.getDataNetworkType()) {
+        switch (getTelephonyManager().getDataNetworkType()) {
             case TelephonyManager.NETWORK_TYPE_LTE:
                 return "4G";
             case TelephonyManager.NETWORK_TYPE_UMTS:
@@ -182,7 +182,7 @@ public class NetworkMonitor {
         return this.networkReceiver;
     }
 
-    private NetworkInfo getActiveNetworkInfo() {
+    protected NetworkInfo getActiveNetworkInfo() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return connectivityManager.getActiveNetworkInfo();
