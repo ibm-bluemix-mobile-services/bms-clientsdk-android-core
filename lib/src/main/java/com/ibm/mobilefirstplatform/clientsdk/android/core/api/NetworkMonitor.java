@@ -204,7 +204,7 @@ public class NetworkMonitor {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 NetworkConnectionType newConnectionType = getCurrentConnectionType();
-                if (newConnectionType != previousConnectionType) {
+                if (!newConnectionType.equals(previousConnectionType)) {
                     networkChangeListener.networkChanged(newConnectionType);
                 }
                 previousConnectionType = newConnectionType;

@@ -14,7 +14,6 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.mockito.Mockito.*;
 
@@ -24,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
@@ -40,7 +38,7 @@ import static junit.framework.Assert.*;
 
 public class NetworkMonitorTests {
 
-    CountDownLatch latch = null;
+    private CountDownLatch latch = null;
 
     @Test
     public void testConstructor() {
@@ -326,12 +324,14 @@ public class NetworkMonitorTests {
     private NetworkConnectionListener getNetworkListener() {
         NetworkConnectionListener listener = new NetworkConnectionListener() {
             @Override
-            public void networkChanged(NetworkConnectionType newConnection) { }
+            public void networkChanged(NetworkConnectionType newConnection) {
+                // Do nothing
+            }
         };
         return listener;
     }
 
-    static void setFinalStatic(Field field, Object newValue) throws Exception {
+    private static void setFinalStatic(Field field, Object newValue) throws Exception {
         field.setAccessible(true);
 
         Field modifiersField = Field.class.getDeclaredField("modifiers");

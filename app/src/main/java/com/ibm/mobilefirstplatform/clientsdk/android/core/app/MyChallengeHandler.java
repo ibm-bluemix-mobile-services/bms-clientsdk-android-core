@@ -41,8 +41,12 @@ public class MyChallengeHandler implements AuthenticationListener {
     }
 
     @Override
-    public void onAuthenticationSuccess(Context context, JSONObject info) { }
+    public void onAuthenticationSuccess(Context context, JSONObject info) {
+        // Respond to successful authentication
+    }
 
     @Override
-    public void onAuthenticationFailure(Context context, JSONObject info) { }
+    public void onAuthenticationFailure(Context context, JSONObject info) {
+        // Respond to failed authentication
+    }
 }

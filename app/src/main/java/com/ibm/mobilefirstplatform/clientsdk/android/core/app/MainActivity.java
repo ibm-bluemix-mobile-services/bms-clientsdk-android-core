@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 	private final static String customResourceURL = "http://9.148.225.153:3000/v1/apps/vit1/service"; // any protected resource
 	private final static String customRealm = "customAuthRealm_1"; // auth realm
 
-	NetworkMonitor networkMonitor;
+	private NetworkMonitor networkMonitor;
 	private static final int MY_PERMISSIONS_READ_PHONE_STATE = 42;
 
 

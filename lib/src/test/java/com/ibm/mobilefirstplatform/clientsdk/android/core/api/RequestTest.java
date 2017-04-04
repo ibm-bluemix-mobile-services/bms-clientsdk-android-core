@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 
 public class RequestTest {
 
-    CountDownLatch latch = null;
+    private CountDownLatch latch = null;
 
-    private void setup() {
+    private void setupBMSClient() {
 
         AuthorizationManager mockAuthorizationManager = mock(DummyAuthorizationManager.class);
         BMSClient.getInstance().setAuthorizationManager(mockAuthorizationManager);
@@ -65,7 +65,7 @@ public class RequestTest {
 
     @Test
     public void testAutoRetriesWithTimeout() throws Exception {
-        setup();
+        setupBMSClient();
         latch = new CountDownLatch(1);
 
         MockWebServer mockServer = new MockWebServer();
@@ -75,14 +75,14 @@ public class RequestTest {
         Request request = new Request(mockServer.url("").toString(), Request.GET, 10, numberOfRetries);
         ResponseListener listener = new ResponseListener() {
             @Override
-            public void onSuccess(Response response) { }
+            public void onSuccess(Response response) {
+                // Do nothing
+            }
 
             @Override
             public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-                if (response == null && t != null) {
-                    if (t.getClass().getName().toLowerCase().contains("timeout")) {
-                        latch.countDown();
-                    }
+                if (response == null && t != null && t.getClass().getName().toLowerCase().contains("timeout")) {
+                    latch.countDown();
                 }
             }
         };
@@ -98,7 +98,7 @@ public class RequestTest {
 
     @Test
     public void testAutoRetriesWith504Response() throws Exception {
-        setup();
+        setupBMSClient();
         latch = new CountDownLatch(1);
 
         int numberOfRetries = 5;
