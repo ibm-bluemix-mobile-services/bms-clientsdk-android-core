@@ -388,7 +388,7 @@ public class BaseRequest {
      * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
      *
      * @param data     The byte array containing the request body
-     * @param stream the BufferedSink stream for the request 
+     * @param stream the BufferedSink stream for the request
      * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
      */
 
