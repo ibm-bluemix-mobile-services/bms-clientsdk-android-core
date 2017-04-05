@@ -15,6 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.Headers;
@@ -81,6 +82,8 @@ public class BaseRequest {
     public final static String OPTIONS = "OPTIONS";
 
     protected int numberOfRetries;
+
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + BaseRequest.class.getSimpleName());
 
     private String url = null;
     private String method = null;
@@ -491,6 +494,7 @@ public class BaseRequest {
             public void onFailure(Request request, IOException e) {
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
+                    logger.debug("Resending " + request.method() +  " request to " + request.urlString());
                     sendOKHttpRequest(request, getCallback(listener));
                 } else {
                     if (listener != null) {

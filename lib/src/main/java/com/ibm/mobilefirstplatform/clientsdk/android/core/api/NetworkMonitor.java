@@ -23,6 +23,8 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+
 
 /**
  * <p>
@@ -53,6 +55,8 @@ import android.telephony.TelephonyManager;
  */
 public class NetworkMonitor {
 
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + NetworkMonitor.class.getSimpleName());
+
     private Context context;
     private NetworkChangeReceiver networkReceiver;
     private TelephonyManager telephonyManager;
@@ -80,6 +84,8 @@ public class NetworkMonitor {
         if (networkReceiver != null) {
             IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
             context.registerReceiver(networkReceiver, filter);
+        } else {
+            logger.warn("Cannot monitor device network changes. Make sure that a NetworkConnectionListener was passed to the NetworkMonitor constructor.");
         }
     }
 
@@ -89,6 +95,8 @@ public class NetworkMonitor {
     public void stopMonitoringNetworkChanges() {
         if (networkReceiver != null) {
             context.unregisterReceiver(networkReceiver);
+        } else {
+            logger.info("Cannot stop monitoring network changes because they were not being monitored.");
         }
     }
 

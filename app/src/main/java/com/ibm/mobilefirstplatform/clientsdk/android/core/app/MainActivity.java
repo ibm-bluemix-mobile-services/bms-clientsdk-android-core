@@ -27,6 +27,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionT
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkMonitor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
 
 import java.net.MalformedURLException;
@@ -67,6 +68,9 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 		// to make the authorization happen next time
 		mcaAuthorizationManager.clearAuthorizationData();
 		BMSClient.getInstance().setAuthorizationManager(mcaAuthorizationManager);
+
+		Logger.setLogLevel(Logger.LEVEL.DEBUG);
+		Logger.setSDKDebugLoggingEnabled(true);
 	}
 
 	// Exercise the NetworkMonitor API
