@@ -14,7 +14,6 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;

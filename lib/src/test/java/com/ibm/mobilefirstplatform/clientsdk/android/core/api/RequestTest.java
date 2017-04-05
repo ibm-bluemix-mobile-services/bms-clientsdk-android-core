@@ -114,7 +114,9 @@ public class RequestTest {
         Request request = new Request(mockServer.url("").toString(), Request.GET, 10, numberOfRetries);
         ResponseListener listener = new ResponseListener() {
             @Override
-            public void onSuccess(Response response) { }
+            public void onSuccess(Response response) {
+                // Do nothing
+            }
 
             @Override
             public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
