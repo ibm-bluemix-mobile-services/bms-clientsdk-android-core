@@ -12,13 +12,17 @@
 */
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
-import android.test.mock.MockContext;
+import org.junit.Test;
+
+import static junit.framework.Assert.*;
+import static org.mockito.Mockito.*;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 
 import org.json.JSONObject;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,20 +31,12 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-
-import static org.mockito.Mockito.*;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-
 
 public class RequestTest {
 
-    CountDownLatch latch = null;
+    private CountDownLatch latch = null;
 
-    private void setup() {
+    private void setupBMSClient() {
 
         AuthorizationManager mockAuthorizationManager = mock(DummyAuthorizationManager.class);
         BMSClient.getInstance().setAuthorizationManager(mockAuthorizationManager);
@@ -69,7 +65,7 @@ public class RequestTest {
 
     @Test
     public void testAutoRetriesWithTimeout() throws Exception {
-        setup();
+        setupBMSClient();
         latch = new CountDownLatch(1);
 
         MockWebServer mockServer = new MockWebServer();
@@ -79,14 +75,14 @@ public class RequestTest {
         Request request = new Request(mockServer.url("").toString(), Request.GET, 10, numberOfRetries);
         ResponseListener listener = new ResponseListener() {
             @Override
-            public void onSuccess(Response response) { }
+            public void onSuccess(Response response) {
+                // Do nothing
+            }
 
             @Override
             public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-                if (response == null && t != null) {
-                    if (t.getClass().getName().toLowerCase().contains("timeout")) {
-                        latch.countDown();
-                    }
+                if (response == null && t != null && t.getClass().getName().toLowerCase().contains("timeout")) {
+                    latch.countDown();
                 }
             }
         };
@@ -102,7 +98,7 @@ public class RequestTest {
 
     @Test
     public void testAutoRetriesWith504Response() throws Exception {
-        setup();
+        setupBMSClient();
         latch = new CountDownLatch(1);
 
         int numberOfRetries = 5;
@@ -118,7 +114,9 @@ public class RequestTest {
         Request request = new Request(mockServer.url("").toString(), Request.GET, 10, numberOfRetries);
         ResponseListener listener = new ResponseListener() {
             @Override
-            public void onSuccess(Response response) { }
+            public void onSuccess(Response response) {
+                // Do nothing
+            }
 
             @Override
             public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {

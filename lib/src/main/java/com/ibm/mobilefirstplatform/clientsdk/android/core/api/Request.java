@@ -17,6 +17,7 @@ import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.RequestBody;
@@ -32,6 +33,8 @@ import java.util.Map;
  * before sending it.
  */
 public class Request extends BaseRequest {
+
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + Request.class.getSimpleName());
 
     private int oauthFailCounter = 0;
     private RequestBody savedRequestBody;
@@ -196,6 +199,7 @@ public class Request extends BaseRequest {
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
+                    logger.debug("Resending " + request.method() +  " request to " + request.urlString());
                     sendOKHttpRequest(request, getCallback(listener));
                 } else {
                     if (listener != null) {
@@ -240,6 +244,7 @@ public class Request extends BaseRequest {
                         listener.onSuccess(new ResponseImpl(response));
                     } else if (numberOfRetries > 0 && response.code() == 504) {
                         numberOfRetries--;
+                        logger.debug("Resending " + request.getMethod() +  " request to " + request.getUrl());
                         sendOKHttpRequest(response.request(), getCallback(listener));
                     } else {
                         listener.onFailure(new ResponseImpl(response), null, null);
