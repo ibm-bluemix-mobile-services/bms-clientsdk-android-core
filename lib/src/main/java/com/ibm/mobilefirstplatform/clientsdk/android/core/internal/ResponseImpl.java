@@ -18,9 +18,12 @@ import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -32,25 +35,35 @@ import static com.squareup.okhttp.internal.Util.UTF_8;
 public class ResponseImpl implements Response {
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
     private com.squareup.okhttp.Response okHttpResponse;
+    private String requestURL;
     private Headers headers;
     private MediaType contentType;
-    private byte bodyBytes[];
+    private InputStream bodyByteStream;
+    private byte[] bodyBytes;
 
     public ResponseImpl(com.squareup.okhttp.Response response) {
         okHttpResponse = response;
 
         if (okHttpResponse != null) {
+            requestURL = okHttpResponse.request().urlString();
             headers = okHttpResponse.headers();
-
-            try {
-                bodyBytes = okHttpResponse.body().bytes();
-            } catch (Exception e) {
-                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
-                bodyBytes = null;
-            }
-
             contentType = okHttpResponse.body().contentType();
+            try {
+                bodyByteStream = okHttpResponse.body().byteStream();
+            }
+            catch (IOException e) {
+                logger.warn("Could not get byte stream of the response body from " + requestURL + ". Error: " + e.getMessage());
+            }
         }
+    }
+
+    /**
+     * Returns the URL that the request was made to.
+     *
+     * @return The URL of the request.
+     */
+    public String getRequestURL() {
+        return okHttpResponse.request().urlString();
     }
 
     /**
@@ -64,6 +77,21 @@ public class ResponseImpl implements Response {
         }
 
         return okHttpResponse.code();
+    }
+
+    /**
+     * This method gets the Content-Length of the response body.
+     *
+     * @return The content length of the response.
+     */
+    public long getContentLength() {
+        try {
+            return getInternalResponse().body().contentLength();
+        }
+        catch (IOException e) {
+            logger.error("Failed to get the response content length from " + getRequestURL() + ". Error: " + e.getMessage());
+            return 0;
+        }
     }
 
     /**
@@ -107,11 +135,31 @@ public class ResponseImpl implements Response {
 
     /**
      * This method gets the bytes of the response body.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} ()} will return null.
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        return bodyBytes;
+        if (bodyByteStream == null) {
+            return null;
+        }
+        try {
+            return IOUtils.toByteArray(bodyByteStream);
+        }
+        catch (IOException e) {
+            logger.warn("Failed to convert response byte stream to byte array. Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * This method gets the response body as an input stream.
+     * If this method is called, then subsequent calls to {@link #getResponseBytes()} will return null.
+     *
+     * @return The input stream representing the response body. Will be null if there is no body.
+     */
+    public InputStream getResponseByteStream() {
+        return this.bodyByteStream;
     }
 
     /** Returns true if this response redirects to another resource. */

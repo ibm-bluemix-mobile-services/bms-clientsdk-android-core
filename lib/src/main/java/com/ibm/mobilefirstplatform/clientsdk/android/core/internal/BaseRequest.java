@@ -13,7 +13,15 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.util.Log;
+
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressRequestBody;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Callback;
@@ -25,9 +33,13 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.CookieManager;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +51,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
+
+import static android.R.attr.data;
+
 
 /**
  * This class is used to create and send a request. It allows to add all the parameters to the request
@@ -298,7 +313,7 @@ public class BaseRequest {
     /**
      * Send this resource request asynchronously, without a request body.
      *
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(ResponseListener listener) {
         send("", listener);
@@ -308,8 +323,8 @@ public class BaseRequest {
      * Send this resource request asynchronously, with the given string as the request body.
      * If no content type header was set, this method will set it to "text/plain".
      *
-     * @param requestBody The request body text
-     * @param listener    The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param requestBody The text to put in the request body
+     * @param listener    The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(final String requestBody, final ResponseListener listener) {
         String contentType = headers.get(CONTENT_TYPE);
@@ -320,15 +335,15 @@ public class BaseRequest {
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), requestBody);
 
-        sendRequest(listener, body);
+        sendRequest(null, listener, body);
     }
 
     /**
      * Send this resource request asynchronously, with the given form parameters as the request body.
      * This method will set the content type header to "application/x-www-form-urlencoded".
      *
-     * @param formParameters The parameters to put in the request body
-     * @param listener       The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param formParameters    The parameters to put in the request body
+     * @param listener          The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(Map<String, String> formParameters, ResponseListener listener) {
         FormEncodingBuilder formBuilder = new FormEncodingBuilder();
@@ -339,7 +354,7 @@ public class BaseRequest {
 
         RequestBody body = formBuilder.build();
 
-        sendRequest(listener, body);
+        sendRequest(null, listener, body);
     }
 
     /**
@@ -347,7 +362,7 @@ public class BaseRequest {
      * If no content type header was set, this method will set it to "application/json".
      *
      * @param json     The JSON object to put in the request body
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(JSONObject json, ResponseListener listener) {
         String contentType = headers.get(CONTENT_TYPE);
@@ -358,26 +373,161 @@ public class BaseRequest {
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), json.toString());
 
-        sendRequest(listener, body);
+        sendRequest(null, listener, body);
     }
 
     /**
      * Send this resource request asynchronously, with the content of the given byte array as the request body.
      * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
      *
-     * @param data     The byte array containing the request body
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param data     The byte array to put in the request body
+     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(byte[] data, ResponseListener listener) {
-        String contentType = headers.get(CONTENT_TYPE);
-
-        if (contentType == null) {
-            contentType = BINARY_CONTENT_TYPE;
-        }
+        String contentTypeHeader = headers.get(CONTENT_TYPE);
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
 
-        sendRequest(listener, body);
+        sendRequest(null, listener, body);
+    }
+
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void download(final ProgressListener progressListener, ResponseListener responseListener) {
+        download("", progressListener, responseListener);
+    }
+
+    /**
+     * Send this resource request asynchronously, with the given string as the request body.
+     * If no content type header was set, this method will set it to "text/plain".
+     *
+     * @param requestBody       The text to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void download(final String requestBody, final ProgressListener progressListener, final ResponseListener responseListener) {
+        String contentType = headers.get(CONTENT_TYPE);
+
+        if (contentType == null) {
+            contentType = TEXT_PLAIN;
+        }
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), requestBody);
+
+        sendRequest(progressListener, responseListener, body);
+    }
+
+    /**
+     * Send this resource request asynchronously, with the given form parameters as the request body.
+     * This method will set the content type header to "application/x-www-form-urlencoded".
+     *
+     * @param formParameters    The parameters to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void download(Map<String, String> formParameters, final ProgressListener progressListener, ResponseListener responseListener) {
+        FormEncodingBuilder formBuilder = new FormEncodingBuilder();
+
+        for (Map.Entry<String, String> param : formParameters.entrySet()) {
+            formBuilder.add(param.getKey(), param.getValue());
+        }
+
+        RequestBody body = formBuilder.build();
+
+        sendRequest(progressListener, responseListener, body);
+    }
+
+    /**
+     * Send this resource request asynchronously, with the given JSON object as the request body.
+     * If no content type header was set, this method will set it to "application/json".
+     *
+     * @param json              The JSON object to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void download(JSONObject json, final ProgressListener progressListener, ResponseListener responseListener) {
+        String contentType = headers.get(CONTENT_TYPE);
+
+        if (contentType == null) {
+            contentType = JSON_CONTENT_TYPE;
+        }
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), json.toString());
+
+        sendRequest(progressListener, responseListener, body);
+    }
+
+    /**
+     * Send this resource request asynchronously, with the content of the given byte array as the request body.
+     * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
+     *
+     * @param data              The byte array to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void download(byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
+        String contentTypeHeader = headers.get(CONTENT_TYPE);
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
+
+        sendRequest(progressListener, responseListener, body);
+    }
+
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param data              The byte array to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void upload(final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
+        String contentTypeHeader = headers.get(CONTENT_TYPE);
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
+        ProgressRequestBody progressBody = new ProgressRequestBody(data, body, getUrl(), progressListener);
+
+        sendRequest(null, responseListener, progressBody);
+    }
+
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param text              The text to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void upload(final String text, final ProgressListener progressListener, ResponseListener responseListener) {
+        String contentTypeHeader = headers.get(CONTENT_TYPE);
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN;
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), text);
+        ProgressRequestBody progressBody = new ProgressRequestBody(text, body, getUrl(), progressListener);
+
+        sendRequest(null, responseListener, progressBody);
+    }
+
+    /**
+     * Send this resource request asynchronously, without a request body.
+     *
+     * @param file              The file to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void upload(final File file, final ProgressListener progressListener, ResponseListener responseListener) {
+        String contentTypeHeader = headers.get(CONTENT_TYPE);
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
+
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), file);
+        ProgressRequestBody progressBody = new ProgressRequestBody(file, body, getUrl(), progressListener);
+
+        sendRequest(null, responseListener, progressBody);
     }
 
     /** Configure this client to follow redirects.
@@ -445,9 +595,9 @@ public class BaseRequest {
                 method.equalsIgnoreCase(OPTIONS);
     }
 
-    protected void sendRequest(final ResponseListener listener, final RequestBody requestBody) {
+    protected void sendRequest(final ProgressListener progressListener, final ResponseListener responseListener, final RequestBody requestBody) {
         if(method == null || !isValidMethod(method)){
-            listener.onFailure(null, new IllegalArgumentException("Method is not valid: " + method), null);
+            responseListener.onFailure(null, new IllegalArgumentException("Method is not valid: " + method), null);
             return;
         }
 
@@ -460,18 +610,23 @@ public class BaseRequest {
                 requestBuilder.url(url);
             } else {
                 requestBuilder.url(getURLWithQueryParameters(url, getQueryParamsMap()));
-
             }
         } catch (MalformedURLException e) {
-            listener.onFailure(null, e, null);
+            responseListener.onFailure(null, e, null);
             return;
         }
 
         //A GET or HEAD request cannot have a body in OKHTTP
         if(method.equalsIgnoreCase(BaseRequest.GET)) {
+            if (requestBody != null) {
+                logger.warn("Request body ignored for request to " + url + " because it is a GET request.");
+            }
             requestBuilder.get();
         }
         else if(method.equalsIgnoreCase(BaseRequest.HEAD)){
+            if (requestBody != null) {
+                logger.warn("Request body ignored for request to " + url + " because it is a HEAD request.");
+            }
             requestBuilder.head();
         }
         else {
@@ -479,26 +634,25 @@ public class BaseRequest {
         }
 
         Request request = requestBuilder.build();
-        sendOKHttpRequest(request, getCallback(listener));
+        sendOKHttpRequest(request, getCallback(progressListener, responseListener));
     }
 
     protected void sendOKHttpRequest(Request request, final Callback callback) {
         OkHttpClient client = getHttpClient();
         client.newCall(request).enqueue(callback);
-        client.newCall(request);
     }
 
-    protected Callback getCallback(final ResponseListener listener) {
+    protected Callback getCallback(final ProgressListener progressListener, final ResponseListener responseListener) {
         return new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
                     logger.debug("Resending " + request.method() +  " request to " + request.urlString());
-                    sendOKHttpRequest(request, getCallback(listener));
+                    sendOKHttpRequest(request, getCallback(progressListener, responseListener));
                 } else {
-                    if (listener != null) {
-                        listener.onFailure(null, e, null);
+                    if (responseListener != null) {
+                        responseListener.onFailure(null, e, null);
                     }
                 }
             }
@@ -506,12 +660,35 @@ public class BaseRequest {
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
                 if (response.isSuccessful() || response.isRedirect()) {
-                    listener.onSuccess(new ResponseImpl(response));
+                    Response bmsResponse = new ResponseImpl(response);
+                    if (progressListener != null) {
+                        updateProgressListener(progressListener, bmsResponse);
+                    }
+                    responseListener.onSuccess(bmsResponse);
                 } else {
-                    listener.onFailure(new ResponseImpl(response), null, null);
+                    responseListener.onFailure(new ResponseImpl(response), null, null);
                 }
             }
         };
+    }
+
+    protected void updateProgressListener(ProgressListener progressListener, Response response) {
+        InputStream responseStream = response.getResponseByteStream();
+
+        long bytesDownloaded = 0;
+        int bytesToSkip = 2048; // Skipping 2 KiB at a time to be consistent with the upload segment size in ProgressRequestBody
+        long totalBytesExpected = response.getContentLength();
+        
+        try {
+            while (responseStream.read() != -1) {
+                progressListener.onProgress(bytesDownloaded, totalBytesExpected, getUrl());
+                responseStream.skip(bytesToSkip);
+                bytesDownloaded += bytesToSkip;
+            }
+        }
+        catch (IOException e) {
+            Log.i("BMSCore", "IO Exception: " + e.getMessage());
+        }
     }
 
     protected OkHttpClient getHttpClient(){

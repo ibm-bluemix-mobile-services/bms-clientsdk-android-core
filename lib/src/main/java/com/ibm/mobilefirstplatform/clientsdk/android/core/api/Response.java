@@ -13,6 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,13 @@ import java.util.Map;
  * This class has methods to get more details from the Response to the BaseRequest.
  */
 public interface  Response {
+
+    /**
+     * Returns the URL that the request was made to.
+     *
+     * @return The URL of the request.
+     */
+    String getRequestURL();
 
     /**
      * This method gets the HTTP status of the response.
@@ -38,10 +46,26 @@ public interface  Response {
 
     /**
      * This method gets the bytes of the response body.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} ()} will return null.
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
     byte[] getResponseBytes();
+
+    /**
+     * This method gets the response body as an input stream.
+     * If this method is called, then subsequent calls to {@link #getResponseBytes()} will return null.
+     *
+     * @return The input stream representing the response body. Will be null if there is no body.
+     */
+    InputStream getResponseByteStream();
+
+    /**
+     * This method gets the Content-Length of the response body.
+     *
+     * @return The content length of the response.
+     */
+    long getContentLength();
 
     /**
      * Get the HTTP headers from the response.
@@ -49,5 +73,4 @@ public interface  Response {
      * @return A map with all the headers, and the corresponding values for each one.
      */
     Map<String, List<String>> getHeaders();
-
 }

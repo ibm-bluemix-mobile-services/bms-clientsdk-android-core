@@ -55,6 +55,7 @@ android {
 
 dependencies {
     compile 'com.squareup.okhttp:okhttp:2.7.4'
+    compile 'commons-io:commons-io:2.5'
 
     compile 'com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:[1.0.0,)'
 
