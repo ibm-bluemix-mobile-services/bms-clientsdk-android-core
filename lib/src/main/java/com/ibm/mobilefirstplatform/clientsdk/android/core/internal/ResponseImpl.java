@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.squareup.okhttp.internal.Internal.logger;
 import static com.squareup.okhttp.internal.Util.UTF_8;
 
 public class ResponseImpl implements Response {

@@ -14,10 +14,6 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.util.Log;
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressRequestBody;
@@ -33,11 +29,9 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.CookieManager;
@@ -51,8 +45,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
-
-import static android.R.attr.data;
 
 
 /**

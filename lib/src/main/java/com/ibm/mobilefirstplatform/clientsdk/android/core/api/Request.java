@@ -13,7 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
@@ -21,14 +20,12 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
