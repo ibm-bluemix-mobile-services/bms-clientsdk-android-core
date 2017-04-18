@@ -31,15 +31,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.squareup.okhttp.internal.Internal.logger;
 import static com.squareup.okhttp.internal.Util.UTF_8;
 
 public class ResponseImpl implements Response {
-    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
+
     private com.squareup.okhttp.Response okHttpResponse;
     private String requestURL;
     private Headers headers;
     private MediaType contentType;
-    private InputStream bodyByteStream;
+    private InputStream responseByteStream;
+    private byte[] responseBytes;
+
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
 
     public ResponseImpl(com.squareup.okhttp.Response response) {
         okHttpResponse = response;
@@ -49,7 +53,7 @@ public class ResponseImpl implements Response {
             headers = okHttpResponse.headers();
             contentType = okHttpResponse.body().contentType();
             try {
-                bodyByteStream = okHttpResponse.body().byteStream();
+                responseByteStream = okHttpResponse.body().byteStream();
             }
             catch (IOException e) {
                 logger.warn("Could not get byte stream of the response body from " + requestURL + ". Error: " + e.getMessage());
@@ -156,16 +160,20 @@ public class ResponseImpl implements Response {
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        if (bodyByteStream == null) {
-            return null;
+        if (responseBytes == null && responseByteStream != null) {
+            try {
+                return IOUtils.toByteArray(responseByteStream);
+            }
+            catch (IOException e) {
+                logger.warn("Failed to convert response byte stream to byte array. Error: " + e.getMessage());
+                return null;
+            }
         }
-        try {
-            return IOUtils.toByteArray(bodyByteStream);
-        }
-        catch (IOException e) {
-            logger.warn("Failed to convert response byte stream to byte array. Error: " + e.getMessage());
-            return null;
-        }
+        return responseBytes;
+    }
+
+    protected void setResponseBytes(byte[] responseBytes) {
+        this.responseBytes = responseBytes;
     }
 
     /**
@@ -174,7 +182,7 @@ public class ResponseImpl implements Response {
      * @return The input stream representing the response body. Will be null if there is no body.
      */
     public InputStream getResponseByteStream() {
-        return this.bodyByteStream;
+        return this.responseByteStream;
     }
 
     /** Returns true if this response redirects to another resource. */

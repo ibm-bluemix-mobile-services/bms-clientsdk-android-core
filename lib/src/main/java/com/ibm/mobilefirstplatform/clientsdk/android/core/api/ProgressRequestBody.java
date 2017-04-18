@@ -19,7 +19,7 @@ import okio.Source;
 public class ProgressRequestBody extends RequestBody {
 
     // The size of buffer segments used by Okio (2 KiB)
-    final protected int SEGMENT_SIZE = 2048;
+    protected final int SEGMENT_SIZE = 2048;
 
     private Object payload;
     private ProgressListener listener;

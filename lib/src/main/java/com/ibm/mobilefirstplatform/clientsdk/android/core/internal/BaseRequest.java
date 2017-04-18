@@ -333,7 +333,11 @@ public class BaseRequest {
             contentType = TEXT_PLAIN;
         }
 
-        RequestBody body = RequestBody.create(MediaType.parse(contentType), requestBody);
+        // If the request body is an empty string, it should be treated as an null
+        RequestBody body = null;
+        if (requestBody != null && requestBody != "") {
+            body = RequestBody.create(MediaType.parse(contentType), requestBody);
+        }
 
         sendRequest(null, listener, body);
     }
@@ -417,7 +421,11 @@ public class BaseRequest {
             contentType = TEXT_PLAIN;
         }
 
-        RequestBody body = RequestBody.create(MediaType.parse(contentType), requestBody);
+        // If the request body is an empty string, it should be treated as an null
+        RequestBody body = null;
+        if (requestBody != null && requestBody != "") {
+            body = RequestBody.create(MediaType.parse(contentType), requestBody);
+        }
 
         sendRequest(progressListener, responseListener, body);
     }
@@ -675,19 +683,35 @@ public class BaseRequest {
     protected void updateProgressListener(ProgressListener progressListener, Response response) {
         InputStream responseStream = response.getResponseByteStream();
 
-        long bytesDownloaded = 0;
-        int bytesToSkip = 2048; // Skipping 2 KiB at a time to be consistent with the upload segment size in ProgressRequestBody
+        int bytesDownloaded = 0;
         long totalBytesExpected = response.getContentLength();
-        
+        final int segmentSize = 2048; // Reading 2 KiB at a time to be consistent with the upload segment size in ProgressRequestBody
+
+        byte[] responseBytes;
+        if (totalBytesExpected > Integer.MAX_VALUE) {
+            logger.warn("The response body for " + getUrl() + " is too large to hold in a byte array. Only the first 2 GiB will be available.");
+            responseBytes = new byte[Integer.MAX_VALUE];
+        }
+        else {
+            responseBytes = new byte[(int)totalBytesExpected];
+        }
+
+        int nextByte;
         try {
-            while (responseStream.read() != -1) {
-                progressListener.onProgress(bytesDownloaded, totalBytesExpected, getUrl());
-                responseStream.skip(bytesToSkip);
-                bytesDownloaded += bytesToSkip;
+            while ((nextByte = responseStream.read()) != -1) {
+                if (bytesDownloaded % segmentSize == 0) {
+                    progressListener.onProgress(bytesDownloaded, totalBytesExpected, getUrl());
+                }
+                responseBytes[bytesDownloaded] = (byte)nextByte;
+                bytesDownloaded += 1;
             }
         }
         catch (IOException e) {
-            Log.i("BMSCore", "IO Exception: " + e.getMessage());
+            logger.error("IO Exception: " + e.getMessage());
+        }
+
+        if (response instanceof ResponseImpl) {
+            ((ResponseImpl)response).setResponseBytes(responseBytes);
         }
     }
 
