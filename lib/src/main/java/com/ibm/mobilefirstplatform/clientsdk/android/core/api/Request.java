@@ -160,7 +160,7 @@ public class Request extends BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given string as the request body.
-     * If no content type header was set, this method will set it to "text/plain".
+     * If no Content-Type header was set, this method will set it to "text/plain".
      *
      * @param context   The context that will be passed to authentication listener.
      * @param text      The text to put in the request body
@@ -173,7 +173,7 @@ public class Request extends BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given form parameters as the request body.
-     * This method will set the content type header to "application/x-www-form-urlencoded".
+     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
      *
      * @param context           The context that will be passed to authentication listener.
      * @param formParameters    The parameters to put in the request body
@@ -186,7 +186,7 @@ public class Request extends BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given JSON object as the request body.
-     * If no content type header was set, this method will set it to "application/json".
+     * If no Content-Type header was set, this method will set it to "application/json".
      *
      * @param context   The context that will be passed to authentication listener.
      * @param json      The JSON object to put in the request body
@@ -198,8 +198,8 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, with the content of the given byte array as the request body.
-     * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
+     * Send this resource request asynchronously, with the given byte array as the request body.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
      *
      * @param context   The context that will be passed to authentication listener.
      * @param data      The byte array to put in the request body
@@ -216,7 +216,15 @@ public class Request extends BaseRequest {
     // region Download
 
     /**
-     * Send this resource request asynchronously, without a request body.
+     * <p>
+     * Download this resource asynchronously, without a request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
      *
      * @param context           The context that will be passed to authentication listener.
      * @param progressListener  The listener that monitors the download progress
@@ -228,8 +236,16 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, with the given string as the request body.
-     * If no content type header was set, this method will set it to "text/plain".
+     * <p>
+     * Download this resource asynchronously, with the given string as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "text/plain".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
      *
      * @param context           The context that will be passed to authentication listener.
      * @param requestBody       The text to put in the request body
@@ -242,8 +258,16 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, with the given form parameters as the request body.
-     * This method will set the content type header to "application/x-www-form-urlencoded".
+     * <p>
+     * Download this resource asynchronously, with the given form parameters as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
      *
      * @param context           The context that will be passed to authentication listener.
      * @param formParameters    The parameters to put in the request body
@@ -256,8 +280,16 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, with the given JSON object as the request body.
-     * If no content type header was set, this method will set it to "application/json".
+     * <p>
+     * Download this resource asynchronously, with the given JSON object as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "application/json".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
      *
      * @param context           The context that will be passed to authentication listener.
      * @param json              The JSON object to put in the request body
@@ -270,8 +302,16 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, with the content of the given byte array as the request body.
-     * Note that this method does not set any content type header, if such a header is required it must be set before calling this method.
+     * <p>
+     * Download this resource asynchronously, with the given byte array as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
      *
      * @param context           The context that will be passed to authentication listener.
      * @param data              The byte array to put in the request body
@@ -289,20 +329,8 @@ public class Request extends BaseRequest {
     // region Upload
 
     /**
-     * Send this resource request asynchronously, without a request body.
-     *
-     * @param context           The context that will be passed to authentication listener.
-     * @param data              The byte array to upload
-     * @param progressListener  The listener that monitors the upload progress
-     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
-     */
-    public void upload(Context context, final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
-        super.upload(data, progressListener, responseListener);
-    }
-
-    /**
-     * Send this resource request asynchronously, without a request body.
+     * Upload text asynchronously.
+     * If no Content-Type header was set, this method will set it to "text/plain".
      *
      * @param context           The context that will be passed to authentication listener.
      * @param text              The text to upload
@@ -315,7 +343,22 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, without a request body.
+     * Upload a byte array asynchronously.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param data              The byte array to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void upload(Context context, final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.upload(data, progressListener, responseListener);
+    }
+
+    /**
+     * Upload a file asynchronously.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
      *
      * @param context           The context that will be passed to authentication listener.
      * @param file              The file to upload
