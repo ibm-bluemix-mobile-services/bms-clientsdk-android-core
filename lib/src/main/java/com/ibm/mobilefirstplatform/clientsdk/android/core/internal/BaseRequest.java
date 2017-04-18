@@ -57,7 +57,8 @@ public class BaseRequest {
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
-    public static final String TEXT_PLAIN = "text/plain";
+    public static final String TEXT_PLAIN_CONTENT_TYPE = "text/plain";
+
 
     /**
      * The string constant for the GET HTTP method verb.
@@ -322,7 +323,7 @@ public class BaseRequest {
         String contentType = headers.get(CONTENT_TYPE);
 
         if (contentType == null) {
-            contentType = TEXT_PLAIN;
+            contentType = TEXT_PLAIN_CONTENT_TYPE;
         }
 
         // If the request body is an empty string, it should be treated as null
@@ -426,7 +427,7 @@ public class BaseRequest {
         String contentType = headers.get(CONTENT_TYPE);
 
         if (contentType == null) {
-            contentType = TEXT_PLAIN;
+            contentType = TEXT_PLAIN_CONTENT_TYPE;
         }
 
         // If the request body is an empty string, it should be treated as an null
@@ -529,7 +530,7 @@ public class BaseRequest {
      */
     protected void upload(final String text, final ProgressListener progressListener, ResponseListener responseListener) {
         String contentTypeHeader = headers.get(CONTENT_TYPE);
-        final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN;
+        final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), text);
         ProgressRequestBody progressBody = new ProgressRequestBody(text, body, getUrl(), progressListener);
