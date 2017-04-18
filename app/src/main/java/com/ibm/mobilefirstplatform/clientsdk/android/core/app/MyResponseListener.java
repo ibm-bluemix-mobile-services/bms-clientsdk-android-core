@@ -21,14 +21,19 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 
 import org.json.JSONObject;
 
+
 public class MyResponseListener implements ResponseListener {
 
     @Override
     public void onSuccess(Response response) {
         // here we handle authentication success
+
         Log.i("BMSCore", "Request succeeded!");
-        if (response != null && response.getResponseText() != null) {
-            Log.i("BMSCore", "Response: " + response.getResponseText());
+        if (response != null) {
+            Log.i("BMSCore", "Response status: " + response.getStatus());
+            Log.i("BMSCore", "Response headers: " + response.getHeaders());
+            Log.i("BMSCore", "Length of response body: " + response.getResponseBytes().length);
+            Log.i("BMSCore", "Response body: " + response.getResponseText());
         }
     }
 
@@ -36,7 +41,8 @@ public class MyResponseListener implements ResponseListener {
     public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
         // handle auth failure
         Log.i("BMSCore", "Request failed!");
-        if (response != null && response.getResponseText() != null) {
+        if (response != null && response.getResponseBytes() != null) {
+            Log.i("BMSCore", "Length of response body: " + response.getResponseBytes().length);
             Log.i("BMSCore", "Response: " + response.getResponseText());
         }
         if (t != null && t.getMessage() != null) {

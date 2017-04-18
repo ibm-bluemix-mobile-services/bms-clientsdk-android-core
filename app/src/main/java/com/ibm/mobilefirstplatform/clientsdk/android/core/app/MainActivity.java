@@ -16,6 +16,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.app;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -26,11 +27,19 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionL
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionType;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkMonitor;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.Random;
+
+import static android.provider.CalendarContract.CalendarCache.URI;
 
 
 public class MainActivity extends Activity implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -114,16 +123,91 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 
 	// Exercise the Request and Response APIs
 	private void sendSomeRequests() {
-		ResponseListener listener = new MyResponseListener();
+		ResponseListener responseListener = new MyResponseListener();
+		ProgressListener progressListener = new MyProgressListener();
 
-		// Use custom URL defined at the top of this file
-		Request customUrlRequest = new Request(customResourceURL, Request.GET);
-		customUrlRequest.send(getApplicationContext(), listener);
-
-		// Exercise auto-retries by trying to resend a request up to 5 times with a 504 (gateway timeout) response
-		Request request504 = new Request("http://httpstat.us/504", Request.POST, 1000, 5);
-		request504.send(getApplicationContext(), listener);
+		sendCustomUrlRequest(responseListener);
+		sendAutoRetryRequest(responseListener);
+		downloadImage(progressListener, responseListener);
+		uploadData(progressListener, responseListener);
+		uploadFile(progressListener, responseListener);
+		uploadText(progressListener, responseListener);
 	}
+
+	private void sendCustomUrlRequest(ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nSending request to custom URL"));
+
+		Request customUrlRequest = new Request(customResourceURL, Request.GET);
+		customUrlRequest.send(getApplicationContext(), responseListener);
+	}
+
+	// Exercise auto-retries by trying to resend a request up to 5 times with a 504 (gateway timeout) response
+	private void sendAutoRetryRequest(ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nSending request to 504 endpoint"));
+
+		Request request504 = new Request("http://httpstat.us/504", Request.POST, 1000, 5);
+		request504.send(getApplicationContext(), responseListener);
+	}
+
+	private void downloadImage(ProgressListener progressListener, ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nDownloading an image"));
+
+		// Large download
+//		Request downloadRequest = new Request("https://www.spacetelescope.org/static/archives/images/publicationtiff/heic1502a.tif", Request.GET);
+		// Medium download
+		Request downloadRequest = new Request("https://cdn.spacetelescope.org/archives/images/publicationjpg/heic1502a.jpg", Request.GET);
+		// Small download
+//		Request downloadRequest = new Request("https://cdn.spacetelescope.org/archives/images/screen/heic1502a.jpg", Request.GET);
+		downloadRequest.download(getApplicationContext(), progressListener, responseListener);
+	}
+
+	private void uploadData(ProgressListener progressListener, ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nUploading random data"));
+
+		Request dataUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		byte[] uploadData = new byte[1000000];
+		new Random().nextBytes(uploadData);
+		dataUploadRequest.upload(getApplicationContext(), uploadData, progressListener, responseListener);
+	}
+
+	private void uploadFile(ProgressListener progressListener, ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nUploading andromeda image"));
+
+		File andromedaImage = new File(this.getFilesDir() + File.separator + "andromeda.jpg");
+		try {
+			InputStream imageInputStream = getResources().openRawResource(R.raw.andromeda);
+			FileOutputStream fileOutputStream = new FileOutputStream(andromedaImage);
+
+			byte[] buffer = new byte[1024];
+			int length;
+			while ((length = imageInputStream.read(buffer)) > 0) {
+				fileOutputStream.write(buffer, 0, length);
+			}
+			fileOutputStream.close();
+			imageInputStream.close();
+		}
+		catch (IOException e) {
+			Log.e("BMSCore", "Failed to load andromeda image into a file.");
+		}
+
+		Request imageUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		imageUploadRequest.addHeader("Content-Type", "image/jpg");
+		imageUploadRequest.upload(getApplicationContext(), andromedaImage, progressListener, responseListener);
+	}
+
+	private void uploadText(ProgressListener progressListener, ResponseListener responseListener) {
+		Log.i("BMSCore", String.format("\n\nUploading some text"));
+
+		StringBuilder stringBuilder = new StringBuilder(3000000);
+		for (int i = 0; i < 1000000; i++) {
+			stringBuilder.append("ha ");
+		}
+
+		Request textUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		textUploadRequest.upload(getApplicationContext(), stringBuilder.toString(), progressListener, responseListener);
+	}
+
+
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
