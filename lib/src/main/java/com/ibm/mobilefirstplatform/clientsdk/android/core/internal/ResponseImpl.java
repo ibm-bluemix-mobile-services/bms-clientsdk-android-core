@@ -13,6 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Headers;
@@ -39,7 +40,6 @@ public class ResponseImpl implements Response {
     private Headers headers;
     private MediaType contentType;
     private InputStream bodyByteStream;
-    private byte[] bodyBytes;
 
     public ResponseImpl(com.squareup.okhttp.Response response) {
         okHttpResponse = response;
@@ -95,12 +95,21 @@ public class ResponseImpl implements Response {
     }
 
     /**
+     * <p>
      * This method parses the response body as a String.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null.
+     * </p>
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * </p>
      *
      * @return The body of the response as a String. Empty string if there is no body.
      * @throws RuntimeException if the response text can not be parsed to a valid string.
      */
     public String getResponseText() {
+        byte[] bodyBytes = getResponseBytes();
         if (bodyBytes == null) {
             return "";
         }
@@ -134,8 +143,15 @@ public class ResponseImpl implements Response {
     }
 
     /**
+     * <p>
      * This method gets the bytes of the response body.
-     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} ()} will return null.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseText()}
+     * will return null.
+     * </p>
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * </p>
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
@@ -154,7 +170,6 @@ public class ResponseImpl implements Response {
 
     /**
      * This method gets the response body as an input stream.
-     * If this method is called, then subsequent calls to {@link #getResponseBytes()} will return null.
      *
      * @return The input stream representing the response body. Will be null if there is no body.
      */

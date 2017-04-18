@@ -37,7 +37,15 @@ public interface  Response {
     int getStatus();
 
     /**
+     * <p>
      * This method parses the response body as a String.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null.
+     * </p>
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * </p>
      *
      * @return The body of the response as a String. Empty string if there is no body.
      * @throws RuntimeException if the response text can not be parsed to a valid string.
@@ -45,16 +53,28 @@ public interface  Response {
     String getResponseText();
 
     /**
+     * <p>
      * This method gets the bytes of the response body.
-     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} ()} will return null.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseText()}
+     * will return null.
+     * </p>
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * </p>
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
     byte[] getResponseBytes();
 
     /**
+     * <p>
      * This method gets the response body as an input stream.
-     * If this method is called, then subsequent calls to {@link #getResponseBytes()} will return null.
+     * </p>
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * </p>
      *
      * @return The input stream representing the response body. Will be null if there is no body.
      */
