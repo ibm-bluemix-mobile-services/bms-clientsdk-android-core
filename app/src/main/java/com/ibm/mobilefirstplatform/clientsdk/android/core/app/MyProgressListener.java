@@ -22,8 +22,15 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 
 public class MyProgressListener implements ProgressListener {
 
+
+    private String requestURL;
+
+    public MyProgressListener(String requestURL) {
+        this.requestURL = requestURL;
+    }
+
     @Override
-    public void onProgress(long bytesSoFar, long totalBytesToSend, String requestURL) {
+    public void onProgress(long bytesSoFar, long totalBytesToSend) {
         if (totalBytesToSend > 0) {
             double progress = (double)bytesSoFar / (double)(totalBytesToSend) * 100;
             Log.i("BMSCore", String.format("Progress: %.1f%% for %s", progress, requestURL));

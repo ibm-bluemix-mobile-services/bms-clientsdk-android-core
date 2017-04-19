@@ -23,15 +23,13 @@ public class ProgressRequestBody extends RequestBody {
     private Object payload;
     private ProgressListener listener;
     private RequestBody requestBody;
-    private String requestURL;
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ProgressRequestBody.class.getSimpleName());
 
-    public ProgressRequestBody(Object payload, RequestBody requestBody, String requestURL, ProgressListener listener) {
+    public ProgressRequestBody(Object payload, RequestBody requestBody, ProgressListener listener) {
         this.payload = payload;
         this.listener = listener;
         this.requestBody = requestBody;
-        this.requestURL = requestURL;
     }
 
     @Override
@@ -63,7 +61,7 @@ public class ProgressRequestBody extends RequestBody {
             while ((segment = source.read(sink.buffer(), SEGMENT_SIZE)) != -1) {
                 bytesRead += segment;
                 sink.flush();
-                this.listener.onProgress(bytesRead, contentLength(), requestURL);
+                this.listener.onProgress(bytesRead, contentLength());
             }
         } finally {
             Util.closeQuietly(source);

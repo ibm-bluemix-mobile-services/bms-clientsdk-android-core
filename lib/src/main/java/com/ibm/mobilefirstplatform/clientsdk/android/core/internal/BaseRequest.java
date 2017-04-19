@@ -533,7 +533,7 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), text);
-        ProgressRequestBody progressBody = new ProgressRequestBody(text, body, getUrl(), progressListener);
+        ProgressRequestBody progressBody = new ProgressRequestBody(text, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
     }
@@ -551,7 +551,7 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
-        ProgressRequestBody progressBody = new ProgressRequestBody(data, body, getUrl(), progressListener);
+        ProgressRequestBody progressBody = new ProgressRequestBody(data, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
     }
@@ -569,7 +569,7 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), file);
-        ProgressRequestBody progressBody = new ProgressRequestBody(file, body, getUrl(), progressListener);
+        ProgressRequestBody progressBody = new ProgressRequestBody(file, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
     }
@@ -736,7 +736,7 @@ public class BaseRequest {
         try {
             while ((nextByte = responseStream.read()) != -1) {
                 if (bytesDownloaded % segmentSize == 0) {
-                    progressListener.onProgress(bytesDownloaded, totalBytesExpected, getUrl());
+                    progressListener.onProgress(bytesDownloaded, totalBytesExpected);
                 }
                 responseBytes[bytesDownloaded] = (byte)nextByte;
                 bytesDownloaded += 1;

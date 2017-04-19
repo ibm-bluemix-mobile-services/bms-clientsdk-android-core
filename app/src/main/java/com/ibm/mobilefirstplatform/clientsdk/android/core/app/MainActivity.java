@@ -124,14 +124,13 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 	// Exercise the Request and Response APIs
 	private void sendSomeRequests() {
 		ResponseListener responseListener = new MyResponseListener();
-		ProgressListener progressListener = new MyProgressListener();
 
 		sendCustomUrlRequest(responseListener);
 		sendAutoRetryRequest(responseListener);
-		downloadImage(progressListener, responseListener);
-		uploadData(progressListener, responseListener);
-		uploadFile(progressListener, responseListener);
-		uploadText(progressListener, responseListener);
+		downloadImage(responseListener);
+		uploadData(responseListener);
+		uploadFile(responseListener);
+		uploadText(responseListener);
 	}
 
 	private void sendCustomUrlRequest(ResponseListener responseListener) {
@@ -149,29 +148,40 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 		request504.send(getApplicationContext(), responseListener);
 	}
 
-	private void downloadImage(ProgressListener progressListener, ResponseListener responseListener) {
+	private void downloadImage(ResponseListener responseListener) {
 		Log.i("BMSCore", String.format("\n\nDownloading an image"));
 
 		// Large download
-//		Request downloadRequest = new Request("https://www.spacetelescope.org/static/archives/images/publicationtiff/heic1502a.tif", Request.GET);
+//		String url = "https://www.spacetelescope.org/static/archives/images/publicationtiff/heic1502a.tif";
 		// Medium download
-		Request downloadRequest = new Request("https://cdn.spacetelescope.org/archives/images/publicationjpg/heic1502a.jpg", Request.GET);
+//		String url = "https://cdn.spacetelescope.org/archives/images/publicationjpg/heic1502a.jpg";
 		// Small download
-//		Request downloadRequest = new Request("https://cdn.spacetelescope.org/archives/images/screen/heic1502a.jpg", Request.GET);
+		String url = "https://cdn.spacetelescope.org/archives/images/screen/heic1502a.jpg";
+
+		ProgressListener progressListener = new MyProgressListener(url);
+		Request downloadRequest = new Request("https://cdn.spacetelescope.org/archives/images/publicationjpg/heic1502a.jpg", Request.GET);
 		downloadRequest.download(getApplicationContext(), progressListener, responseListener);
 	}
 
-	private void uploadData(ProgressListener progressListener, ResponseListener responseListener) {
+	private void uploadData(ResponseListener responseListener) {
 		Log.i("BMSCore", String.format("\n\nUploading random data"));
 
-		Request dataUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		String url = "http://httpbin.org/post";
+
+		ProgressListener progressListener = new MyProgressListener(url);
+
+		Request dataUploadRequest = new Request(url, Request.POST);
 		byte[] uploadData = new byte[1000000];
 		new Random().nextBytes(uploadData);
 		dataUploadRequest.upload(getApplicationContext(), uploadData, progressListener, responseListener);
 	}
 
-	private void uploadFile(ProgressListener progressListener, ResponseListener responseListener) {
+	private void uploadFile(ResponseListener responseListener) {
 		Log.i("BMSCore", String.format("\n\nUploading andromeda image"));
+
+		String url = "http://httpbin.org/post";
+
+		ProgressListener progressListener = new MyProgressListener(url);
 
 		File andromedaImage = new File(this.getFilesDir() + File.separator + "andromeda.jpg");
 		try {
@@ -190,20 +200,24 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 			Log.e("BMSCore", "Failed to load andromeda image into a file.");
 		}
 
-		Request imageUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		Request imageUploadRequest = new Request(url, Request.POST);
 		imageUploadRequest.addHeader("Content-Type", "image/jpg");
 		imageUploadRequest.upload(getApplicationContext(), andromedaImage, progressListener, responseListener);
 	}
 
-	private void uploadText(ProgressListener progressListener, ResponseListener responseListener) {
+	private void uploadText(ResponseListener responseListener) {
 		Log.i("BMSCore", String.format("\n\nUploading some text"));
+
+		String url = "http://httpbin.org/post";
+
+		ProgressListener progressListener = new MyProgressListener(url);
 
 		StringBuilder stringBuilder = new StringBuilder(3000000);
 		for (int i = 0; i < 1000000; i++) {
 			stringBuilder.append("ha ");
 		}
 
-		Request textUploadRequest = new Request("http://httpbin.org/post", Request.POST);
+		Request textUploadRequest = new Request(url, Request.POST);
 		textUploadRequest.upload(getApplicationContext(), stringBuilder.toString(), progressListener, responseListener);
 	}
 

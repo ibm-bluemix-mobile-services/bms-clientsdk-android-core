@@ -26,7 +26,6 @@ public interface ProgressListener {
      *
      * @param bytesSoFar            The number of bytes sent or received so far
      * @param totalBytesExpected    The total number of bytes expected to be sent or received
-     * @param requestURL            The URL of the request associated with this progress report
      */
-    void onProgress(long bytesSoFar, long totalBytesExpected, String requestURL);
+    void onProgress(long bytesSoFar, long totalBytesExpected);
 }
