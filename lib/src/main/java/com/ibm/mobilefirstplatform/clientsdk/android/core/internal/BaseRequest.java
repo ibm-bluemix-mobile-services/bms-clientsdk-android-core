@@ -16,7 +16,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressRequestBody;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
