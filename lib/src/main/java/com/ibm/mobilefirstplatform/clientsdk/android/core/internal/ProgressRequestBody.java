@@ -19,7 +19,7 @@ import okio.Source;
 public class ProgressRequestBody extends RequestBody {
 
     // The size of buffer segments used by Okio (2 KiB)
-    protected final int SEGMENT_SIZE = 2048;
+    protected static final int SEGMENT_SIZE = 2048;
 
     private Object payload;
     private ProgressListener listener;
@@ -52,7 +52,8 @@ public class ProgressRequestBody extends RequestBody {
     public void writeTo(BufferedSink sink) throws IOException {
         Source source = getSourceFromPayload(payload);
         if (source == null) {
-            logger.error("Cannot upload this");
+            logger.error("Cannot upload. Unable to read the payload.");
+            return;
         }
 
         try {
@@ -71,7 +72,7 @@ public class ProgressRequestBody extends RequestBody {
 
     protected Source getSourceFromPayload(Object payload) throws IOException {
         if (payload instanceof String) {
-            InputStream stringStream = new ByteArrayInputStream(((String) payload).getBytes("UTF-8"));
+            InputStream stringStream = new ByteArrayInputStream(((String) payload).getBytes(requestBody.contentType().charset()));
             return Okio.source(stringStream);
         }
         else if (payload instanceof File) {

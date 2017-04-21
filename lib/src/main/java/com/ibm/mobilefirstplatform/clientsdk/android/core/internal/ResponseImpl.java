@@ -1,5 +1,5 @@
 /*
- *     Copyright 2015 IBM Corp.
+ *     Copyright 2017 IBM Corp.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -121,7 +121,8 @@ public class ResponseImpl implements Response {
         try {
             return new String(bodyBytes, charset.name());
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            logger.warn("Failed to extract text from response body. Error: " + e.getMessage());
+            return null;
         }
     }
 
@@ -141,7 +142,8 @@ public class ResponseImpl implements Response {
         try {
             return new JSONObject(responseText);
         } catch (JSONException e) {
-            throw new RuntimeException(e);
+            logger.warn("Failed to extract JSON from response body. Error: " + e.getMessage());
+            return null;
         }
     }
 
@@ -164,7 +166,7 @@ public class ResponseImpl implements Response {
                 return IOUtils.toByteArray(responseByteStream);
             }
             catch (IOException e) {
-                logger.warn("Failed to convert response byte stream to byte array. Error: " + e.getMessage());
+                logger.warn("Failed to extract byte array from response body. Error: " + e.getMessage());
                 return null;
             }
         }

@@ -327,7 +327,7 @@ public class BaseRequest {
 
         // If the request body is an empty string, it should be treated as null
         RequestBody body = null;
-        if (requestBody != null && requestBody != "") {
+        if (requestBody != null && requestBody.length() > 0) {
             body = RequestBody.create(MediaType.parse(contentType), requestBody);
         }
 
@@ -528,6 +528,13 @@ public class BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void upload(final String text, final ProgressListener progressListener, ResponseListener responseListener) {
+        if (text == null || text.length() == 0) {
+            if (responseListener != null) {
+                responseListener.onFailure(null, new IllegalArgumentException("Tried to upload empty text"), null);
+            }
+            return;
+        }
+
         String contentTypeHeader = headers.get(CONTENT_TYPE);
         final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN_CONTENT_TYPE;
 
@@ -546,6 +553,13 @@ public class BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void upload(final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
+        if (data == null || data.length == 0) {
+            if (responseListener != null) {
+                responseListener.onFailure(null, new IllegalArgumentException("Tried to upload empty byte array"), null);
+            }
+            return;
+        }
+
         String contentTypeHeader = headers.get(CONTENT_TYPE);
         final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
@@ -640,7 +654,9 @@ public class BaseRequest {
 
     protected void sendRequest(final ProgressListener progressListener, final ResponseListener responseListener, final RequestBody requestBody) {
         if(method == null || !isValidMethod(method)){
-            responseListener.onFailure(null, new IllegalArgumentException("Method is not valid: " + method), null);
+            if (responseListener != null) {
+                responseListener.onFailure(null, new IllegalArgumentException("Method is not valid: " + method), null);
+            }
             return;
         }
 
@@ -655,7 +671,9 @@ public class BaseRequest {
                 requestBuilder.url(getURLWithQueryParameters(url, getQueryParamsMap()));
             }
         } catch (MalformedURLException e) {
-            responseListener.onFailure(null, e, null);
+            if (responseListener != null) {
+                responseListener.onFailure(null, e, null);
+            }
             return;
         }
 
@@ -702,6 +720,9 @@ public class BaseRequest {
 
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
+                if (responseListener == null) {
+                    return;
+                }
                 if (response.isSuccessful() || response.isRedirect()) {
                     Response bmsResponse = new ResponseImpl(response);
                     if (progressListener != null) {

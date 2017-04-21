@@ -19,8 +19,12 @@ import static org.mockito.Mockito.*;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Headers;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONObject;
 
@@ -32,7 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 
-public class RequestTest {
+public class RequestTests {
 
     private CountDownLatch latch = null;
 
@@ -218,5 +222,47 @@ public class RequestTest {
 
         assertTrue(headers != null && headers.size() > 0);
         assertTrue(headers.get(0).equalsIgnoreCase(testHeaderValue));
+    }
+
+    @Test
+    public void testGetCallbackTriggersProgressListener() throws Exception {
+        latch = new CountDownLatch(1);
+
+        setupBMSClient();
+
+        com.squareup.okhttp.Response mockedOkHttpResponse = mock(com.squareup.okhttp.Response.class);
+        when(mockedOkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockedOkHttpResponse.body()).thenReturn(mock(ResponseBody.class));
+        when(mockedOkHttpResponse.request()).thenReturn(mock(com.squareup.okhttp.Request.class));
+        when(mockedOkHttpResponse.headers()).thenReturn(mock(Headers.class));
+
+        ProgressListener progressListener = new DummyProgressListener();
+        ResponseListener responseListener = new DummyResponseListener();
+        Request request = new Request("", "") {
+            @Override
+            protected void updateProgressListener(ProgressListener progressListener, Response response) {
+                latch.countDown();
+            }
+        };
+        Callback callback = request.getCallback(progressListener, responseListener);
+        callback.onResponse(mockedOkHttpResponse);
+
+        assertTrue(latch.await(100, TimeUnit.MILLISECONDS));
+    }
+
+    class DummyResponseListener implements ResponseListener {
+        public void onSuccess(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+            // Do nothing
+        }
+
+        public void onFailure(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response, Throwable t, JSONObject extendedInfo) {
+            // Do nothing
+        }
+    }
+
+    class DummyProgressListener implements ProgressListener {
+        public void onProgress(long bytesSoFar, long totalBytesExpected) {
+            // Do nothing
+        }
     }
 }
