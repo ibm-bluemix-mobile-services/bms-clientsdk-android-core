@@ -31,15 +31,14 @@ import java.util.Map;
 
 
 /**
- * This class is used to create and send a request. It allows to add all the parameters to the request
- * before sending it.
+ * This class is used to create and send network requests.
  */
 public class Request extends BaseRequest {
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + Request.class.getSimpleName());
 
-    private int oauthFailCounter = 0;
-    private RequestBody savedRequestBody;
+    private int oauthFailCounter = 0; // Number of times the request failed authentication
+    private RequestBody savedRequestBody; // Used to resend the original request after successful authentication
     private Context context;
 
 	/**
@@ -372,9 +371,9 @@ public class Request extends BaseRequest {
 
     @Override
     protected void sendRequest(final ProgressListener progressListener, final ResponseListener listener, final RequestBody requestBody) {
+        // Add authorization header if this request is being made to a protected resource
 		AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
         String cachedAuthHeader = authorizationManager.getCachedAuthorizationHeader();
-
         if (cachedAuthHeader != null) {
             removeHeaders("Authorization");
             addHeader("Authorization", cachedAuthHeader);
@@ -391,8 +390,13 @@ public class Request extends BaseRequest {
         final Context ctx = this.context;
 
         return new Callback() {
+
+            // The request failed to complete, so no response was received from the server.
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
+                // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
+                // Note that we also retry requests that receive 504 responses, as seen in the onResponse() method.
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
                     logger.debug("Resending " + request.method() +  " request to " + request.urlString());
@@ -404,18 +408,25 @@ public class Request extends BaseRequest {
                 }
             }
 
+            // If this method is reached, a response (of any type) has been received from the server.
+            // This does not always indicate a successful response.
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
                 if (responseListener == null) {
                     return;
                 }
 
+                // If the request is made to a protected endpoint, see if we need to use AuthorizationManager
+                // to authenticate by resending the request with the correct authorization header.
 				AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
 				int responseCode = response.code();
 				Map<String, List<String>> responseHeaders = response.headers().toMultimap();
 				boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);
 
                 if (isAuthorizationRequired) {
+
+                    // The first oauthFailCounter gets triggered by a 401 (the server is requesting authentication)
+                    // If the oauthFailCounter gets incremented again, then authentication has failed.
                     if (oauthFailCounter++ < 2) {
                         authorizationManager.obtainAuthorization(
                                 ctx,
@@ -436,12 +447,19 @@ public class Request extends BaseRequest {
                         responseListener.onFailure(new ResponseImpl(response), null, null);
                     }
                 } else {
+
+                    // If the response is successful, delegate to the user's
+                    //      1) ResponseListener
+                    //      2) ProgressListener (if applicable)
                     if (response.isSuccessful() || response.isRedirect()) {
                         Response bmsResponse = new ResponseImpl(response);
                         if (progressListener != null) {
                             updateProgressListener(progressListener, bmsResponse);
                         }
                         responseListener.onSuccess(bmsResponse);
+
+                    // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                    // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
                     } else if (numberOfRetries > 0 && response.code() == 504) {
                         numberOfRetries--;
                         logger.debug("Resending " + request.getMethod() +  " request to " + request.getUrl());

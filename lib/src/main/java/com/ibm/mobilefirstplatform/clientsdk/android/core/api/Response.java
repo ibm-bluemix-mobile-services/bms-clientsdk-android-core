@@ -13,14 +13,17 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
+import org.json.JSONObject;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * This class has methods to get more details from the Response to the BaseRequest.
+ * Contains response information from a {@link Request}.
  */
-public interface  Response {
+public interface Response {
 
     /**
      * Returns the URL that the request was made to.
@@ -37,15 +40,9 @@ public interface  Response {
     int getStatus();
 
     /**
-     * <p>
      * This method parses the response body as a String.
      * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
-     * will return null.
-     * </p>
-     *
-     * <p>
-     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
-     * </p>
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return The body of the response as a String. Empty string if there is no body.
      * @throws RuntimeException if the response text can not be parsed to a valid string.
@@ -53,27 +50,30 @@ public interface  Response {
     String getResponseText();
 
     /**
-     * <p>
-     * This method gets the bytes of the response body.
-     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseText()}
-     * will return null.
-     * </p>
+     * This method parses the response body as a JSONObject.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
-     * <p>
-     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
-     * </p>
+     * @return The body of the response as a JSONObject.
+     * @throws RuntimeException if response text can not be parsed to a valid string or if response text is not a valid JSON object.
+     */
+    JSONObject getResponseJSON();
+
+    /**
+     * This method gets the bytes of the response body.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
     byte[] getResponseBytes();
 
     /**
-     * <p>
      * This method gets the response body as an input stream.
-     * </p>
      *
      * <p>
-     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods.
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods,
+     * since the stream will already be closed. Use {@link Response#getResponseBytes()} instead.
      * </p>
      *
      * @return The input stream representing the response body. Will be null if there is no body.

@@ -1,6 +1,5 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.MediaType;
@@ -16,6 +15,12 @@ import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
 
+
+/**
+ * @exclude
+ *
+ * Internal custom RequestBody that monitors the progress of Request or BaseRequest uploads
+ */
 public class ProgressRequestBody extends RequestBody {
 
     // The size of buffer segments used by Okio (2 KiB)

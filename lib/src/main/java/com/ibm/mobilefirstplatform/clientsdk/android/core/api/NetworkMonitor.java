@@ -58,8 +58,8 @@ public class NetworkMonitor {
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + NetworkMonitor.class.getSimpleName());
 
     private Context context;
-    private NetworkChangeReceiver networkReceiver;
-    private TelephonyManager telephonyManager;
+    private NetworkChangeReceiver networkReceiver; // Listens for broadcasted changes in the network connection type
+    private TelephonyManager telephonyManager; // Retrieves the mobile data type (4G, 3G, or 2G)
 
     /**
      * The constructor for NetworkMonitor.
@@ -190,6 +190,7 @@ public class NetworkMonitor {
         return this.networkReceiver;
     }
 
+    // Retrieves information on the current type of network connection that the device is using
     protected NetworkInfo getActiveNetworkInfo() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -210,6 +211,8 @@ public class NetworkMonitor {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            // If the network connection type changes, send the information to the user's NetworkConnectionListener
             if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 NetworkConnectionType newConnectionType = getCurrentConnectionType();
                 if (!newConnectionType.equals(previousConnectionType)) {

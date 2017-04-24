@@ -21,6 +21,7 @@ import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorization
 import java.net.CookiePolicy;
 import java.net.MalformedURLException;
 
+
 /**
  * The BMSClient is a singleton that serves as the entry point to MobileFirst.
  */

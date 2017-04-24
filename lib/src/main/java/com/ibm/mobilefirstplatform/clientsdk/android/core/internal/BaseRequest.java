@@ -13,7 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
@@ -53,7 +52,11 @@ import javax.net.ssl.SSLSocketFactory;
 public class BaseRequest {
 
     public static final int DEFAULT_TIMEOUT = 60000;
+
+    // Header key
     public static final String CONTENT_TYPE = "Content-Type";
+
+    // Header values
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     public static final String TEXT_PLAIN_CONTENT_TYPE = "text/plain";
@@ -88,6 +91,7 @@ public class BaseRequest {
      */
     public final static String OPTIONS = "OPTIONS";
 
+    // The number of times the user wants a request to automatically resend if it fails
     protected int numberOfRetries;
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + BaseRequest.class.getSimpleName());
@@ -313,7 +317,7 @@ public class BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given string as the request body.
-     * If no Content-Type header was set, this method will set it to "text/plain".
+     * If the Content-Type header was not previously set, this method will set it to "text/plain".
      *
      * @param requestBody   The text to put in the request body
      * @param listener      The listener whose onSuccess or onFailure methods will be called when this request finishes
@@ -336,7 +340,7 @@ public class BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given form parameters as the request body.
-     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
+     * If the Content-Type header was not previously set, this method will set it to "application/x-www-form-urlencoded".
      *
      * @param formParameters    The form parameters to put in the request body
      * @param listener          The listener whose onSuccess or onFailure methods will be called when this request finishes
@@ -355,7 +359,7 @@ public class BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given JSON object as the request body.
-     * If no Content-Type header was set, this method will set it to "application/json".
+     * If the Content-Type header was not previously set, this method will set it to "application/json".
      *
      * @param json      The JSON object to put in the request body
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
@@ -374,7 +378,7 @@ public class BaseRequest {
 
     /**
      * Send this resource request asynchronously, with the given byte array as the request body.
-     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * If the Content-Type header was not previously set, this method will set it to "application/octet-stream".
      *
      * @param data      The byte array to put in the request body
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
@@ -410,7 +414,7 @@ public class BaseRequest {
      * <p>
      * Download this resource asynchronously, with the given string as the request body.
      * The download progress will be monitored with a {@link ProgressListener}.
-     * If no Content-Type header was set, this method will set it to "text/plain".
+     * If the Content-Type header was not previously set, this method will set it to "text/plain".
      * </p>
      *
      * <p>
@@ -442,7 +446,7 @@ public class BaseRequest {
      * <p>
      * Download this resource asynchronously, with the given form parameters as the request body.
      * The download progress will be monitored with a {@link ProgressListener}.
-     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
+     * If the Content-Type header was not previously set, this method will set it to "application/x-www-form-urlencoded".
      * </p>
      *
      * <p>
@@ -470,7 +474,7 @@ public class BaseRequest {
      * <p>
      * Download this resource asynchronously, with the given JSON object as the request body.
      * The download progress will be monitored with a {@link ProgressListener}.
-     * If no Content-Type header was set, this method will set it to "application/json".
+     * If the Content-Type header was not previously set, this method will set it to "application/json".
      * </p>
      *
      * <p>
@@ -498,7 +502,7 @@ public class BaseRequest {
      * <p>
      * Download this resource asynchronously, with the given byte array as the request body.
      * The download progress will be monitored with a {@link ProgressListener}.
-     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * If the Content-Type header was not previously set, this method will set it to "application/octet-stream".
      * </p>
      *
      * <p>
@@ -521,7 +525,7 @@ public class BaseRequest {
 
     /**
      * Upload text asynchronously.
-     * If no Content-Type header was set, this method will set it to "text/plain".
+     * If the Content-Type header was not previously set, this method will set it to "text/plain".
      *
      * @param text              The text to upload
      * @param progressListener  The listener that monitors the upload progress
@@ -539,6 +543,7 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), text);
+        // Custom RequestBody wrapper that monitors the progress of the upload
         ProgressRequestBody progressBody = new ProgressRequestBody(text, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
@@ -546,7 +551,7 @@ public class BaseRequest {
 
     /**
      * Upload a byte array asynchronously.
-     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * If the Content-Type header was not previously set, this method will set it to "application/octet-stream".
      *
      * @param data              The byte array to upload
      * @param progressListener  The listener that monitors the upload progress
@@ -564,6 +569,7 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), data);
+        // Custom RequestBody wrapper that monitors the progress of the upload
         ProgressRequestBody progressBody = new ProgressRequestBody(data, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
@@ -571,7 +577,7 @@ public class BaseRequest {
 
     /**
      * Upload a file asynchronously.
-     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * If the Content-Type header was not previously set, this method will set it to "application/octet-stream".
      *
      * @param file              The file to upload
      * @param progressListener  The listener that monitors the upload progress
@@ -582,13 +588,15 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : BINARY_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), file);
+        // Custom RequestBody wrapper that monitors the progress of the upload
         ProgressRequestBody progressBody = new ProgressRequestBody(file, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
     }
 
-    /** Configure this client to follow redirects.
-     * If unset, redirects be followed.
+    /**
+     * Configure this request to follow redirects.
+     * If unset, redirects be followed by default.
      */
     public void setFollowRedirects(boolean followRedirects) {
         getHttpClient().setFollowRedirects(followRedirects);
@@ -698,6 +706,7 @@ public class BaseRequest {
         sendOKHttpRequest(request, getCallback(progressListener, responseListener));
     }
 
+    // Hands off the request to OkHttp
     protected void sendOKHttpRequest(Request request, final Callback callback) {
         OkHttpClient client = getHttpClient();
         client.newCall(request).enqueue(callback);
@@ -707,6 +716,9 @@ public class BaseRequest {
         return new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
+                // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
+                // Note that we also retry requests that receive 504 responses, as seen in the onResponse() method.
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
                     logger.debug("Resending " + request.method() +  " request to " + request.urlString());
@@ -723,6 +735,10 @@ public class BaseRequest {
                 if (responseListener == null) {
                     return;
                 }
+
+                // If the response is successful, delegate to the user's
+                //      1) ResponseListener
+                //      2) ProgressListener (if applicable)
                 if (response.isSuccessful() || response.isRedirect()) {
                     Response bmsResponse = new ResponseImpl(response);
                     if (progressListener != null) {
@@ -736,12 +752,14 @@ public class BaseRequest {
         };
     }
 
+    // As a download request progresses, periodically call the user's ProgressListener
     protected void updateProgressListener(ProgressListener progressListener, Response response) {
         InputStream responseStream = response.getResponseByteStream();
 
         int bytesDownloaded = 0;
         long totalBytesExpected = response.getContentLength();
-        final int segmentSize = 2048; // Reading 2 KiB at a time to be consistent with the upload segment size in ProgressRequestBody
+        // Reading 2 KiB at a time to be consistent with the upload segment size in ProgressRequestBody
+        final int segmentSize = 2048;
 
         byte[] responseBytes;
         if (totalBytesExpected > Integer.MAX_VALUE) {
@@ -752,6 +770,9 @@ public class BaseRequest {
             responseBytes = new byte[(int)totalBytesExpected];
         }
 
+        // For every 2 KiB downloaded:
+        //      1) Call the user's ProgressListener
+        //      2) Append the downloaded bytes into a byte array
         int nextByte;
         try {
             while ((nextByte = responseStream.read()) != -1) {
@@ -766,6 +787,7 @@ public class BaseRequest {
             logger.error("IO Exception: " + e.getMessage());
         }
 
+        // Transfer the downloaded data to the Response object so that the user can later retrieve it
         if (response instanceof ResponseImpl) {
             ((ResponseImpl)response).setResponseBytes(responseBytes);
         }

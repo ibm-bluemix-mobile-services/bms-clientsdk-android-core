@@ -15,6 +15,9 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 
+/**
+ * The listener that will be called as a {@link Request} upload or download is in progress.
+ */
 public interface ProgressListener {
 
     /**
