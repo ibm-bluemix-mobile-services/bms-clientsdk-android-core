@@ -13,10 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
-import org.junit.Test;
-
-import static org.mockito.Mockito.*;
-
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,12 +24,21 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.test.mock.MockContext;
 
+import org.junit.Test;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class NetworkMonitorTests {

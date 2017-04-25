@@ -16,7 +16,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.app;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -26,8 +25,8 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkConnectionType;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.NetworkMonitor;
-import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.mca.api.MCAAuthorizationManager;
@@ -38,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Random;
-
-import static android.provider.CalendarContract.CalendarCache.URI;
 
 
 public class MainActivity extends Activity implements ActivityCompat.OnRequestPermissionsResultCallback {

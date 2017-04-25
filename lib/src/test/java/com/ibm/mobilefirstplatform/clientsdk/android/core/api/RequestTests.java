@@ -12,14 +12,6 @@
 */
 package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
-import org.junit.Test;
-
-import static junit.framework.Assert.*;
-import static org.mockito.Mockito.*;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-
-import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.squareup.okhttp.Callback;
@@ -27,6 +19,7 @@ import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONObject;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class RequestTests {

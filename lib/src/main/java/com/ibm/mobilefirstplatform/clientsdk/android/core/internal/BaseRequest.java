@@ -435,7 +435,7 @@ public class BaseRequest {
 
         // If the request body is an empty string, it should be treated as an null
         RequestBody body = null;
-        if (requestBody != null && requestBody != "") {
+        if (requestBody != null && !requestBody.equals("")) {
             body = RequestBody.create(MediaType.parse(contentType), requestBody);
         }
 

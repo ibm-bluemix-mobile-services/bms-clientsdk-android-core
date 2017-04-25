@@ -24,10 +24,6 @@ import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONObject;
 import org.junit.Test;
-import static junit.framework.Assert.*;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -38,6 +34,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class BaseRequestTests {
 
@@ -689,11 +694,11 @@ public class BaseRequestTests {
 
 
     class DummyResponseListener implements ResponseListener {
-        public void onSuccess(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {
+        public void onSuccess(Response response) {
             // Do nothing
         }
 
-        public void onFailure(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response, Throwable t, JSONObject extendedInfo) {
+        public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
             // Do nothing
         }
     }
