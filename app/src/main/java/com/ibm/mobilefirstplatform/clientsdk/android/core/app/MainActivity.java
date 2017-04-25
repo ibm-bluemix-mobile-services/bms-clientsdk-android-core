@@ -145,7 +145,7 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
 		Log.i("BMSCore", String.format("\n\nSending request to 504 endpoint"));
 
 		Request request504 = new Request("http://httpstat.us/504", Request.POST, 1000, 5);
-		request504.send(getApplicationContext(), responseListener);
+		request504.send(getApplicationContext(), "Sample upload text", responseListener);
 	}
 
 	private void downloadImage(ResponseListener responseListener) {
