@@ -16,6 +16,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import java.net.CookieManager;
 
+
 public abstract class AbstractClient {
 
     protected static final CookieManager cookieManager = new CookieManager();

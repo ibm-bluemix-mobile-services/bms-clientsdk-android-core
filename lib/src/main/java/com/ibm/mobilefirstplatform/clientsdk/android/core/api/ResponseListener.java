@@ -15,6 +15,7 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import org.json.JSONObject;
 
+
 /**
  * ResponseListener is the interface that will be called after the BaseRequest has completed or failed.
  */
@@ -38,7 +39,6 @@ public interface ResponseListener {
 	 * @param t Exception that could have caused the request to fail. null if no Exception thrown.
 	 * @param extendedInfo Contains details regarding operational failure. null if no operational failure occurred.
 	 */
-
 	void onFailure(Response response, Throwable t, JSONObject extendedInfo);
 
 }

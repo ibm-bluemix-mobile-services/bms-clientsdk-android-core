@@ -17,25 +17,28 @@ import android.content.Context;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
 import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * This class is used to create and send a request. It allows to add all the parameters to the request
- * before sending it.
+ * This class is used to create and send network requests.
  */
 public class Request extends BaseRequest {
 
-    private int oauthFailCounter = 0;
-    private RequestBody savedRequestBody;
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + Request.class.getSimpleName());
+
+    private int oauthFailCounter = 0; // Number of times the request failed authentication
+    private RequestBody savedRequestBody; // Used to resend the original request after successful authentication
     private Context context;
 
 	/**
@@ -59,6 +62,20 @@ public class Request extends BaseRequest {
     public Request(String url, String method, int timeout) {
         super(url, method, timeout);
 	}
+
+    /**
+     * Constructs a new resource request with the specified URL, using the specified HTTP method.
+     * Additionally this constructor sets a custom timeout and number of times to automatically
+     * retry failed requests.
+     *
+     * @param url           The resource URL
+     * @param method        The HTTP method to use.
+     * @param timeout       The timeout in milliseconds for this request.
+     * @param autoRetries   The number of times to retry each request if it fails due to timeout or loss of network connection.
+     */
+    public Request(String url, String method, int timeout, int autoRetries) {
+        super(url, method, timeout, autoRetries);
+    }
 
     /**
      * Returns the URL for this resource request.
@@ -123,11 +140,14 @@ public class Request extends BaseRequest {
         super.setHeaders(headers);
     }
 
+
+    //region Send
+
     /**
      * Send this resource request asynchronously, without a request body.
      *
-     * @param context The context that will be passed to authentication listener.
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param context   The context that will be passed to authentication listener.
+     * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void send(Context context, ResponseListener listener) {
         this.context = context;
@@ -135,11 +155,12 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, without a request body.
+     * Send this resource request asynchronously, with the given string as the request body.
+     * If no Content-Type header was set, this method will set it to "text/plain".
      *
-     * @param context The context that will be passed to authentication listener.
-     * @param text The request body text
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param context   The context that will be passed to authentication listener.
+     * @param text      The text to put in the request body
+     * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void send(Context context, String text, ResponseListener listener) {
         this.context = context;
@@ -147,57 +168,265 @@ public class Request extends BaseRequest {
     }
 
     /**
-     * Send this resource request asynchronously, without a request body.
+     * Send this resource request asynchronously, with the given form parameters as the request body.
+     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
      *
-     * @param context The context that will be passed to authentication listener.
-     * @param bytes     The byte array containing the request body
-     * @param listener The listener whose onSuccess or onFailure methods will be called when this request finishes.
+     * @param context           The context that will be passed to authentication listener.
+     * @param formParameters    The parameters to put in the request body
+     * @param listener          The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
-    public void send(Context context, byte[] bytes, ResponseListener listener) {
+    protected void send(Context context, Map<String, String> formParameters, ResponseListener listener) {
         this.context = context;
-        super.send(bytes, listener);
+        super.send(formParameters, listener);
     }
 
+    /**
+     * Send this resource request asynchronously, with the given JSON object as the request body.
+     * If no Content-Type header was set, this method will set it to "application/json".
+     *
+     * @param context   The context that will be passed to authentication listener.
+     * @param json      The JSON object to put in the request body
+     * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    protected void send(Context context, JSONObject json, ResponseListener listener) {
+        this.context = context;
+        super.send(json, listener);
+    }
+
+    /**
+     * Send this resource request asynchronously, with the given byte array as the request body.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     *
+     * @param context   The context that will be passed to authentication listener.
+     * @param data      The byte array to put in the request body
+     * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void send(Context context, byte[] data, ResponseListener listener) {
+        this.context = context;
+        super.send(data, listener);
+    }
+
+    //endregion
+
+
+    // region Download
+
+    /**
+     * <p>
+     * Download this resource asynchronously, without a request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void download(Context context, ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.download(progressListener, responseListener);
+    }
+
+    /**
+     * <p>
+     * Download this resource asynchronously, with the given string as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "text/plain".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param requestBody       The text to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void download(Context context, final String requestBody, ProgressListener progressListener, final ResponseListener responseListener) {
+        this.context = context;
+        super.download(requestBody, progressListener, responseListener);
+    }
+
+    /**
+     * <p>
+     * Download this resource asynchronously, with the given form parameters as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "application/x-www-form-urlencoded".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param formParameters    The parameters to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void download(Context context, Map<String, String> formParameters, ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.download(formParameters, progressListener, responseListener);
+    }
+
+    /**
+     * <p>
+     * Download this resource asynchronously, with the given JSON object as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * If no Content-Type header was set, this method will set it to "application/json".
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param json              The JSON object to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void download(Context context, JSONObject json, ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.download(json, progressListener, responseListener);
+    }
+
+    /**
+     * <p>
+     * Download this resource asynchronously, with the given byte array as the request body.
+     * The download progress will be monitored with a {@link ProgressListener}.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     * </p>
+     *
+     * <p>
+     * <b>Note: </b>This method consumes the <code>InputStream</code> from the response and closes it,
+     * so the {@link Response#getResponseByteStream()} method will always return null for this request.
+     * </p>
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param data              The byte array to put in the request body
+     * @param progressListener  The listener that monitors the download progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void download(Context context, byte[] data, ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.download(data, progressListener, responseListener);
+    }
+
+    // endregion
+
+
+    // region Upload
+
+    /**
+     * Upload text asynchronously.
+     * If no Content-Type header was set, this method will set it to "text/plain".
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param text              The text to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void upload(Context context, final String text, final ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.upload(text, progressListener, responseListener);
+    }
+
+    /**
+     * Upload a byte array asynchronously.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param data              The byte array to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void upload(Context context, final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.upload(data, progressListener, responseListener);
+    }
+
+    /**
+     * Upload a file asynchronously.
+     * This method does not set any Content-Type header; if such a header is required, it must be set before calling this method.
+     *
+     * @param context           The context that will be passed to authentication listener.
+     * @param file              The file to upload
+     * @param progressListener  The listener that monitors the upload progress
+     * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
+     */
+    public void upload(Context context, final File file, final ProgressListener progressListener, ResponseListener responseListener) {
+        this.context = context;
+        super.upload(file, progressListener, responseListener);
+    }
+
+    // endregion
+
+
     @Override
-    protected void sendRequest(final ResponseListener listener, final RequestBody requestBody) {
+    protected void sendRequest(final ProgressListener progressListener, final ResponseListener listener, final RequestBody requestBody) {
+        // Add authorization header if this request is being made to a protected resource
 		AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
         String cachedAuthHeader = authorizationManager.getCachedAuthorizationHeader();
-
         if (cachedAuthHeader != null) {
             removeHeaders("Authorization");
             addHeader("Authorization", cachedAuthHeader);
         }
 
         savedRequestBody = requestBody;
-        super.sendRequest(listener, requestBody);
+        super.sendRequest(progressListener, listener, requestBody);
     }
 
     @Override
-    protected Callback getCallback(final ResponseListener listener) {
+    protected Callback getCallback(final ProgressListener progressListener, final ResponseListener responseListener) {
         final RequestBody requestBody = savedRequestBody;
         final Request request = this;
         final Context ctx = this.context;
 
         return new Callback() {
+
+            // The request failed to complete, so no response was received from the server.
             @Override
             public void onFailure(com.squareup.okhttp.Request request, IOException e) {
-                if (listener != null) {
-                    listener.onFailure(null, e, null);
+                // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
+                // Note that we also retry requests that receive 504 responses, as seen in the onResponse() method.
+                if (numberOfRetries > 0) {
+                    numberOfRetries--;
+                    logger.debug("Resending " + request.method() +  " request to " + request.urlString());
+                    sendOKHttpRequest(request, getCallback(progressListener, responseListener));
+                } else {
+                    if (responseListener != null) {
+                        responseListener.onFailure(null, e, null);
+                    }
                 }
             }
 
+            // If this method is reached, a response (of any type) has been received from the server.
+            // This does not always indicate a successful response.
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
-                if (listener == null) {
+                if (responseListener == null) {
                     return;
                 }
 
+                // If the request is made to a protected endpoint, see if we need to use AuthorizationManager
+                // to authenticate by resending the request with the correct authorization header.
 				AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
 				int responseCode = response.code();
 				Map<String, List<String>> responseHeaders = response.headers().toMultimap();
 				boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);
 
                 if (isAuthorizationRequired) {
+
+                    // The first oauthFailCounter gets triggered by a 401 (the server is requesting authentication)
+                    // If the oauthFailCounter gets incremented again, then authentication has failed.
                     if (oauthFailCounter++ < 2) {
                         authorizationManager.obtainAuthorization(
                                 ctx,
@@ -205,27 +434,46 @@ public class Request extends BaseRequest {
                                     @Override
                                     public void onSuccess(Response response) {
                                         // this will take the auth hader that has been cached by obtainAuthorizationHeader
-                                        request.sendRequest(listener, requestBody);
+                                        request.sendRequest(progressListener, responseListener, requestBody);
                                     }
 
                                     @Override
                                     public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
-                                        listener.onFailure(response, t, extendedInfo);
+                                        responseListener.onFailure(response, t, extendedInfo);
                                     }
                                 }
                         );
                     } else {
-                        listener.onFailure(new ResponseImpl(response), null, null);
+                        responseListener.onFailure(new ResponseImpl(response), null, null);
                     }
                 } else {
+
+                    // If the response is successful, delegate to the user's
+                    //      1) ResponseListener
+                    //      2) ProgressListener (if applicable)
                     if (response.isSuccessful() || response.isRedirect()) {
-                        listener.onSuccess(new ResponseImpl(response));
+                        Response bmsResponse = new ResponseImpl(response);
+                        if (progressListener != null) {
+                            updateProgressListener(progressListener, bmsResponse);
+                        }
+                        responseListener.onSuccess(bmsResponse);
+
+                    // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                    // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
+                    } else if (numberOfRetries > 0 && response.code() == 504) {
+                        numberOfRetries--;
+                        logger.debug("Resending " + request.getMethod() +  " request to " + request.getUrl());
+                        sendOKHttpRequest(response.request(), getCallback(progressListener, responseListener));
                     } else {
-                        listener.onFailure(new ResponseImpl(response), null, null);
+                        responseListener.onFailure(new ResponseImpl(response), null, null);
                     }
                 }
                 response.body().close();
             }
         };
+    }
+
+    protected int getNumberOfRetries() {
+        return numberOfRetries;
     }
 }

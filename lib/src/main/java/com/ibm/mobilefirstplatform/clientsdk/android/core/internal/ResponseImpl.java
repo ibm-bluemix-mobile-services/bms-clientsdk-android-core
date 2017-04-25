@@ -1,5 +1,5 @@
 /*
- *     Copyright 2015 IBM Corp.
+ *     Copyright 2017 IBM Corp.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -13,14 +13,18 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -29,28 +33,45 @@ import java.util.Set;
 
 import static com.squareup.okhttp.internal.Util.UTF_8;
 
+
+/**
+ * Contains response information from a {@link Request}.
+ */
 public class ResponseImpl implements Response {
-    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
+
     private com.squareup.okhttp.Response okHttpResponse;
+    private String requestURL;
     private Headers headers;
     private MediaType contentType;
-    private byte bodyBytes[];
+    private InputStream responseByteStream;
+    private byte[] responseBytes;
 
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
+
+    // Convert OkHttp response into a BMSCore Response
     public ResponseImpl(com.squareup.okhttp.Response response) {
         okHttpResponse = response;
 
         if (okHttpResponse != null) {
+            requestURL = okHttpResponse.request().urlString();
             headers = okHttpResponse.headers();
-
-            try {
-                bodyBytes = okHttpResponse.body().bytes();
-            } catch (Exception e) {
-                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
-                bodyBytes = null;
-            }
-
             contentType = okHttpResponse.body().contentType();
+            try {
+                responseByteStream = okHttpResponse.body().byteStream();
+            }
+            catch (IOException e) {
+                logger.warn("Could not get byte stream of the response body from " + requestURL + ". Error: " + e.getMessage());
+            }
         }
+    }
+
+    /**
+     * Returns the URL that the request was made to.
+     *
+     * @return The URL of the request.
+     */
+    public String getRequestURL() {
+        return okHttpResponse.request().urlString();
     }
 
     /**
@@ -67,12 +88,30 @@ public class ResponseImpl implements Response {
     }
 
     /**
+     * This method gets the Content-Length of the response body.
+     *
+     * @return The content length of the response.
+     */
+    public long getContentLength() {
+        try {
+            return getInternalResponse().body().contentLength();
+        }
+        catch (IOException e) {
+            logger.error("Failed to get the response content length from " + getRequestURL() + ". Error: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * This method parses the response body as a String.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return The body of the response as a String. Empty string if there is no body.
      * @throws RuntimeException if the response text can not be parsed to a valid string.
      */
     public String getResponseText() {
+        byte[] bodyBytes = getResponseBytes();
         if (bodyBytes == null) {
             return "";
         }
@@ -81,12 +120,15 @@ public class ResponseImpl implements Response {
         try {
             return new String(bodyBytes, charset.name());
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            logger.warn("Failed to extract text from response body. Error: " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * This method parses the response body as a JSONObject.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return The body of the response as a JSONObject.
      * @throws RuntimeException if response text can not be parsed to a valid string or if response text is not a valid JSON object.
@@ -101,20 +143,52 @@ public class ResponseImpl implements Response {
         try {
             return new JSONObject(responseText);
         } catch (JSONException e) {
-            throw new RuntimeException(e);
+            logger.warn("Failed to extract JSON from response body. Error: " + e.getMessage());
+            return null;
         }
     }
 
     /**
      * This method gets the bytes of the response body.
+     * If this method is called, then subsequent calls to {@link #getResponseByteStream()} or {@link #getResponseBytes()}
+     * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        return bodyBytes;
+        if (responseBytes == null && responseByteStream != null) {
+            try {
+                return IOUtils.toByteArray(responseByteStream);
+            }
+            catch (IOException e) {
+                logger.warn("Failed to extract byte array from response body. Error: " + e.getMessage());
+                return null;
+            }
+        }
+        return responseBytes;
     }
 
-    /** Returns true if this response redirects to another resource. */
+    protected void setResponseBytes(byte[] responseBytes) {
+        this.responseBytes = responseBytes;
+    }
+
+    /**
+     * This method gets the response body as an input stream.
+     *
+     * <p>
+     * <b>Important: </b>This method may not be used for requests made with any of the {@link Request} download() methods,
+     * since the stream will already be closed. Use {@link Response#getResponseBytes()} instead.
+     * </p>
+     *
+     * @return The input stream representing the response body. Will be null if there is no body.
+     */
+    public InputStream getResponseByteStream() {
+        return this.responseByteStream;
+    }
+
+    /**
+     * Returns true if this response redirects to another resource.
+     */
     public boolean isRedirect() {
         if (okHttpResponse == null) {
             return false;
