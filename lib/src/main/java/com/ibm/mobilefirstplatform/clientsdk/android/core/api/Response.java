@@ -45,7 +45,6 @@ public interface Response {
      * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return The body of the response as a String. Empty string if there is no body.
-     * @throws RuntimeException if the response text can not be parsed to a valid string.
      */
     String getResponseText();
 
@@ -55,7 +54,6 @@ public interface Response {
      * will return null unless the {@link Request} was made using a <code>download()</code> method.
      *
      * @return The body of the response as a JSONObject.
-     * @throws RuntimeException if response text can not be parsed to a valid string or if response text is not a valid JSON object.
      */
     JSONObject getResponseJSON();
 
