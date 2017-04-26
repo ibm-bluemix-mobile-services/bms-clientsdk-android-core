@@ -33,6 +33,18 @@ The package is supported on Android API level 15 and up (Android 4.0.3 and up).
 
 ### Change log
 
+#### 3.0.0
+
+* <b>Auto-retries: </b>The `Request` class has a new constructor parameter to optionally specify the number of times to retry any requests made with that object if the request fails to receive a response (or receives a 504 status).
+
+* <b>Uploading and Downloading: </b>The `Request` class has several new methods for `upload()` and `download()` as alternatives to `send()` for large data transfers. By passing a `ProgressListener` to these methods, the progress of the upload or download can be monitored.
+
+* <b>Network connection monitoring: </b>There is a new API, `NetworkMonitor`, that can be used to determine the current type of network connection available to the Android device, as well as monitor changes in network connection with a `NetworkConnectionListener`.
+
+* <b>Response: </b>The `Response` class includes new methods to retrive response information, including `getRequestURL()`, `getResponseJSON()`, `getResponseByteStream()`, and `getContentLength()`.
+
+* Changed `getResponseText()` and `getResponseJSON()` from the `Response` class to return `null` instead of throwing an exception if the response body cannot be parsed into the relevant data type.
+
 #### 2.2.7
 * Fixed issue when sending a Request with a byte array body, where it would throw a `NullPointerException` when trying to read the content type.
 
