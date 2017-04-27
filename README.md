@@ -5,7 +5,7 @@ IBM Bluemix Mobile Services - Client SDK Android Core
 [![Build Status](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core.svg?branch=development)](https://travis-ci.org/ibm-bluemix-mobile-services/bms-clientsdk-android-core)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ibm.mobilefirstplatform.clientsdk.android/core)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/33762c419c1a4743a0348c93686acb1c)](https://www.codacy.com/app/ibm-bluemix-mobile-services/bms-clientsdk-android-core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ibm-bluemix-mobile-services/bms-clientsdk-android-core&amp;utm_campaign=Badge_Grade)
-[![Coverage Status](https://coveralls.io/repos/github/ibm-bluemix-mobile-services/bms-clientsdk-android-core/badge.svg?branch=code-coverage)](https://coveralls.io/github/ibm-bluemix-mobile-services/bms-clientsdk-android-core?branch=code-coverage)
+[![Coverage Status](https://coveralls.io/repos/github/ibm-bluemix-mobile-services/bms-clientsdk-android-core/badge.svg?branch=development)](https://coveralls.io/github/ibm-bluemix-mobile-services/bms-clientsdk-android-core?branch=development)
 [![javadoc.io](https://javadoc-emblem.rhcloud.com/doc/com.ibm.mobilefirstplatform.clientsdk.android/core/badge.svg)](http://www.javadoc.io/doc/com.ibm.mobilefirstplatform.clientsdk.android/core)
 
 
@@ -32,6 +32,18 @@ This package contains the following APIs:
 The package is supported on Android API level 15 and up (Android 4.0.3 and up).
 
 ### Change log
+
+#### 3.0.0
+
+* <b>Auto-retries: </b>The `Request` class has a new constructor parameter to optionally specify the number of times to retry any requests made with that object if the request fails to receive a response (or receives a 504 status).
+
+* <b>Uploading and Downloading: </b>The `Request` class has several new methods for `upload()` and `download()` as alternatives to `send()` for large data transfers. By passing a `ProgressListener` to these methods, the progress of the upload or download can be monitored.
+
+* <b>Network connection monitoring: </b>There is a new API, `NetworkMonitor`, that can be used to determine the current type of network connection available to the Android device, as well as monitor changes in network connection with a `NetworkConnectionListener`.
+
+* <b>Response: </b>The `Response` class includes new methods to retrive response information, including `getRequestURL()`, `getResponseJSON()`, `getResponseByteStream()`, and `getContentLength()`.
+
+* Changed `getResponseText()` and `getResponseJSON()` from the `Response` class to return `null` instead of throwing an exception if the response body cannot be parsed into the relevant data type.
 
 #### 2.2.7
 * Fixed issue when sending a Request with a byte array body, where it would throw a `NullPointerException` when trying to read the content type.
