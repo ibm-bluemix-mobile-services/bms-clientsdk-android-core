@@ -18,9 +18,9 @@ apply plugin: 'com.github.kt3k.coveralls'
 
 apply from: 'jacoco.gradle'
 
-ext{
-    CORE_SDK_VERSION = '3.0.0'
-}
+//ext{
+//    CORE_SDK_VERSION = '3.0.0'
+//}
 
 android {
     compileSdkVersion 24
@@ -107,78 +107,78 @@ artifacts {
     archives androidLibraryJar
 }
 
-signing {
-    required { isReleaseBuild() }
-    sign configurations.archives
-}
-
-def getRepositoryUsername() {
-    return hasProperty('ossrhUsername') ? ossrhUsername : ''
-}
-
-def getRepositoryPassword() {
-    return hasProperty('ossrhPassword') ? ossrhPassword : ''
-}
-
-def getReleaseRepositoryUrl() {
-    return 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-}
-
-def getSnapshotRepositoryUrl() {
-    return 'https://oss.sonatype.org/content/repositories/snapshots/'
-}
-
-def isReleaseBuild() {
-    return !getVersion().contains('-SNAPSHOT')
-}
-
-def getVersion() {
-    return CORE_SDK_VERSION
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: getReleaseRepositoryUrl()) {
-                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
-            }
-
-            snapshotRepository(url: getSnapshotRepositoryUrl()) {
-                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
-            }
-
-            pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
-            pom.artifactId='core'
-            pom.version = getVersion()
-
-            pom.project {
-                name 'IBM Bluemix Mobile Services - Client SDK Android Core'
-                description 'This is the core component of the Android SDK for IBM Bluemix Mobile Services.'
-                url 'https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core'
-
-                scm {
-                    connection 'scm:git:git@github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core.git'
-                    developerConnection 'scm:git:git@github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core.git'
-                    url 'https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-
-                developers {
-                    developer {
-                        name 'IBM Bluemix Services Mobile SDK'
-                        email 'mobilsdk@us.ibm.com'
-                    }
-                }
-            }
-        }
-    }
-}
+//signing {
+//    required { isReleaseBuild() }
+//    sign configurations.archives
+//}
+//
+//def getRepositoryUsername() {
+//    return hasProperty('ossrhUsername') ? ossrhUsername : ''
+//}
+//
+//def getRepositoryPassword() {
+//    return hasProperty('ossrhPassword') ? ossrhPassword : ''
+//}
+//
+//def getReleaseRepositoryUrl() {
+//    return 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+//}
+//
+//def getSnapshotRepositoryUrl() {
+//    return 'https://oss.sonatype.org/content/repositories/snapshots/'
+//}
+//
+//def isReleaseBuild() {
+//    return !getVersion().contains('-SNAPSHOT')
+//}
+//
+//def getVersion() {
+//    return CORE_SDK_VERSION
+//}
+//
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+//
+//            repository(url: getReleaseRepositoryUrl()) {
+//                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
+//            }
+//
+//            snapshotRepository(url: getSnapshotRepositoryUrl()) {
+//                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
+//            }
+//
+//            pom.groupId='com.ibm.mobilefirstplatform.clientsdk.android'
+//            pom.artifactId='core'
+//            pom.version = getVersion()
+//
+//            pom.project {
+//                name 'IBM Bluemix Mobile Services - Client SDK Android Core'
+//                description 'This is the core component of the Android SDK for IBM Bluemix Mobile Services.'
+//                url 'https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core'
+//
+//                scm {
+//                    connection 'scm:git:git@github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core.git'
+//                    developerConnection 'scm:git:git@github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core.git'
+//                    url 'https://github.com/ibm-bluemix-mobile-services/bms-clientsdk-android-core'
+//                }
+//
+//                licenses {
+//                    license {
+//                        name 'The Apache Software License, Version 2.0'
+//                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                        distribution 'repo'
+//                    }
+//                }
+//
+//                developers {
+//                    developer {
+//                        name 'IBM Bluemix Services Mobile SDK'
+//                        email 'mobilsdk@us.ibm.com'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
