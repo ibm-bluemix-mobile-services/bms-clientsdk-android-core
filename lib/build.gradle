@@ -72,7 +72,10 @@ task generateJavadoc(type: Javadoc) {
 
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
-    exclude '**/internal/**'
+//    exclude '**/internal/**'
+
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
 
     options.links 'http://docs.oracle.com/javase/7/docs/api/'
 
