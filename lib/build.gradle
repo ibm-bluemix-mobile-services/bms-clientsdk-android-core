@@ -15,8 +15,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'com.github.dcendents.android-maven'
 
 apply from: 'jacoco.gradle'
+
+group='com.github.ibm-bluemix-mobile-services'
 
 //ext{
 //    CORE_SDK_VERSION = '3.0.0'
