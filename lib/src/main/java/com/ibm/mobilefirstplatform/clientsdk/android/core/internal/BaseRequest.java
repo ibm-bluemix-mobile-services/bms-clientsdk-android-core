@@ -597,6 +597,8 @@ public class BaseRequest {
     /**
      * Configure this request to follow redirects.
      * If unset, redirects be followed by default.
+     *
+     * @param followRedirects   Should the request follow redirects
      */
     public void setFollowRedirects(boolean followRedirects) {
         getHttpClient().setFollowRedirects(followRedirects);
@@ -797,8 +799,8 @@ public class BaseRequest {
         return httpClient;
     }
 
-    /**
-     * @exclude
+    /*
+     * [Excluded from Javadoc]
      */
     public static void registerInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
@@ -806,8 +808,8 @@ public class BaseRequest {
         }
     }
 
-    /**
-     * @exclude
+    /*
+     * [Excluded from Javadoc]
      */
     public static void unregisterInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
@@ -815,8 +817,8 @@ public class BaseRequest {
         }
     }
 
-	/**
-	 * @exclude
+	/*
+	 * [Excluded from Javadoc]
 	 */
 	public static void setCookieManager(CookieManager cookieManager){
 		httpClient.setCookieHandler(cookieManager);

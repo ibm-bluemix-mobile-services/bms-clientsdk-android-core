@@ -36,12 +36,15 @@ public interface AuthorizationManager {
 	/**
 	 * @return Whether authorization is required
 	 * @param urlConnection HttpURLConnection representing http response
+	 * @throws IOException
 	 */
 	boolean isAuthorizationRequired(HttpURLConnection urlConnection) throws IOException;
 
 	/**
 	 * Starts authorization process
-	 * @param context Context for obtaining authorization. Should be Activity if authorization in interactive
+	 * @param context	Context for obtaining authorization. Should be Activity if authorization in interactive
+	 * @param listener	Used to check whether obtainAuthorization was successful
+	 * @param params	The parameters required for the authorization process
 	 */
 	void obtainAuthorization (Context context, ResponseListener listener, Object... params);
 

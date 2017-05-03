@@ -186,6 +186,7 @@ public class ResponseImpl implements Response {
 
     /**
      * Returns true if this response redirects to another resource.
+     * @return  Whether the request went through a redirect before this response was received
      */
     public boolean isRedirect() {
         if (okHttpResponse == null) {
@@ -197,6 +198,8 @@ public class ResponseImpl implements Response {
     /**
      * Returns true if the code is in [200..300), which means the request was
      * successfully received, understood, and accepted.
+     *
+     * @return  Whether the request was successful
      */
     public boolean isSuccessful() {
         if (okHttpResponse == null) {

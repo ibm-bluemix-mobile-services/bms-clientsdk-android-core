@@ -56,6 +56,7 @@ public class AuthorizationHeaderHelper {
     /**
      * Adds the authorization header to the given URL connection object.
      * @param urlConnection The URL connection to add the header to.
+     * @param header        The authorization header
      */
     public static void addAuthorizationHeader(URLConnection urlConnection, String header) {
         if (header != null) {

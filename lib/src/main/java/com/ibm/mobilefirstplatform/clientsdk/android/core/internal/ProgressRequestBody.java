@@ -16,8 +16,8 @@ import okio.Okio;
 import okio.Source;
 
 
-/**
- * @exclude
+/*
+ * [Excluded from Javadoc]
  *
  * Internal custom RequestBody that monitors the progress of Request or BaseRequest uploads
  */

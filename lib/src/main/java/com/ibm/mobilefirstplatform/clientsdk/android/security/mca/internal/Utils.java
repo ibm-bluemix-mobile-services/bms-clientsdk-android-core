@@ -39,7 +39,7 @@ public class Utils {
 
     /**
      * Obtains a parameter with specified name from from query string. The query should be in format
-     * param=value&param=value ...
+     * param=value&amp;param=value ...
      *
      * @param query     Queery in "url" format.
      * @param paramName Parameter name.

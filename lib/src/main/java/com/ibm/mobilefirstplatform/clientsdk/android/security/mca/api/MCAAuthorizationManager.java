@@ -313,8 +313,8 @@ public class MCAAuthorizationManager implements AuthorizationManager {
         }
     }
 
-    /**
-     * @exclude
+    /*
+     * [Excluded from Javadoc]
      *
      * @param realm authentication realm
      * @return challenge handler for specified realm

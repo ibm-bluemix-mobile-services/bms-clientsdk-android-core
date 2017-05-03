@@ -86,7 +86,6 @@ public class BMSClient extends AbstractClient {
 	 * </p>
 	 * @param context Android application context
 	 * @param bluemixRegion Specifies the Bluemix region to use. Use values in BMSClient.REGION* static props.
-	 * @throws MalformedURLException {@code backendRoute} could not be parsed as a URL.
 	 */
 	public void initialize(Context context, String bluemixRegion){
 		this.bluemixRegionSuffix = bluemixRegion; // Change this if we ever support retries with multiple regions
@@ -115,21 +114,21 @@ public class BMSClient extends AbstractClient {
         return backendGUID;
     }
 
-	/**
-	 * @exclude
+	/*
+	 * [Excluded from Javadoc]
 	 * @return Bluemix region suffix for SDK components to build URLs
 	 */
 	public String getBluemixRegionSuffix(){ return bluemixRegionSuffix;}
 
-    /**
-     * @exclude
+    /*
+     * [Excluded from Javadoc]
      * @return Bluemix region suffix for SDK components to build URLs
      */
     public String getDefaultProtocol(){ return defaultProtocol;}
 
-    /**
-     * @exclude
-     * @return Bluemix region suffix for SDK components to build URLs
+    /*
+     * [Excluded from Javadoc]
+     * @param protocol	The default scheme (HTTP or HTTPS)
      */
     public void setDefaultProtocol(String protocol){ defaultProtocol = protocol;}
 
