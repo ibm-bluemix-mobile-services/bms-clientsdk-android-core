@@ -46,7 +46,7 @@ public class ResponseImpl implements Response {
     private Headers headers;
     private MediaType contentType;
     private InputStream responseByteStream;
-    private byte[] responseBytes;
+   // private byte[] responseBytes;
     private byte[] bodyBytes;
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
@@ -155,7 +155,7 @@ public class ResponseImpl implements Response {
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        if (responseBytes == null && responseByteStream != null) {
+        if (responseByteStream != null) {
             try {
                 return IOUtils.toByteArray(responseByteStream);
             }
@@ -168,7 +168,7 @@ public class ResponseImpl implements Response {
     }
 
     protected void setResponseBytes(byte[] responseBytes) {
-        this.responseBytes = responseBytes;
+        this.bodyBytes = responseBytes;
     }
 
     /**
