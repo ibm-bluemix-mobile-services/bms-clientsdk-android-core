@@ -14,9 +14,9 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.api;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.security.DummyAuthorizationManager;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.Callback;
+import okhttp3.Headers;
+import okhttp3.ResponseBody;
 
 import org.json.JSONObject;
 import org.junit.Test;
@@ -231,10 +231,12 @@ public class RequestTests {
 
         setupBMSClient();
 
-        com.squareup.okhttp.Response mockedOkHttpResponse = mock(com.squareup.okhttp.Response.class);
+        okhttp3.Response mockedOkHttpResponse = mock(okhttp3.Response.class);
+        okhttp3.Call call = mock(okhttp3.Call.class);
+
         when(mockedOkHttpResponse.isSuccessful()).thenReturn(true);
         when(mockedOkHttpResponse.body()).thenReturn(mock(ResponseBody.class));
-        when(mockedOkHttpResponse.request()).thenReturn(mock(com.squareup.okhttp.Request.class));
+        when(mockedOkHttpResponse.request()).thenReturn(mock(okhttp3.Request.class));
         when(mockedOkHttpResponse.headers()).thenReturn(mock(Headers.class));
 
         ProgressListener progressListener = new DummyProgressListener();
@@ -246,10 +248,11 @@ public class RequestTests {
             }
         };
         Callback callback = request.getCallback(progressListener, responseListener);
-        callback.onResponse(mockedOkHttpResponse);
+        callback.onResponse(call, mockedOkHttpResponse);
 
         assertTrue(latch.await(100, TimeUnit.MILLISECONDS));
     }
+
 
     class DummyResponseListener implements ResponseListener {
         public void onSuccess(com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response response) {

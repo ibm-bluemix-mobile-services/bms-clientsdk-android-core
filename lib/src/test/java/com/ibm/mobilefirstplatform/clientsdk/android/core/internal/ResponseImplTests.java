@@ -14,11 +14,11 @@
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -60,7 +60,7 @@ public class ResponseImplTests {
     public void testGetRequestUrl() {
         String expectedUrl = "http://httpbin.org";
         Request mockedRequest = mock(Request.class);
-        when(mockedRequest.urlString()).thenReturn(expectedUrl);
+        when(mockedRequest.toString()).thenReturn(expectedUrl);
         when(mockedOkHttpResponse.request()).thenReturn(mockedRequest);
 
         ResponseImpl response = new ResponseImpl(mockedOkHttpResponse);
@@ -93,7 +93,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.contentLength()).thenReturn(expectedContentLength);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked content length.");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -109,7 +109,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.contentLength()).thenThrow(new IOException());
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked content length.");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -134,7 +134,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(expectedByteStream);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -160,7 +160,7 @@ public class ResponseImplTests {
             when(mockedResponseBody.byteStream()).thenReturn(byteStreamWithUnsupportedEncoding);
             when(mockedResponseBody.contentType()).thenReturn(MediaType.parse("text/plain"));
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -176,7 +176,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(null);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -203,7 +203,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(expectedByteStream);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -228,7 +228,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(expectedByteStream);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -244,7 +244,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(null);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -271,7 +271,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.byteStream()).thenReturn(expectedByteStream);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             fail("Should have been able to get the mocked byte stream.");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);

@@ -16,14 +16,17 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.TLSEnabledSSLSocketFactory;
-import com.squareup.okhttp.OkHttpClient;
+import okhttp3.OkHttpClient;
 
 import java.net.MalformedURLException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * AuthorizationRequest is used internally to send authorization requests.
@@ -31,16 +34,35 @@ import javax.net.ssl.SSLSocketFactory;
 public class AuthorizationRequest extends BaseRequest {
 
     private static OkHttpClient httpClient = new OkHttpClient();
+    private static final OkHttpClient.Builder httpClientB = new OkHttpClient.Builder();
 
     static {
         SSLSocketFactory tlsEnabledSSLSocketFactory;
         try {
+            final TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+            };
             tlsEnabledSSLSocketFactory = new TLSEnabledSSLSocketFactory();
-            httpClient.setSslSocketFactory(tlsEnabledSSLSocketFactory);
+            httpClientB.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
         } catch (KeyManagementException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -54,7 +76,7 @@ public class AuthorizationRequest extends BaseRequest {
         super(url, method);
 
         // we want to handle redirects in-place
-        httpClient.setFollowRedirects(false);
+        httpClientB.followRedirects(false);
     }
 
     /**
@@ -62,14 +84,14 @@ public class AuthorizationRequest extends BaseRequest {
      * @return internal http client
      */
     protected OkHttpClient getHttpClient() {
-        return httpClient;
+        return httpClientB.build();
     }
 
     /**
      * Setup network interceptor.
      */
     public static void setup(){
-        httpClient.setFollowRedirects(false);
+        httpClientB.followRedirects(false);
     }
 
     @Override

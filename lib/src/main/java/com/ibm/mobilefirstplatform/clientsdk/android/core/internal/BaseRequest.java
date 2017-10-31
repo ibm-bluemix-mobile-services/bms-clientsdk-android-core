@@ -13,12 +13,17 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+import android.app.Application;
+import android.util.Base64;
+import android.util.Base64InputStream;
+import android.util.Log;
+
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import com.squareup.okhttp.Callback;
+/*import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.Interceptor;
@@ -26,6 +31,18 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
+*/
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.CookieJar;
+import okhttp3.FormBody;
+import okhttp3.Headers;
+import okhttp3.Interceptor;
+import okhttp3.JavaNetCookieJar;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 import org.json.JSONObject;
 
@@ -37,12 +54,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 
 /**
@@ -103,19 +123,39 @@ public class BaseRequest {
     private Map<String, String> queryParameters;
     private Headers.Builder headers = new Headers.Builder();
 
-    private static final OkHttpClient httpClient = new OkHttpClient();
+    // private static OkHttpClient httpClient = new OkHttpClient;
+    private static final OkHttpClient.Builder httpClientB = new OkHttpClient.Builder();
 
     static {
         SSLSocketFactory tlsEnabledSSLSocketFactory;
         try {
+            final TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+            };
             tlsEnabledSSLSocketFactory = new TLSEnabledSSLSocketFactory();
-            httpClient.setSslSocketFactory(tlsEnabledSSLSocketFactory);
+            httpClientB.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
         } catch (KeyManagementException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
+
 
     /**
      * Constructs a new request with the specified URL, using the specified HTTP method.
@@ -299,11 +339,13 @@ public class BaseRequest {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
 
-        OkHttpClient client = getHttpClient();
 
-        client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
-        client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
-        client.setWriteTimeout(timeout, TimeUnit.MILLISECONDS);
+
+        httpClientB.connectTimeout(timeout, TimeUnit.MILLISECONDS);
+        httpClientB.readTimeout(timeout, TimeUnit.MILLISECONDS);
+        httpClientB.writeTimeout(timeout, TimeUnit.MILLISECONDS);
+
+        // httpClient = httpClientB.build();
     }
 
     /**
@@ -346,10 +388,11 @@ public class BaseRequest {
      * @param listener          The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(Map<String, String> formParameters, ResponseListener listener) {
-        FormEncodingBuilder formBuilder = new FormEncodingBuilder();
 
-        for (Map.Entry<String, String> param : formParameters.entrySet()) {
-            formBuilder.add(param.getKey(), param.getValue());
+        FormBody.Builder formBuilder = new FormBody.Builder();
+
+        for ( Map.Entry<String, String> entry : formParameters.entrySet() ) {
+            formBuilder.add( entry.getKey(), entry.getValue() );
         }
 
         RequestBody body = formBuilder.build();
@@ -459,10 +502,10 @@ public class BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void download(Map<String, String> formParameters, final ProgressListener progressListener, ResponseListener responseListener) {
-        FormEncodingBuilder formBuilder = new FormEncodingBuilder();
+        FormBody.Builder formBuilder = new FormBody.Builder();
 
-        for (Map.Entry<String, String> param : formParameters.entrySet()) {
-            formBuilder.add(param.getKey(), param.getValue());
+        for ( Map.Entry<String, String> entry : formParameters.entrySet() ) {
+            formBuilder.add( entry.getKey(), entry.getValue() );
         }
 
         RequestBody body = formBuilder.build();
@@ -543,7 +586,10 @@ public class BaseRequest {
         final String contentType = contentTypeHeader != null ? contentTypeHeader : TEXT_PLAIN_CONTENT_TYPE;
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), text);
+
+
         // Custom RequestBody wrapper that monitors the progress of the upload
+
         ProgressRequestBody progressBody = new ProgressRequestBody(text, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
@@ -589,6 +635,7 @@ public class BaseRequest {
 
         RequestBody body = RequestBody.create(MediaType.parse(contentType), file);
         // Custom RequestBody wrapper that monitors the progress of the upload
+
         ProgressRequestBody progressBody = new ProgressRequestBody(file, body, progressListener);
 
         sendRequest(null, responseListener, progressBody);
@@ -599,7 +646,9 @@ public class BaseRequest {
      * If unset, redirects be followed by default.
      */
     public void setFollowRedirects(boolean followRedirects) {
-        getHttpClient().setFollowRedirects(followRedirects);
+
+        httpClientB.followSslRedirects(followRedirects);
+        //getHttpClient().setFollowRedirects(followRedirects);
     }
 
     protected URL getURLWithQueryParameters(String url, Map<String, String> queryParameters) throws MalformedURLException {
@@ -708,21 +757,24 @@ public class BaseRequest {
 
     // Hands off the request to OkHttp
     protected void sendOKHttpRequest(Request request, final Callback callback) {
-        OkHttpClient client = getHttpClient();
+        OkHttpClient client = httpClientB.build();
+
         client.newCall(request).enqueue(callback);
     }
 
     protected Callback getCallback(final ProgressListener progressListener, final ResponseListener responseListener) {
         return new Callback() {
+
             @Override
-            public void onFailure(Request request, IOException e) {
+            public void onFailure(Call call, IOException e) {
+
                 // If auto-retries are enabled, and the request hasn't run out of retry attempts,
                 // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
                 // Note that we also retry requests that receive 504 responses, as seen in the onResponse() method.
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
-                    logger.debug("Resending " + request.method() +  " request to " + request.urlString());
-                    sendOKHttpRequest(request, getCallback(progressListener, responseListener));
+                    logger.debug("Resending " + call.request().method() +  " request to " + call.request().toString());
+                    sendOKHttpRequest(call.request(), getCallback(progressListener, responseListener));
                 } else {
                     if (responseListener != null) {
                         responseListener.onFailure(null, e, null);
@@ -731,7 +783,8 @@ public class BaseRequest {
             }
 
             @Override
-            public void onResponse(com.squareup.okhttp.Response response) throws IOException {
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+
                 if (responseListener == null) {
                     return;
                 }
@@ -793,16 +846,16 @@ public class BaseRequest {
         }
     }
 
-    protected OkHttpClient getHttpClient(){
-        return httpClient;
-    }
+//    protected OkHttpClient getHttpClient(){
+//        return httpClient;
+//    }
 
     /**
      * @exclude
      */
     public static void registerInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
-            httpClient.networkInterceptors().add(interceptor);
+            httpClientB.networkInterceptors().add(interceptor);
         }
     }
 
@@ -811,14 +864,14 @@ public class BaseRequest {
      */
     public static void unregisterInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
-            httpClient.networkInterceptors().remove(interceptor);
+            httpClientB.networkInterceptors().remove(interceptor);
         }
     }
 
-	/**
-	 * @exclude
-	 */
-	public static void setCookieManager(CookieManager cookieManager){
-		httpClient.setCookieHandler(cookieManager);
-	}
+    /**
+     * @exclude
+     */
+    public static void setCookieManager(CookieManager CookieManager){
+        httpClientB.cookieJar(new JavaNetCookieJar(CookieManager));
+    }
 }

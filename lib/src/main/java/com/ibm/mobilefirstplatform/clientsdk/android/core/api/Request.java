@@ -19,8 +19,9 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.ResponseImpl;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
 import com.ibm.mobilefirstplatform.clientsdk.android.security.api.AuthorizationManager;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.RequestBody;
+import okhttp3.Call;
+import okhttp3.RequestBody;
+import okhttp3.Callback;
 
 import org.json.JSONObject;
 
@@ -41,7 +42,7 @@ public class Request extends BaseRequest {
     private RequestBody savedRequestBody; // Used to resend the original request after successful authentication
     private Context context;
 
-	/**
+    /**
      * Constructs a new resource request with the specified URL, using the specified HTTP method.
      *
      * @param url    The resource URL, may be either relative or absolute.
@@ -61,7 +62,7 @@ public class Request extends BaseRequest {
      */
     public Request(String url, String method, int timeout) {
         super(url, method, timeout);
-	}
+    }
 
     /**
      * Constructs a new resource request with the specified URL, using the specified HTTP method.
@@ -372,7 +373,7 @@ public class Request extends BaseRequest {
     @Override
     protected void sendRequest(final ProgressListener progressListener, final ResponseListener listener, final RequestBody requestBody) {
         // Add authorization header if this request is being made to a protected resource
-		AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
+        AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
         String cachedAuthHeader = authorizationManager.getCachedAuthorizationHeader();
         if (cachedAuthHeader != null) {
             removeHeaders("Authorization");
@@ -383,6 +384,8 @@ public class Request extends BaseRequest {
         super.sendRequest(progressListener, listener, requestBody);
     }
 
+    //    @Override
+//    protected Callback callback();
     @Override
     protected Callback getCallback(final ProgressListener progressListener, final ResponseListener responseListener) {
         final RequestBody requestBody = savedRequestBody;
@@ -391,16 +394,17 @@ public class Request extends BaseRequest {
 
         return new Callback() {
 
+
             // The request failed to complete, so no response was received from the server.
             @Override
-            public void onFailure(com.squareup.okhttp.Request request, IOException e) {
+            public void onFailure(Call call, IOException e){
                 // If auto-retries are enabled, and the request hasn't run out of retry attempts,
                 // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
                 // Note that we also retry requests that receive 504 responses, as seen in the onResponse() method.
                 if (numberOfRetries > 0) {
                     numberOfRetries--;
-                    logger.debug("Resending " + request.method() +  " request to " + request.urlString());
-                    sendOKHttpRequest(request, getCallback(progressListener, responseListener));
+                    logger.debug("Resending " + call.request().method() +  " request to " + call.request().toString());
+                    sendOKHttpRequest(call.request(), getCallback(progressListener, responseListener));
                 } else {
                     if (responseListener != null) {
                         responseListener.onFailure(null, e, null);
@@ -411,17 +415,17 @@ public class Request extends BaseRequest {
             // If this method is reached, a response (of any type) has been received from the server.
             // This does not always indicate a successful response.
             @Override
-            public void onResponse(com.squareup.okhttp.Response response) throws IOException {
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 if (responseListener == null) {
                     return;
                 }
 
                 // If the request is made to a protected endpoint, see if we need to use AuthorizationManager
                 // to authenticate by resending the request with the correct authorization header.
-				AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
-				int responseCode = response.code();
-				Map<String, List<String>> responseHeaders = response.headers().toMultimap();
-				boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);
+                AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
+                int responseCode = response.code();
+                Map<String, List<String>> responseHeaders = response.headers().toMultimap();
+                boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);
 
                 if (isAuthorizationRequired) {
 
@@ -458,8 +462,8 @@ public class Request extends BaseRequest {
                         }
                         responseListener.onSuccess(bmsResponse);
 
-                    // If auto-retries are enabled, and the request hasn't run out of retry attempts,
-                    // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
+                        // If auto-retries are enabled, and the request hasn't run out of retry attempts,
+                        // then try to send the same request again. Otherwise, delegate to the user's ResponseListener.
                     } else if (numberOfRetries > 0 && response.code() == 504) {
                         numberOfRetries--;
                         logger.debug("Resending " + request.getMethod() +  " request to " + request.getUrl());

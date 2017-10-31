@@ -17,10 +17,10 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 import org.json.JSONObject;
 import org.junit.Test;
@@ -627,7 +627,9 @@ public class BaseRequestTests {
     public void testGetCallbackTriggersProgressListener() throws Exception {
         latch = new CountDownLatch(1);
 
-        com.squareup.okhttp.Response mockedOkHttpResponse = mock(com.squareup.okhttp.Response.class);
+        okhttp3.Response mockedOkHttpResponse = mock(okhttp3.Response.class);
+        okhttp3.Call call = mock(okhttp3.Call.class);
+
         when(mockedOkHttpResponse.isSuccessful()).thenReturn(true);
         when(mockedOkHttpResponse.body()).thenReturn(mock(ResponseBody.class));
         when(mockedOkHttpResponse.request()).thenReturn(mock(Request.class));
@@ -641,7 +643,7 @@ public class BaseRequestTests {
             }
         };
         Callback callback = request.getCallback(progressListener, responseListener);
-        callback.onResponse(mockedOkHttpResponse);
+        callback.onResponse(call, mockedOkHttpResponse);
 
         assertTrue(latch.await(100, TimeUnit.MILLISECONDS));
     }
@@ -662,7 +664,7 @@ public class BaseRequestTests {
         ProgressListener progressListener = new DummyProgressListener();
         BaseRequest request = new BaseRequest("", "");
         request.updateProgressListener(progressListener, mockedResponse);
-        
+
         assertTrue(Arrays.equals(expectedResponseBytes, mockedResponse.getResponseBytes()));
     }
 

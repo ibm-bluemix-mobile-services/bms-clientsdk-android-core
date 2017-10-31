@@ -13,7 +13,7 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal;
 
-import com.squareup.okhttp.Response;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
