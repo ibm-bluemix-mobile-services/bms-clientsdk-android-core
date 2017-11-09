@@ -44,7 +44,6 @@ public class ResponseImpl implements Response {
     private Headers headers;
     private MediaType contentType;
     private InputStream responseByteStream;
-   // private byte[] responseBytes;
     private byte[] bodyBytes;
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
@@ -56,13 +55,18 @@ public class ResponseImpl implements Response {
         if (okHttpResponse != null) {
             requestURL = okHttpResponse.request().toString();
             headers = okHttpResponse.headers();
-            contentType = okHttpResponse.body().contentType();
-            responseByteStream = okHttpResponse.body().byteStream();
             try
             {
+                contentType = okHttpResponse.body().contentType();
+                responseByteStream = okHttpResponse.body().byteStream();
                 this.bodyBytes = this.okHttpResponse.body().bytes();
             }
-            catch (Exception e)
+            catch (NullPointerException e)
+            {
+                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
+                this.bodyBytes = null;
+            }
+            catch (IOException e)
             {
                 logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
                 this.bodyBytes = null;
@@ -98,7 +102,12 @@ public class ResponseImpl implements Response {
      * @return The content length of the response.
      */
     public long getContentLength() {
-        return getInternalResponse().body().contentLength();
+        try {
+            return getInternalResponse().body().contentLength();
+        } catch (NullPointerException e){
+            logger.error("Failed to get the response content length from " + getRequestURL() + ". Error: " + e.getMessage());
+            return 0;
+        }
     }
 
     /**

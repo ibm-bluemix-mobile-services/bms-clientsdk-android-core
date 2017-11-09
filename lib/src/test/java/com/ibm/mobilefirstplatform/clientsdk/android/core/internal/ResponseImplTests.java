@@ -106,12 +106,7 @@ public class ResponseImplTests {
     @Test
     public void testGetContentLengthThrows() {
         ResponseBody mockedResponseBody = mock(ResponseBody.class);
-//        try {
-//            when(mockedResponseBody.contentLength()).thenThrow(new IOException());
-//        }
-//        catch (Exception e) {
-//            fail("Should have been able to get the mocked content length.");
-//        }
+
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
 
         ResponseImpl response = new ResponseImpl(mockedOkHttpResponse);

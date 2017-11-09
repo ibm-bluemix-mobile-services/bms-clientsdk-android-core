@@ -139,7 +139,7 @@ public class BaseRequest {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (RuntimeException e) {
-            logger.error("RuntimeException : "+e.getLocalizedMessage());
+            logger.error("BaseRequest RuntimeException : " + e.getLocalizedMessage());
         }
     }
 
@@ -375,14 +375,7 @@ public class BaseRequest {
      */
     protected void send(Map<String, String> formParameters, ResponseListener listener) {
 
-        FormBody.Builder formBuilder = new FormBody.Builder();
-
-        for ( Map.Entry<String, String> entry : formParameters.entrySet() ) {
-            formBuilder.add( entry.getKey(), entry.getValue() );
-        }
-
-        RequestBody body = formBuilder.build();
-
+        RequestBody body = formBuilder(formParameters);
         sendRequest(null, listener, body);
     }
 
@@ -488,14 +481,8 @@ public class BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void download(Map<String, String> formParameters, final ProgressListener progressListener, ResponseListener responseListener) {
-        FormBody.Builder formBuilder = new FormBody.Builder();
 
-        for ( Map.Entry<String, String> entry : formParameters.entrySet() ) {
-            formBuilder.add( entry.getKey(), entry.getValue() );
-        }
-
-        RequestBody body = formBuilder.build();
-
+        RequestBody body = formBuilder(formParameters);
         sendRequest(progressListener, responseListener, body);
     }
 
@@ -743,7 +730,6 @@ public class BaseRequest {
     // Hands off the request to OkHttp
     protected void sendOKHttpRequest(Request request, final Callback callback) {
         OkHttpClient client = httpClient.build();
-
         client.newCall(request).enqueue(callback);
     }
 
@@ -854,5 +840,15 @@ public class BaseRequest {
      */
     public static void setCookieManager(CookieManager CookieManager){
         httpClient.cookieJar(new JavaNetCookieJar(CookieManager));
+    }
+
+    RequestBody formBuilder(Map<String, String> formParameters){
+
+        FormBody.Builder formBuilder = new FormBody.Builder();
+
+        for ( Map.Entry<String, String> entry : formParameters.entrySet() ) {
+            formBuilder.add( entry.getKey(), entry.getValue() );
+        }
+        return formBuilder.build();
     }
 }
