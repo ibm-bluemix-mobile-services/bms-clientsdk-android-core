@@ -16,6 +16,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.security.mca.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.BaseRequest;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.internal.TLSEnabledSSLSocketFactory;
+import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+
 import okhttp3.OkHttpClient;
 
 import java.net.MalformedURLException;
@@ -34,6 +36,8 @@ import javax.net.ssl.X509TrustManager;
 public class AuthorizationRequest extends BaseRequest {
 
     private static final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+    private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + AuthorizationRequest.class.getSimpleName());
+
 
     static {
         SSLSocketFactory tlsEnabledSSLSocketFactory;
@@ -60,8 +64,8 @@ public class AuthorizationRequest extends BaseRequest {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (RuntimeException e) {
+            logger.error("RuntimeException : "+e.getLocalizedMessage());
         }
     }
 

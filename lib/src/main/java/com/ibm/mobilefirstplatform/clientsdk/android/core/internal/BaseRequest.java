@@ -13,6 +13,8 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+import android.util.Log;
+
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
@@ -136,8 +138,8 @@ public class BaseRequest {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (RuntimeException e) {
+            logger.error("RuntimeException : "+e.getLocalizedMessage());
         }
     }
 

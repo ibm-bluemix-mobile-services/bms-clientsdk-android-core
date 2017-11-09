@@ -384,8 +384,6 @@ public class Request extends BaseRequest {
         super.sendRequest(progressListener, listener, requestBody);
     }
 
-    //    @Override
-//    protected Callback callback();
     @Override
     protected Callback getCallback(final ProgressListener progressListener, final ResponseListener responseListener) {
         final RequestBody requestBody = savedRequestBody;
@@ -416,13 +414,14 @@ public class Request extends BaseRequest {
             // This does not always indicate a successful response.
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
-                if (responseListener == null) {
+                if (responseListener == null || response == null) {
                     return;
                 }
 
                 // If the request is made to a protected endpoint, see if we need to use AuthorizationManager
                 // to authenticate by resending the request with the correct authorization header.
                 AuthorizationManager authorizationManager = BMSClient.getInstance().getAuthorizationManager();
+
                 int responseCode = response.code();
                 Map<String, List<String>> responseHeaders = response.headers().toMultimap();
                 boolean isAuthorizationRequired = authorizationManager.isAuthorizationRequired(responseCode, responseHeaders);

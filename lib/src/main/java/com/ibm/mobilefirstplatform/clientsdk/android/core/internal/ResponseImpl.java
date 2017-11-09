@@ -109,7 +109,6 @@ public class ResponseImpl implements Response {
      * @return The body of the response as a String. Empty string if there is no body.
      */
     public String getResponseText() {
-        // byte[] bodyBytes = getResponseBytes();
         if (this.bodyBytes == null) {
             return "";
         }
