@@ -127,9 +127,8 @@ public class ResponseImplTests {
         try {
             InputStream in = IOUtils.toInputStream(expectedText, "UTF-8");
             expectedByteStream = IOUtils.toByteArray(in);
-                    //toInputStream(expectedText, "UTF-8");
         }
-        catch (Exception e) {
+        catch (IOException e) {
             fail("Should have been able to convert json to input stream");
         }
 
@@ -137,7 +136,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.bytes()).thenReturn(expectedByteStream);
         }
-        catch (Exception e) {
+        catch (IOException e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -198,9 +197,8 @@ public class ResponseImplTests {
         try {
             InputStream in = IOUtils.toInputStream(expectedJSON.toString(), "UTF-8");
             expectedByteStream = IOUtils.toByteArray(in);
-            //expectedByteStream = IOUtils.toInputStream(expectedJSON.toString(), "UTF-8");
         }
-        catch (Exception e) {
+        catch (IOException e) {
             fail("Should have been able to convert json to input stream");
         }
 
@@ -208,7 +206,7 @@ public class ResponseImplTests {
         try {
             when(mockedResponseBody.bytes()).thenReturn(expectedByteStream);
         }
-        catch (Exception e) {
+        catch (IOException e) {
             fail("Should have been able to get the mocked byte stream");
         }
         when(mockedOkHttpResponse.body()).thenReturn(mockedResponseBody);
@@ -225,7 +223,7 @@ public class ResponseImplTests {
         try {
             expectedByteStream = IOUtils.toInputStream(invalidJSON, "UTF-8");
         }
-        catch (Exception e) {
+        catch (IOException e) {
             fail("Should have been able to convert json to input stream");
         }
 
