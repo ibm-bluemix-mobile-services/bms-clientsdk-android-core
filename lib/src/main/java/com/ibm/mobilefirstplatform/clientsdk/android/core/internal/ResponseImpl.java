@@ -13,8 +13,6 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
-import android.util.Log;
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;

@@ -2,9 +2,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-//import com.squareup.okhttp.MediaType;
-//import com.squareup.okhttp.RequestBody;
-//import com.squareup.okhttp.internal.Util;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;

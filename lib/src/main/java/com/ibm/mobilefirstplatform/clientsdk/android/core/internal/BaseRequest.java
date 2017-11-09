@@ -13,28 +13,14 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
-import android.app.Application;
-import android.util.Base64;
-import android.util.Base64InputStream;
-import android.util.Log;
-
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-/*import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-*/
+
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.CookieJar;
 import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
@@ -123,8 +109,7 @@ public class BaseRequest {
     private Map<String, String> queryParameters;
     private Headers.Builder headers = new Headers.Builder();
 
-    // private static OkHttpClient httpClient = new OkHttpClient;
-    private static final OkHttpClient.Builder httpClientB = new OkHttpClient.Builder();
+    private static final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
     static {
         SSLSocketFactory tlsEnabledSSLSocketFactory;
@@ -146,7 +131,7 @@ public class BaseRequest {
                     }
             };
             tlsEnabledSSLSocketFactory = new TLSEnabledSSLSocketFactory();
-            httpClientB.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
+            httpClient.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
         } catch (KeyManagementException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -341,11 +326,10 @@ public class BaseRequest {
 
 
 
-        httpClientB.connectTimeout(timeout, TimeUnit.MILLISECONDS);
-        httpClientB.readTimeout(timeout, TimeUnit.MILLISECONDS);
-        httpClientB.writeTimeout(timeout, TimeUnit.MILLISECONDS);
+        httpClient.connectTimeout(timeout, TimeUnit.MILLISECONDS);
+        httpClient.readTimeout(timeout, TimeUnit.MILLISECONDS);
+        httpClient.writeTimeout(timeout, TimeUnit.MILLISECONDS);
 
-        // httpClient = httpClientB.build();
     }
 
     /**
@@ -647,7 +631,7 @@ public class BaseRequest {
      */
     public void setFollowRedirects(boolean followRedirects) {
 
-        httpClientB.followSslRedirects(followRedirects);
+        httpClient.followSslRedirects(followRedirects);
         //getHttpClient().setFollowRedirects(followRedirects);
     }
 
@@ -757,7 +741,7 @@ public class BaseRequest {
 
     // Hands off the request to OkHttp
     protected void sendOKHttpRequest(Request request, final Callback callback) {
-        OkHttpClient client = httpClientB.build();
+        OkHttpClient client = httpClient.build();
 
         client.newCall(request).enqueue(callback);
     }
@@ -855,7 +839,7 @@ public class BaseRequest {
      */
     public static void registerInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
-            httpClientB.networkInterceptors().add(interceptor);
+            httpClient.networkInterceptors().add(interceptor);
         }
     }
 
@@ -864,7 +848,7 @@ public class BaseRequest {
      */
     public static void unregisterInterceptor(Interceptor interceptor) {
         if (interceptor != null) {
-            httpClientB.networkInterceptors().remove(interceptor);
+            httpClient.networkInterceptors().remove(interceptor);
         }
     }
 
@@ -872,6 +856,6 @@ public class BaseRequest {
      * @exclude
      */
     public static void setCookieManager(CookieManager CookieManager){
-        httpClientB.cookieJar(new JavaNetCookieJar(CookieManager));
+        httpClient.cookieJar(new JavaNetCookieJar(CookieManager));
     }
 }
