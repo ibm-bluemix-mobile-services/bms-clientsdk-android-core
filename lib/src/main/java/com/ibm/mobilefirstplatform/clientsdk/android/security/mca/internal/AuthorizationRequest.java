@@ -33,8 +33,7 @@ import javax.net.ssl.X509TrustManager;
  */
 public class AuthorizationRequest extends BaseRequest {
 
-    private static OkHttpClient httpClient = new OkHttpClient();
-    private static final OkHttpClient.Builder httpClientB = new OkHttpClient.Builder();
+    private static final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
     static {
         SSLSocketFactory tlsEnabledSSLSocketFactory;
@@ -56,7 +55,7 @@ public class AuthorizationRequest extends BaseRequest {
                     }
             };
             tlsEnabledSSLSocketFactory = new TLSEnabledSSLSocketFactory();
-            httpClientB.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
+            httpClient.sslSocketFactory(tlsEnabledSSLSocketFactory, (X509TrustManager)trustAllCerts[0]);
         } catch (KeyManagementException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -76,7 +75,7 @@ public class AuthorizationRequest extends BaseRequest {
         super(url, method);
 
         // we want to handle redirects in-place
-        httpClientB.followRedirects(false);
+        httpClient.followRedirects(false);
     }
 
     /**
@@ -84,14 +83,14 @@ public class AuthorizationRequest extends BaseRequest {
      * @return internal http client
      */
     protected OkHttpClient getHttpClient() {
-        return httpClientB.build();
+        return httpClient.build();
     }
 
     /**
      * Setup network interceptor.
      */
     public static void setup(){
-        httpClientB.followRedirects(false);
+        httpClient.followRedirects(false);
     }
 
     @Override

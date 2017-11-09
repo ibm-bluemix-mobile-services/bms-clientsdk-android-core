@@ -632,7 +632,6 @@ public class BaseRequest {
     public void setFollowRedirects(boolean followRedirects) {
 
         httpClient.followSslRedirects(followRedirects);
-        //getHttpClient().setFollowRedirects(followRedirects);
     }
 
     protected URL getURLWithQueryParameters(String url, Map<String, String> queryParameters) throws MalformedURLException {
@@ -829,10 +828,6 @@ public class BaseRequest {
             ((ResponseImpl)response).setResponseBytes(responseBytes);
         }
     }
-
-//    protected OkHttpClient getHttpClient(){
-//        return httpClient;
-//    }
 
     /**
      * @exclude
