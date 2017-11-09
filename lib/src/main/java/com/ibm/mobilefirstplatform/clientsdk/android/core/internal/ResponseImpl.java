@@ -61,12 +61,7 @@ public class ResponseImpl implements Response {
                 responseByteStream = okHttpResponse.body().byteStream();
                 this.bodyBytes = this.okHttpResponse.body().bytes();
             }
-            catch (NullPointerException e)
-            {
-                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
-                this.bodyBytes = null;
-            }
-            catch (IOException e)
+            catch (NullPointerException | IOException e)
             {
                 logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
                 this.bodyBytes = null;
