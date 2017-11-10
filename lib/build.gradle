@@ -19,18 +19,19 @@ apply plugin: 'com.github.kt3k.coveralls'
 apply from: 'jacoco.gradle'
 
 ext{
-    CORE_SDK_VERSION = '3.0.1-SNAPSHOT'
+    CORE_SDK_VERSION = '3.1.1-SNAPSHOT'
 }
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '24.0.2'
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
         versionName '1.0'
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -54,9 +55,11 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp:okhttp:2.7.4'
-    compile 'commons-io:commons-io:2.5'
+    compile 'com.android.support:multidex:1.0.0'
+    compile 'com.squareup.okhttp3:okhttp:3.9.0'
+    compile 'com.squareup.okhttp3:okhttp-urlconnection:3.9.0'
 
+    compile 'commons-io:commons-io:2.5'
     compile 'com.ibm.mobilefirstplatform.clientsdk.android:analyticsapi:[1.0.0,)'
 
     testCompile 'junit:junit:4.12'

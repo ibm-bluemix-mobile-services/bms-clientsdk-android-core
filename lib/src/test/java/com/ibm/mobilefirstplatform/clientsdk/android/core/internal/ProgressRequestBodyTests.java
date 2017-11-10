@@ -15,8 +15,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.RequestBody;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 import org.junit.Rule;
 import org.junit.Test;
