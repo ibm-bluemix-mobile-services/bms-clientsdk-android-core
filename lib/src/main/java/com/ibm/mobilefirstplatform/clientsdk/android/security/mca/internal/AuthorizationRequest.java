@@ -46,10 +46,12 @@ public class AuthorizationRequest extends BaseRequest {
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                            logger.info("AuthorizationRequest checkClientTrusted method : " + authType );
                         }
 
                         @Override
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                            logger.info("AuthorizationRequest checkServerTrusted method : " + authType );
                         }
 
                         @Override

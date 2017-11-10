@@ -118,10 +118,12 @@ public class BaseRequest {
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                            logger.info("BaseRequest checkClientTrusted method : " + authType );
                         }
 
                         @Override
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                            logger.info("BaseRequest checkServerTrusted method : " + authType );
                         }
 
                         @Override
@@ -840,7 +842,7 @@ public class BaseRequest {
         httpClient.cookieJar(new JavaNetCookieJar(CookieManager));
     }
 
-    RequestBody formBuilder(Map<String, String> formParameters){
+    private RequestBody formBuilder(Map<String, String> formParameters){
 
         FormBody.Builder formBuilder = new FormBody.Builder();
 
