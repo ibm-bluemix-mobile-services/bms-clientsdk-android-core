@@ -16,8 +16,8 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.MediaType;
+import okhttp3.Headers;
+import okhttp3.MediaType;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.squareup.okhttp.internal.Util.UTF_8;
+import static okhttp3.internal.Util.UTF_8;
 
 
 /**
@@ -39,28 +39,32 @@ import static com.squareup.okhttp.internal.Util.UTF_8;
  */
 public class ResponseImpl implements Response {
 
-    private com.squareup.okhttp.Response okHttpResponse;
+    private okhttp3.Response okHttpResponse;
     private String requestURL;
     private Headers headers;
     private MediaType contentType;
     private InputStream responseByteStream;
-    private byte[] responseBytes;
+    private byte[] bodyBytes;
 
     private static Logger logger = Logger.getLogger(Logger.INTERNAL_PREFIX + ResponseImpl.class.getSimpleName());
 
     // Convert OkHttp response into a BMSCore Response
-    public ResponseImpl(com.squareup.okhttp.Response response) {
+    public ResponseImpl(okhttp3.Response response) {
         okHttpResponse = response;
 
         if (okHttpResponse != null) {
-            requestURL = okHttpResponse.request().urlString();
+            requestURL = okHttpResponse.request().toString();
             headers = okHttpResponse.headers();
-            contentType = okHttpResponse.body().contentType();
-            try {
+            try
+            {
+                contentType = okHttpResponse.body().contentType();
                 responseByteStream = okHttpResponse.body().byteStream();
+                this.bodyBytes = this.okHttpResponse.body().bytes();
             }
-            catch (IOException e) {
-                logger.warn("Could not get byte stream of the response body from " + requestURL + ". Error: " + e.getMessage());
+            catch (NullPointerException | IOException e)
+            {
+                logger.error("Response body bytes can't be read: " + e.getLocalizedMessage());
+                this.bodyBytes = null;
             }
         }
     }
@@ -71,7 +75,7 @@ public class ResponseImpl implements Response {
      * @return The URL of the request.
      */
     public String getRequestURL() {
-        return okHttpResponse.request().urlString();
+        return okHttpResponse.request().toString();
     }
 
     /**
@@ -95,8 +99,7 @@ public class ResponseImpl implements Response {
     public long getContentLength() {
         try {
             return getInternalResponse().body().contentLength();
-        }
-        catch (IOException e) {
+        } catch (NullPointerException e){
             logger.error("Failed to get the response content length from " + getRequestURL() + ". Error: " + e.getMessage());
             return 0;
         }
@@ -110,14 +113,13 @@ public class ResponseImpl implements Response {
      * @return The body of the response as a String. Empty string if there is no body.
      */
     public String getResponseText() {
-        byte[] bodyBytes = getResponseBytes();
-        if (bodyBytes == null) {
+        if (this.bodyBytes == null) {
             return "";
         }
 
         Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
         try {
-            return new String(bodyBytes, charset.name());
+            return new String(this.bodyBytes, charset.name());
         } catch (UnsupportedEncodingException e) {
             logger.warn("Failed to extract text from response body. Error: " + e.getMessage());
             return null;
@@ -154,7 +156,7 @@ public class ResponseImpl implements Response {
      * @return the bytes of the response body. Will be null if there is no body.
      */
     public byte[] getResponseBytes() {
-        if (responseBytes == null && responseByteStream != null) {
+        if (responseByteStream != null) {
             try {
                 return IOUtils.toByteArray(responseByteStream);
             }
@@ -163,11 +165,11 @@ public class ResponseImpl implements Response {
                 return null;
             }
         }
-        return responseBytes;
+        return this.bodyBytes;
     }
 
     protected void setResponseBytes(byte[] responseBytes) {
-        this.responseBytes = responseBytes;
+        this.bodyBytes = responseBytes;
     }
 
     /**
@@ -268,7 +270,7 @@ public class ResponseImpl implements Response {
         }
     }
 
-    protected com.squareup.okhttp.Response getInternalResponse(){
+    protected okhttp3.Response getInternalResponse(){
         return okHttpResponse;
     }
 }
