@@ -12,7 +12,7 @@ env:
 jdk:
   - oraclejdk8
 script:
-  - if [ "${TRAVIS_BRANCH}" = "master" ] && [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
+  - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]]; then
       export END_TASK="uploadArchives";
     fi
   - ./gradlew clean assemble jacocoTestReport coveralls ${END_TASK}
@@ -25,4 +25,3 @@ after_script:
   - ./travis-build-trigger.sh 7588402 $TRAVIS_BRANCH $AUTH_TOKEN
   - ./travis-build-trigger.sh 7588405 $TRAVIS_BRANCH $AUTH_TOKEN
   - ./travis-build-trigger.sh 7588407 $TRAVIS_BRANCH $AUTH_TOKEN
-  - ./travis-build-trigger.sh 7588402 $TRAVIS_BRANCH $AUTH_TOKEN
