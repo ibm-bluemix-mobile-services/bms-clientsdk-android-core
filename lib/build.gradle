@@ -31,7 +31,6 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName '1.0'
-        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -55,7 +54,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:multidex:1.0.0'
     compile 'com.squareup.okhttp3:okhttp:3.9.0'
     compile 'com.squareup.okhttp3:okhttp-urlconnection:3.9.0'
 
