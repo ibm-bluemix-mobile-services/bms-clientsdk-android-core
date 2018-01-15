@@ -31,7 +31,7 @@ public class BMSClient extends AbstractClient {
     public final static String REGION_UK = ".eu-gb.bluemix.net";
     public final static String REGION_SYDNEY = ".au-syd.bluemix.net";
     public final static String REGION_GERMANY = ".eu-de.bluemix.net";
-    public final static String WASHINGTON = ".us-east.bluemix.net";
+    public final static String REGION_US_EAST = ".us-east.bluemix.net";
 
 
     public final static String HTTP_SCHEME = "http";
