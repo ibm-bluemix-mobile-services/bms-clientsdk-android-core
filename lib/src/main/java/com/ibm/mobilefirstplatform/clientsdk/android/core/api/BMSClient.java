@@ -26,11 +26,12 @@ import java.net.MalformedURLException;
  * The BMSClient is a singleton that serves as the entry point to MobileFirst.
  */
 public class BMSClient extends AbstractClient {
-
-	public final static String REGION_US_SOUTH = ".ng.bluemix.net";
-	public final static String REGION_UK = ".eu-gb.bluemix.net";
-	public final static String REGION_SYDNEY = ".au-syd.bluemix.net";
-	public final static String REGION_GERMANY = ".eu-de.bluemix.net";
+	
+    public final static String REGION_US_SOUTH = ".ng.bluemix.net";
+    public final static String REGION_UK = ".eu-gb.bluemix.net";
+    public final static String REGION_SYDNEY = ".au-syd.bluemix.net";
+    public final static String REGION_GERMANY = ".eu-de.bluemix.net";
+    public final static String REGION_US_EAST = ".us-east.bluemix.net";
 
 
     public final static String HTTP_SCHEME = "http";
@@ -38,7 +39,7 @@ public class BMSClient extends AbstractClient {
 	
     private String backendRoute = null;
     private String backendGUID = null;
-	private String bluemixRegionSuffix = null;
+    private String bluemixRegionSuffix = null;
     private String defaultProtocol = HTTPS_SCHEME;
 
     protected static AbstractClient instance = null;
