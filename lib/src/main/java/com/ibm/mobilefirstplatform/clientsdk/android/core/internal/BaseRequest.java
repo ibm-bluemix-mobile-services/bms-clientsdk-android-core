@@ -13,11 +13,14 @@
 
 package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 
+import android.content.Context;
+
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ProgressListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+import com.ibm.mobilefirstplatform.clientsdk.android.security.identity.BaseAppIdentity;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -66,6 +69,7 @@ public class BaseRequest {
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     public static final String TEXT_PLAIN_CONTENT_TYPE = "text/plain";
+    public static final String APPLICATION_BUNDLE_ID = "application/bundleId";
 
 
     /**
@@ -307,6 +311,16 @@ public class BaseRequest {
      */
     public void addHeader(String name, String value) {
         headers.add(name, value);
+    }
+
+    /**
+     * Adds the App budle ID to this resource request.
+     *
+     * @param contextValue  context of teh application
+     */
+    public void addAppIDHeader(Context contextValue) {
+        BaseAppIdentity appIdDetails = new BaseAppIdentity(contextValue);
+        headers.add(APPLICATION_BUNDLE_ID, appIdDetails.getId());
     }
 
     /**
