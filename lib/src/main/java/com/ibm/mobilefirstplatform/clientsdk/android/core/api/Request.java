@@ -151,7 +151,7 @@ public class Request extends BaseRequest {
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void send(Context context, ResponseListener listener) {
-        this.context = context;
+        setContext(context);
         super.send(listener);
     }
 
@@ -164,7 +164,7 @@ public class Request extends BaseRequest {
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void send(Context context, String text, ResponseListener listener) {
-        this.context = context;
+        setContext(context);
         super.send(text, listener);
     }
 
@@ -177,7 +177,7 @@ public class Request extends BaseRequest {
      * @param listener          The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(Context context, Map<String, String> formParameters, ResponseListener listener) {
-        this.context = context;
+        setContext(context);
         super.send(formParameters, listener);
     }
 
@@ -190,7 +190,7 @@ public class Request extends BaseRequest {
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     protected void send(Context context, JSONObject json, ResponseListener listener) {
-        this.context = context;
+        setContext(context);
         super.send(json, listener);
     }
 
@@ -203,7 +203,7 @@ public class Request extends BaseRequest {
      * @param listener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void send(Context context, byte[] data, ResponseListener listener) {
-        this.context = context;
+        setContext(context);
         super.send(data, listener);
     }
 
@@ -228,7 +228,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void download(Context context, ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.download(progressListener, responseListener);
     }
 
@@ -250,7 +250,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void download(Context context, final String requestBody, ProgressListener progressListener, final ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.download(requestBody, progressListener, responseListener);
     }
 
@@ -272,7 +272,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void download(Context context, Map<String, String> formParameters, ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.download(formParameters, progressListener, responseListener);
     }
 
@@ -294,7 +294,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void download(Context context, JSONObject json, ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.download(json, progressListener, responseListener);
     }
 
@@ -316,7 +316,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void download(Context context, byte[] data, ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.download(data, progressListener, responseListener);
     }
 
@@ -335,7 +335,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void upload(Context context, final String text, final ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.upload(text, progressListener, responseListener);
     }
 
@@ -349,7 +349,7 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void upload(Context context, final byte[] data, final ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.upload(data, progressListener, responseListener);
     }
 
@@ -363,8 +363,14 @@ public class Request extends BaseRequest {
      * @param responseListener  The listener whose onSuccess or onFailure methods will be called when this request finishes
      */
     public void upload(Context context, final File file, final ProgressListener progressListener, ResponseListener responseListener) {
-        this.context = context;
+        setContext(context);
         super.upload(file, progressListener, responseListener);
+    }
+
+
+    void setContext(Context context) {
+        this.context = context;
+        super.addAppIDHeader(this.context);
     }
 
     // endregion
