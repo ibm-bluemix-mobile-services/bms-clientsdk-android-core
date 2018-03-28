@@ -69,7 +69,7 @@ public class BaseRequest {
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String BINARY_CONTENT_TYPE = "application/octet-stream";
     public static final String TEXT_PLAIN_CONTENT_TYPE = "text/plain";
-    public static final String APPLICATION_BUNDLE_ID = "application/bundleId";
+    public static final String APPLICATION_BUNDLE_ID = "x-bms-core-application/bundleId";
 
 
     /**
