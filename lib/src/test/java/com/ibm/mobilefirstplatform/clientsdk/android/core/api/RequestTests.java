@@ -237,7 +237,8 @@ public class RequestTests {
         when(mockedOkHttpResponse.isSuccessful()).thenReturn(true);
         when(mockedOkHttpResponse.body()).thenReturn(mock(ResponseBody.class));
         when(mockedOkHttpResponse.request()).thenReturn(mock(okhttp3.Request.class));
-        when(mockedOkHttpResponse.headers()).thenReturn(mock(Headers.class));
+        okhttp3.Headers headers = new Headers.Builder().build();
+        when(mockedOkHttpResponse.headers()).thenReturn(headers);
 
         ProgressListener progressListener = new DummyProgressListener();
         ResponseListener responseListener = new DummyResponseListener();
