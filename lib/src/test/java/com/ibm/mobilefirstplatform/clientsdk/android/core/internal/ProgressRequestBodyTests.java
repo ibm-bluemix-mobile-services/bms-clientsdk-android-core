@@ -204,11 +204,12 @@ public class ProgressRequestBodyTests {
     public void testGetSourceFromPayloadWithString() {
         String payloadString = "Upload text";
 
-        MediaType mockedMediaType = mock(MediaType.class);
-        when(mockedMediaType.charset()).thenReturn(Charset.defaultCharset());
-
-        RequestBody mockedRequestBody = mock(RequestBody.class);
-        when(mockedRequestBody.contentType()).thenReturn(mockedMediaType);
+//        MediaType mockedMediaType = mock(MediaType.class);
+//        when(mockedMediaType.charset()).thenReturn(Charset.defaultCharset());
+//
+//        RequestBody mockedRequestBody = mock(RequestBody.class);
+        RequestBody mockedRequestBody = RequestBody.create(MediaType.parse("text/plain"),"empty text");
+       // when(mockedRequestBody.contentType()).thenReturn(mockedMediaType);
 
         ProgressRequestBody progressRequestBody = new ProgressRequestBody(null, mockedRequestBody, null);
         Source result = null;
