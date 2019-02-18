@@ -370,9 +370,6 @@ public class Request extends BaseRequest {
 
     void setContext(Context context) {
         this.context = context;
-        if(context != null) {
-            super.addAppIDHeader(this.context);
-        }
     }
 
     // endregion
