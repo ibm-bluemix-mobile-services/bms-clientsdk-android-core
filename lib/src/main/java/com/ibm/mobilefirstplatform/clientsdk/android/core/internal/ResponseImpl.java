@@ -16,13 +16,6 @@ package com.ibm.mobilefirstplatform.clientsdk.android.core.internal;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
-import okhttp3.Headers;
-import okhttp3.MediaType;
-
-import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -30,8 +23,11 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static okhttp3.internal.Util.UTF_8;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 /**
@@ -117,7 +113,8 @@ public class ResponseImpl implements Response {
             return "";
         }
 
-        Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
+        Charset charset = contentType != null ? contentType.charset(Charset.forName("UTF-8"))
+            : Charset.forName("UTF-8");
         try {
             return new String(this.bodyBytes, charset.name());
         } catch (UnsupportedEncodingException e) {
